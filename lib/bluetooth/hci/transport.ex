@@ -14,7 +14,7 @@ defmodule Bluetooth.HCI.Transport do
             caller: nil,
             max_error_count: @default_max_error_count
 
-  require Logger
+  require Bluetooth.HCIDump.Logger, as: Logger
 
   @type config :: map()
   @type recv_fun :: (binary -> any())
@@ -80,7 +80,9 @@ defmodule Bluetooth.HCI.Transport do
     goto_unopened(data)
   end
 
-  def prepare(:info, {:hci_data, packet}, data) do
+  def prepare(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
+    Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
+
     case handle_packet(packet, data) do
       {:ok, %Harald.HCI.Event.CommandComplete{}, data} ->
         actions = [{:next_event, :internal, :init}]
@@ -108,6 +110,7 @@ defmodule Bluetooth.HCI.Transport do
       ) do
     case module.send_command(pid, command) do
       true ->
+        Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
         {:keep_state, %{data | init_commands: rest}, []}
 
       false ->
@@ -125,6 +128,7 @@ defmodule Bluetooth.HCI.Transport do
   def ready({:call, from}, {:send_command, command}, %{config: %module{}, pid: pid} = data) do
     case module.send_command(pid, command) do
       true ->
+        Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
         {:keep_state, %{data | caller: from}}
 
       false ->
@@ -132,7 +136,9 @@ defmodule Bluetooth.HCI.Transport do
     end
   end
 
-  def ready(:info, {:hci_data, packet}, data) do
+  def ready(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
+    Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
+
     case handle_packet(packet, data) do
       {:ok, %Harald.HCI.Event.CommandComplete{} = reply, data} ->
         actions = maybe_reply(data, {:ok, reply})

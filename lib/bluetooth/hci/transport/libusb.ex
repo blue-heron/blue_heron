@@ -12,8 +12,8 @@ defmodule Bluetooth.HCI.Transport.LibUSB do
             init_commands: []
 
   @impl Bluetooth.HCI.Transport
-  def init_commands(%LibUSB{}) do
-    []
+  def init_commands(%LibUSB{init_commands: init_commands}) do
+    init_commands
   end
 
   @impl Bluetooth.HCI.Transport
@@ -36,7 +36,7 @@ defmodule Bluetooth.HCI.Transport.LibUSB do
 
   @impl true
   def handle_info({port, {:data, data}}, %{port: port, recv: recv} = state) do
-    _ = recv.(data)
+    _ = recv.(<<0x4>> <> data)
     {:noreply, state}
   end
 

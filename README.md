@@ -8,6 +8,35 @@ Rewrite Therapy for an Elixir Bluetooth Library.
 implements the lowest layer of the Bluetooth stack. This project currently uses
 it's partial HCI decoding/encoding functionality.
 
+## HCI Logging
+
+This project includes a Logger backend to dump PKTLOG format. This is the same format
+that Android, IOS, btstack, hcidump, and bluez use.
+
+Add the backend to debug all data to/from the HCI transport:
+
+```elixir
+iex> Logger.add_backend(Bluetooth.HCIDump.Logger)
+Bluetooth.HCIDump.Logger
+```
+
+This will produce a file `/tmp/hcidump.pklg` that can be loaded into Wireshark.
+
+**NOTE** This project configures logger so it is always enabled by default.
+
+The `Bluetooth.HCIDump.Logger` module implements a superset of Elixir's builtin logger and
+all non-HCI data is forwarded directly to Elixir's Logger.
+
+```elixir
+iex> require Bluetooth.HCIDump.Logger, as: Logger
+Bluetooth.HCIDump.Logger
+iex> Logger.debug("sample data")
+
+16:43:46.496 [debug] sample data
+
+iex>
+```
+
 ## Usage
 
 Currently only the HCI transport layer is implemented. See below for examples.
