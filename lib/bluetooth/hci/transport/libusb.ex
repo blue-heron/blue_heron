@@ -1,4 +1,8 @@
 defmodule Bluetooth.HCI.Transport.LibUSB do
+  @moduledoc """
+  Partially implements Volume 4 Part C of the Bluetooth Spec
+  """
+
   use GenServer
   alias Bluetooth.HCI.Transport.LibUSB
   @behaviour Bluetooth.HCI.Transport

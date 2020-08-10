@@ -47,6 +47,7 @@ defmodule Bluetooth.HCI.Transport do
     {:ok, :unopened, data, actions}
   end
 
+  @doc false
   def unopened(:internal, :open_transport, %{config: %module{} = config} = data) do
     this = self()
 
@@ -64,6 +65,7 @@ defmodule Bluetooth.HCI.Transport do
     end
   end
 
+  @doc false
   # postpone calls until init completes
   def prepare({:call, _from}, {:send_command, _command}, _data) do
     {:keep_state_and_data, [:postpone]}
@@ -119,6 +121,7 @@ defmodule Bluetooth.HCI.Transport do
     goto_unopened(data)
   end
 
+  @doc false
   def ready({:call, from}, {:send_command, command}, %{config: %module{}, pid: pid} = data) do
     case module.send_command(pid, command) do
       true ->
