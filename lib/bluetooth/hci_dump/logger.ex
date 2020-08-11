@@ -123,8 +123,6 @@ defmodule Bluetooth.HCIDump.Logger do
     end
   end
 
-  def logfile, do: "/tmp/hcidump.pklg"
-
   #
   # Logger backend callbacks
   #
@@ -184,7 +182,7 @@ defmodule Bluetooth.HCIDump.Logger do
           nil
       end
 
-    if encoded, do: File.write(logfile(), encoded, [:append])
+    if encoded, do: File.write(state[:logfile], encoded, [:append])
 
     {:ok, state}
   end
@@ -210,5 +208,5 @@ defmodule Bluetooth.HCIDump.Logger do
     :ok
   end
 
-  defp configure(opts), do: opts
+  defp configure(opts), do: Keyword.put_new(opts, :logfile, "/tmp/hcidump.pklg")
 end

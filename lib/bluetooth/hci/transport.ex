@@ -12,6 +12,7 @@ defmodule Bluetooth.HCI.Transport do
             config: nil,
             init_commands: [],
             caller: nil,
+            handlers: [],
             max_error_count: @default_max_error_count
 
   require Bluetooth.HCIDump.Logger, as: Logger
@@ -33,8 +34,17 @@ defmodule Bluetooth.HCI.Transport do
   @doc """
   Send a command via the configured transport
   """
+  @spec command(GenServer.server(), binary()) :: {:ok, map()} | {:error, binary()}
   def command(pid, packet) do
     :gen_statem.call(pid, {:send_command, packet})
+  end
+
+  @doc """
+  Subscribe to HCI event messages
+  """
+  @spec add_event_handler(GenServer.server()) :: :ok
+  def add_event_handler(transport) do
+    :gen_statem.call(transport, :add_event_handler)
   end
 
   @impl :gen_statem
@@ -66,8 +76,13 @@ defmodule Bluetooth.HCI.Transport do
   end
 
   @doc false
+  def prepare({:call, {pid, _} = from}, :add_event_handler, data) do
+    IO.puts("#{inspect(pid)} subscribed to Bluetooth events")
+    {:keep_state, %{data | handlers: [pid | data.handlers]}, [{:reply, from, :ok}]}
+  end
+
   # postpone calls until init completes
-  def prepare({:call, _from}, {:send_command, _command}, _data) do
+  def prepare({:call, _from}, _call, _data) do
     {:keep_state_and_data, [:postpone]}
   end
 
@@ -100,6 +115,7 @@ defmodule Bluetooth.HCI.Transport do
 
   def prepare(:internal, :init, %{init_commands: []} = data) do
     Logger.info("Init commands completed successfully")
+    for pid <- data.handlers, do: send(pid, {:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING})
     {:next_state, :ready, data, []}
   end
 
@@ -136,6 +152,15 @@ defmodule Bluetooth.HCI.Transport do
     end
   end
 
+  # TODO Use Elixir Registry for this maybe idk
+  def ready({:call, {pid, _tag} = from}, :add_event_handler, data) do
+    # When in the ready state, send the HCI_STATE_WORKING signal
+    send(pid, {:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING})
+    actions = [{:reply, from, :ok}]
+    data = %{data | handlers: [pid | data.handlers]}
+    {:keep_state, data, actions}
+  end
+
   def ready(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
@@ -155,8 +180,12 @@ defmodule Bluetooth.HCI.Transport do
   # uses Harald to do HCI deserialization.
   defp handle_packet(packet, data) do
     case Harald.HCI.deserialize(packet) do
-      {:ok, reply} -> {:ok, reply, data}
-      {:error, unknown} -> {:error, unknown, data}
+      {:ok, reply} ->
+        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+        {:ok, reply, data}
+
+      {:error, unknown} ->
+        {:error, unknown, data}
     end
   end
 

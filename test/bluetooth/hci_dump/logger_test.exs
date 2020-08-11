@@ -4,21 +4,24 @@ defmodule Bluetooth.HCIDump.LoggerTest do
   require Bluetooth.HCIDump.Logger
 
   test "encodes PKTLogger packets" do
-    uniq = System.unique_integer()
+    uniq = System.unique_integer([:positive])
     test_str = "test string #{uniq}"
+    logfile = Path.join([System.tmp_dir!(), "hcidump-#{uniq}.pkgl"])
+    _ = Logger.remove_backend(Bluetooth.HCIDump.Logger)
 
     # remove the log file for good luck
-    File.rm(Bluetooth.HCIDump.Logger.logfile())
+    File.rm(logfile)
 
     # add the backend
-    Logger.add_backend(Bluetooth.HCIDump.Logger)
+    {:ok, _} = Logger.add_backend(Bluetooth.HCIDump.Logger, flush: true)
+    Logger.configure_backend(Bluetooth.HCIDump.Logger, logfile: logfile)
 
     # send the log
     assert capture_log(fn ->
              Bluetooth.HCIDump.Logger.info(test_str)
            end) =~ test_str
 
-    decoded = Bluetooth.HCIDump.decode_file!(Bluetooth.HCIDump.Logger.logfile())
+    decoded = Bluetooth.HCIDump.decode_file!(logfile)
 
     assert Enum.find(decoded, fn
              %{payload: payload, type: type} ->
