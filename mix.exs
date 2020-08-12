@@ -27,7 +27,8 @@ defmodule Bluetooth.MixProject do
   defp deps do
     [
       {:harald, path: "../harald"},
-      {:elixir_make, "~> 0.6.0", runtime: false}
+      {:elixir_make, "~> 0.6.0", runtime: false},
+      {:circuits_uart, "~> 1.4", optional: true}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
