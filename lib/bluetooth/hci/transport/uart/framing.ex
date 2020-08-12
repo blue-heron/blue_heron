@@ -1,4 +1,4 @@
-defmodule Harald.Transport.UART do
+defmodule Bluetooth.HCI.Transport.UART.Framing do
   @moduledoc """
   A framer module that defines a frame as a HCI packet.
 
