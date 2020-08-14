@@ -26,6 +26,11 @@ defmodule Bluetooth.HCI.Transport.LibUSB do
     GenServer.call(pid, {:send_command, command})
   end
 
+  @impl Bluetooth.HCI.Transport
+  def send_acl(pid, acl) when is_binary(acl) do
+    GenServer.call(pid, {:send_acl, acl})
+  end
+
   @impl GenServer
   def init({_config, recv}) do
     name = {:spawn_executable, port_executable()}
@@ -36,7 +41,7 @@ defmodule Bluetooth.HCI.Transport.LibUSB do
 
   @impl true
   def handle_info({port, {:data, data}}, %{port: port, recv: recv} = state) do
-    _ = recv.(<<0x4>> <> data)
+    _ = recv.(data)
     {:noreply, state}
   end
 
@@ -46,7 +51,11 @@ defmodule Bluetooth.HCI.Transport.LibUSB do
 
   @impl GenServer
   def handle_call({:send_command, packet}, _from, state) do
-    {:reply, :erlang.port_command(state.port, packet), state}
+    {:reply, :erlang.port_command(state.port, <<0x0::8>> <> packet), state}
+  end
+
+  def handle_call({:send_acl, packet}, _from, state) do
+    {:reply, :erlang.port_command(state.port, <<0x1::8>> <> packet), state}
   end
 
   defp port_executable(), do: Application.app_dir(:bluetooth, ["priv", "hci_transport_libusb"])

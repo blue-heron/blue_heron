@@ -21,6 +21,7 @@ defmodule Bluetooth.HCI.Transport do
   @type recv_fun :: (binary -> any())
   @callback start_link(config, recv_fun) :: GenServer.on_start()
   @callback send_command(GenServer.server(), binary()) :: boolean()
+  @callback send_acl(GenServer.server(), binary()) :: boolean()
   @callback init_commands(config) :: [binary()]
 
   @behaviour :gen_statem

@@ -25,6 +25,8 @@
 #define COMMS_IN_FD 3
 #define COMMS_OUT_FD 4
 
+// #define DEBUG
+
 #ifdef DEBUG
 #define log_location stderr
 //#define LOG_PATH "/tmp/circuits_gpio.log"
@@ -51,7 +53,9 @@ static libusb_state_t libusb_state = LIB_USB_CLOSED;
 static libusb_device_handle * handle;
 
 static struct libusb_transfer *command_out_transfer;
+static struct libusb_transfer *acl_out_transfer;
 static struct libusb_transfer *event_in_transfer[EVENT_IN_BUFFER_COUNT];
+static struct libusb_transfer *acl_in_transfer[ACL_IN_BUFFER_COUNT];
 
 // outgoing buffer for HCI Command packets
 static uint8_t hci_cmd_buffer[3 + 256 + LIBUSB_CONTROL_SETUP_SIZE];
@@ -64,8 +68,11 @@ static struct libusb_transfer *handle_packet;
 
 // endpoint addresses
 static int event_in_addr;
+static int acl_in_addr;
+static int acl_out_addr;
 
 static int usb_command_active = 0;
+static int usb_acl_out_active = 0;
 
 static void queue_transfer(struct libusb_transfer *transfer);
 static int usb_close(void);
@@ -107,12 +114,18 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer){
                 return;
             }
         }
+        for (c=0;c<ACL_IN_BUFFER_COUNT;c++){
+            if (transfer == acl_in_transfer[c]){
+                libusb_free_transfer(transfer);
+                acl_in_transfer[c] = 0;
+                return;
+            }
+        }
         return;
     }
 
     int r;
     if (transfer->status == LIBUSB_TRANSFER_COMPLETED) {
-        debug("transfer complete\r\n");
         queue_transfer(transfer);
     } else if (transfer->status == LIBUSB_TRANSFER_STALL){
         debug("-> Transfer stalled, trying again");
@@ -138,23 +151,38 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer){
 static void handle_completed_transfer(struct libusb_transfer *transfer){
 
     int resubmit = 0;
+    int signal_done = 0;
+    unsigned char outbuf[transfer->actual_length+1];
 
     if (transfer->endpoint == event_in_addr) {
-        write(COMMS_OUT_FD, transfer->buffer, transfer->actual_length);
-        // packet_handler(HCI_EVENT_PACKET, transfer->buffer, transfer->actual_length);
+        outbuf[0] = (unsigned char)0x4; // same as UART
+        memcpy(&outbuf[1], transfer->buffer, transfer->actual_length);
+        write(COMMS_OUT_FD, outbuf, transfer->actual_length+1);
+        resubmit = 1;
+    } else if (transfer->endpoint == acl_in_addr) {
+        // debug("-> acl");
+        outbuf[0] = (unsigned char)0x02; // same as UART
+        memcpy(&outbuf[1], transfer->buffer, transfer->actual_length);
+        write(COMMS_OUT_FD, outbuf, transfer->actual_length+1);
         resubmit = 1;
     } else if (transfer->endpoint == 0){
-        debug("command done, size %u", transfer->actual_length);
+        // debug("command done, size %u", transfer->actual_length);
         usb_command_active = 0;
+        signal_done = 1;
+    } else if (transfer->endpoint == acl_out_addr){
+        // debug("acl out done, size %u", transfer->actual_length);
+        usb_acl_out_active = 0;
+        signal_done = 1;
     } else {
-        debug("usb_process endpoint unknown %x", transfer->endpoint);
+        debug("usb_process_ds endpoint unknown %x", transfer->endpoint);
     }
+
+    // if (signal_done){}
 
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return;
 
     if (resubmit){
         // Re-submit transfer 
-        debug("resubmit transfer \r\n");
         transfer->user_data = NULL;
         int r = libusb_submit_transfer(transfer);
         if (r) {
@@ -275,6 +303,8 @@ static int usb_open(void){
 
     // default endpoint addresses
     event_in_addr = 0x81; // EP1, IN interrupt
+    acl_in_addr =   0x82; // EP2, IN bulk
+    acl_out_addr =  0x02; // EP2, OUT bulk
 
     // USB init
     r = libusb_init(NULL);
@@ -430,6 +460,32 @@ static int usb_send_cmd_packet(uint8_t *packet, int size){
     return 0;
 }
 
+static int usb_send_acl_packet(uint8_t *packet, int size){
+    int r;
+
+    if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return -1;
+
+    // debug("usb_send_acl_packet enter, size %u", size);
+    
+    // prepare transfer
+    int completed = 0;
+    libusb_fill_bulk_transfer(acl_out_transfer, handle, acl_out_addr, packet, size,
+        async_callback, &completed, 0);
+    acl_out_transfer->type = LIBUSB_TRANSFER_TYPE_BULK;
+
+    // update stata before submitting transfer
+    usb_acl_out_active = 1;
+
+    r = libusb_submit_transfer(acl_out_transfer);
+    if (r < 0) {
+        usb_acl_out_active = 0;
+        debug("Error submitting acl transfer, %d", r);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int elixir_process() {
   int amnt = HCI_ACL_BUFFER_SIZE;
   uint8_t * buffer = malloc(amnt);
@@ -446,7 +502,15 @@ static int elixir_process() {
       /* EOF. Erlang process was terminated. This happens after a release or if there was an error. */
       exit(EXIT_SUCCESS);
   }
-  return usb_send_cmd_packet(buffer, amount_read);
+  switch(buffer[0]) {
+      case 0x0:
+        return usb_send_cmd_packet(&buffer[1], amount_read-1);
+      case 0x1:
+        return usb_send_acl_packet(&buffer[1], amount_read-1);
+      default:
+        error("Unknwon message from elixir %u", buffer[0]);
+        err(EXIT_FAILURE, "unknown_packet_type");
+  }
 }
 
 int main(int argc, char const *argv[])

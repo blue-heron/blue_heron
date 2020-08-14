@@ -32,6 +32,11 @@ defmodule Bluetooth.HCI.Transport.UART do
     GenServer.call(pid, {:send_command, command})
   end
 
+  @impl Bluetooth.HCI.Transport
+  def send_acl(pid, acl) when is_binary(acl) do
+    GenServer.call(pid, {:send_acl, acl})
+  end
+
   ## Server Callbacks
 
   @impl GenServer
@@ -44,7 +49,12 @@ defmodule Bluetooth.HCI.Transport.UART do
 
   @impl GenServer
   def handle_call({:send_command, message}, _from, %{uart_pid: uart_pid} = state) do
-    {:reply, :ok == UART.write(uart_pid, <<1>> <> message), state}
+    {:reply, :ok == UART.write(uart_pid, <<1::8>> <> message), state}
+  end
+
+  @impl GenServer
+  def handle_call({:send_acl, message}, _from, %{uart_pid: uart_pid} = state) do
+    {:reply, :ok == UART.write(uart_pid, <<2::8>> <> message), state}
   end
 
   @impl GenServer

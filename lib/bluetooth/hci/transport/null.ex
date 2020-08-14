@@ -32,6 +32,11 @@ defmodule Bluetooth.HCI.Transport.NULL do
     GenServer.call(pid, {:send_command, command})
   end
 
+  @impl Bluetooth.HCI.Transport
+  def send_acl(pid, acl) when is_binary(acl) do
+    GenServer.call(pid, {:send_acl, acl})
+  end
+
   @impl GenServer
   def init(config) do
     {:ok, config}
@@ -40,6 +45,12 @@ defmodule Bluetooth.HCI.Transport.NULL do
   @impl GenServer
   def handle_call({:send_command, command}, _from, state) do
     send(self(), {:handle_out, command})
+    {:reply, true, state}
+  end
+
+  @impl GenServer
+  def handle_call({:send_acl, acl}, _from, state) do
+    send(self(), {:handle_out, acl})
     {:reply, true, state}
   end
 
