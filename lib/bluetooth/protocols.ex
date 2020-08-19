@@ -30,6 +30,13 @@ defimpl HCI.Deserializable, for: BitString do
     end
   end
 
+  # Define deserialize/1 for HCI.Event modules
+  for mod <- Bluetooth.HCI.Event.__modules__(), code = mod.__code__() do
+    def deserialize(<<unquote(code), _rest::binary>> = bin) do
+      unquote(mod).deserialize(bin)
+    end
+  end
+
   def deserialize(bin) do
     error = """
     Unable to deserialize #{inspect(bin)}
