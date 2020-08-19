@@ -17,7 +17,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteClassOfDevice do
   * `:status` - see `Bluetooth.ErrorCode`
   """
 
-  defparameters(class: 0x00)
+  defparameters class: 0x00
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode, class: class}) do

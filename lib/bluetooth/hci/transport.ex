@@ -107,7 +107,7 @@ defmodule Bluetooth.HCI.Transport do
   def prepare(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
-    case handle_packet(packet, data) do
+    case handle_packet(hci, data) do
       {:ok, %CommandComplete{}, data} ->
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
@@ -134,8 +134,10 @@ defmodule Bluetooth.HCI.Transport do
   def prepare(
         :internal,
         :init,
-        %{pid: pid, config: %module{}, init_commands: [command | rest]} = data
+        %{pid: pid, config: %module{}, init_commands: [%{} = command | rest]} = data
       ) do
+    command = serialize(command)
+
     case module.send_command(pid, command) do
       true ->
         Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
@@ -182,7 +184,7 @@ defmodule Bluetooth.HCI.Transport do
   def ready(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
-    case handle_packet(packet, data) do
+    case handle_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
         actions = maybe_reply(data, reply)
         {:keep_state, %{data | caller: nil}, actions}
@@ -204,7 +206,7 @@ defmodule Bluetooth.HCI.Transport do
   # uses Harald to do HCI deserialization.
   defp handle_packet(packet, data) do
     case deserialize(packet) do
-      {:ok, reply} ->
+      %{} = reply ->
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
         {:ok, reply, data}
 

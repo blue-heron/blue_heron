@@ -78,7 +78,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.SetEventMask do
     61 => :le_meta
   }
 
-  defparameters(Map.values(@events_map))
+  defparameters Enum.map(@events_map, fn {_bit_position, name} -> {name, true} end)
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode} = sem) do

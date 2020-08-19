@@ -17,7 +17,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteLocalName do
   * `:status` - see `Bluetooth.ErrorCode`
   """
 
-  defparameters(name: "Bluetooth")
+  defparameters name: "Bluetooth"
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode, name: name}) do
