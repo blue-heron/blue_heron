@@ -2,7 +2,7 @@ defmodule Bluetooth.HCI.Command do
   @callback return_parameters(binary()) :: map() | binary()
   @callback deserialize(binary()) :: term()
 
-  alias __MODULE__.{ControllerAndBaseband, LEController}
+  alias __MODULE__.{ControllerAndBaseband, LEController, LinkPolicy}
 
   @modules [
     ControllerAndBaseband.ReadLocalName,
@@ -14,7 +14,8 @@ defmodule Bluetooth.HCI.Command do
     ControllerAndBaseband.WritePageTimeout,
     ControllerAndBaseband.WriteSimplePairingMode,
     LEController.CreateConnection,
-    LEController.SetScanEnable
+    LEController.SetScanEnable,
+    LinkPolicy.WriteDefaultLinkPolicySettings
   ]
 
   def __modules__(), do: @modules
