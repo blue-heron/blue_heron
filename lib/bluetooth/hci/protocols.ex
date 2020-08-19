@@ -1,18 +1,18 @@
-defprotocol HCI.Serializable do
+defprotocol Bluetooth.HCI.Serializable do
   @doc """
   Serialize an HCI data structure as a binary
   """
   def serialize(hci_struct)
 end
 
-defprotocol HCI.Deserializable do
+defprotocol Bluetooth.HCI.Deserializable do
   @doc """
   Deserialize a binary into HCI data structures
   """
   def deserialize(bin)
 end
 
-defprotocol HCI.CommandComplete.ReturnParameters do
+defprotocol Bluetooth.HCI.CommandComplete.ReturnParameters do
   @doc """
   Protocol for handling command return_parameters in CommandComplete event
 
@@ -22,7 +22,7 @@ defprotocol HCI.CommandComplete.ReturnParameters do
   def parse(cc_struct)
 end
 
-defimpl HCI.Deserializable, for: BitString do
+defimpl Bluetooth.HCI.Deserializable, for: BitString do
   # Define deserialize/1 for HCI.Command modules
   for mod <- Bluetooth.HCI.Command.__modules__(), opcode = mod.__opcode__() do
     def deserialize(unquote(opcode) <> _ = bin) do
@@ -52,7 +52,7 @@ defimpl HCI.Deserializable, for: BitString do
   end
 end
 
-defimpl HCI.CommandComplete.ReturnParameters, for: Bluetooth.HCI.Event.CommandComplete do
+defimpl Bluetooth.HCI.CommandComplete.ReturnParameters, for: Bluetooth.HCI.Event.CommandComplete do
   def parse(cc) do
     %{cc | return_parameters: do_parse(cc.opcode, cc.return_parameters)}
   end
