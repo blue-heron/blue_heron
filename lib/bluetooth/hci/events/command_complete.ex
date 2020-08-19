@@ -28,6 +28,20 @@ defmodule Bluetooth.HCI.Event.CommandComplete do
     end
   end
 
+  defimpl Bluetooth.HCI.CommandComplete.ReturnParameters do
+    def parse(cc) do
+      %{cc | return_parameters: do_parse(cc.opcode, cc.return_parameters)}
+    end
+
+    # Generate return_parameter parsing function for all available command
+    # modules based on the requirements in Bluetooth.HCI.Command behaviour
+    for mod <- Bluetooth.HCI.Command.__modules__(), opcode = mod.__opcode__() do
+      defp do_parse(unquote(opcode), rp_bin) do
+        unquote(mod).return_parameters(rp_bin)
+      end
+    end
+  end
+
   @impl Bluetooth.HCI.Event
   def deserialize(<<@code, _size, num_hci_command_packets::8, opcode::binary-2, rp_bin::binary>>) do
     command_complete = %__MODULE__{

@@ -104,7 +104,7 @@ defmodule Bluetooth.HCI.Transport do
     goto_unopened(data)
   end
 
-  def prepare(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
+  def prepare(:info, {:hci_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
     case handle_packet(hci, data) do
@@ -181,7 +181,7 @@ defmodule Bluetooth.HCI.Transport do
     {:keep_state, data, actions}
   end
 
-  def ready(:info, {:hci_data, <<0x4, hci::binary>> = packet}, data) do
+  def ready(:info, {:hci_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
     case handle_packet(hci, data) do
