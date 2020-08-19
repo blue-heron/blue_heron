@@ -27,7 +27,7 @@ defmodule Bluetooth.HCI.Event.DisconnectionComplete do
     :status_name
   ]
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(dc) do
       bin = <<
         Bluetooth.ErrorCode.error_code!(dc.status),

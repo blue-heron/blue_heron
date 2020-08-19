@@ -19,7 +19,7 @@ defmodule Bluetooth.HCI.Event.LEMeta.AdvertisingReport do
 
   defparameters devices: [], num_reports: 0
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(report) do
       {:ok, bin} = Device.serialize(report.devices)
       size = byte_size(bin) + 1

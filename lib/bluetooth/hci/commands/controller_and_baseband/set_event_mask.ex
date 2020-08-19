@@ -80,7 +80,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.SetEventMask do
 
   defparameters(Map.values(@events_map))
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode} = sem) do
       mask = SetEventMask.mask_events(sem)
       size = byte_size(mask)

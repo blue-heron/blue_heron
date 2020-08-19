@@ -38,7 +38,7 @@ defmodule Bluetooth.HCI.Event.LEMeta.ConnectionComplete do
     :master_clock_accuracy
   ]
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(cc) do
       bin = <<
         cc.subevent_code,

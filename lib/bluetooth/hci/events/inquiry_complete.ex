@@ -13,7 +13,7 @@ defmodule Bluetooth.HCI.Event.InquiryComplete do
 
   defparameters [:status, :status_name]
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(data) do
       <<data.code, 1, data.status>>
     end

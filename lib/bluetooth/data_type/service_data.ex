@@ -6,7 +6,6 @@ defmodule Bluetooth.DataType.ServiceData do
   Reference: Core Specification Supplement, Part A, section 1.11.1
   """
 
-  alias Bluetooth.Serializable
   require Bluetooth.AssignedNumbers.GenericAccessProfile, as: GenericAccessProfile
 
   @description_32 "Service Data - 32-bit UUID"

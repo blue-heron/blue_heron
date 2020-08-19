@@ -9,12 +9,12 @@ defmodule Bluetooth.HCI.Event.CommandComplete do
   Reference: Version 5.2, Vol 4, Part E, 7.7.14
   """
 
-  require HCI.CommandComplete.ReturnParameters
+  require Bluetooth.HCI.CommandComplete.ReturnParameters
   require Logger
 
   defparameters [:num_hci_command_packets, :opcode, :return_parameters]
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(data) do
       bin = <<
         data.num_hci_command_packets::8,
@@ -42,7 +42,7 @@ defmodule Bluetooth.HCI.Event.CommandComplete do
   def deserialize(bin), do: {:error, bin}
 
   def maybe_parse_return_parameters(cc) do
-    HCI.CommandComplete.ReturnParameters.parse(cc)
+    Bluetooth.HCI.CommandComplete.ReturnParameters.parse(cc)
   catch
     kind, value ->
       Logger.warn("""

@@ -19,7 +19,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteClassOfDevice do
 
   defparameters(class: 0x00)
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode, class: class}) do
       <<opcode::binary, 3, class::24>>
     end

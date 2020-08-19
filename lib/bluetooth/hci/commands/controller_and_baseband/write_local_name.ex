@@ -19,7 +19,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteLocalName do
 
   defparameters(name: "Bluetooth")
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode, name: name}) do
       padded = for _i <- 1..(248 - byte_size(name)), into: name, do: <<0>>
       <<opcode::binary, 248, padded::binary>>

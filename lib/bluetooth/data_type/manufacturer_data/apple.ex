@@ -7,7 +7,7 @@ defmodule Bluetooth.DataType.ManufacturerData.Apple do
   Reference: https://en.wikipedia.org/wiki/IBeacon#Packet_Structure_Byte_Map
   """
 
-  alias Bluetooth.{ManufacturerDataBehaviour, Serializable}
+  alias Bluetooth.ManufacturerDataBehaviour
 
   @behaviour ManufacturerDataBehaviour
 

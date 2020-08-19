@@ -89,7 +89,7 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
     max_ce_length: 0x0054
   )
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(cc) do
       fields = <<
         cc.le_scan_interval::16-little,

@@ -13,6 +13,8 @@ defmodule Bluetooth.HCI.Transport.NULL do
   use GenServer
   require Logger
   alias Bluetooth.HCI.Transport.NULL
+  import Bluetooth.HCI.Serializable, only: [serialize: 1]
+
   @behaviour Bluetooth.HCI.Transport
 
   defstruct replies: %{},
@@ -59,7 +61,7 @@ defmodule Bluetooth.HCI.Transport.NULL do
     # attach a 0x04 here due to a bug in Harald's HCI deserialize funciton
     case state.replies[command] do
       %{} = reply ->
-        {:ok, binary} = Harald.HCI.serialize(reply)
+        {:ok, binary} = serialize(reply)
         state.recv.(<<0x04>> <> binary)
 
       reply when is_binary(reply) ->

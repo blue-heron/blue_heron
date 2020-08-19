@@ -37,7 +37,7 @@ defmodule Bluetooth.HCI.Event.CommandStatus do
     :status
   ]
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(data) do
       bin = <<
         data.num_hci_command_packets::8,

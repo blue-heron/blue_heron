@@ -42,6 +42,12 @@ defmodule Bluetooth do
     raise ArgumentError, "Transport and L2CAP must be started before starting SecurityManager"
   end
 
+  @doc "Start a gatt client"
+  @spec gatt_client(Context.t()) :: Context.t()
+  def gatt_client(%Context{} = _context) do
+    raise "Not implemented yet"
+  end
+
   @doc "Subscribe to HCI events"
   def add_event_handler(%Context{transport: transport}) when is_pid(transport) do
     Transport.add_event_handler(transport)

@@ -37,7 +37,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteSimplePairingMode do
 
   defparameters(enabled: false)
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode, enabled: enabled?}) do
       val = if enabled?, do: <<1>>, else: <<0>>
       <<opcode::binary, 1, val::binary>>

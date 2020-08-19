@@ -27,7 +27,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.Reset do
 
   defparameters([])
 
-  defimpl HCI.Serializable do
+  defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode}) do
       <<opcode::binary, 0::8, "">>
     end

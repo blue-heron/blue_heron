@@ -24,6 +24,14 @@ defmodule Bluetooth.HCI.Transport do
   @callback send_acl(GenServer.server(), binary()) :: boolean()
   @callback init_commands(config) :: [binary()]
 
+  alias Bluetooth.HCI.Event.{
+    CommandComplete,
+    CommandStatus
+  }
+
+  import Bluetooth.HCI.Deserializable, only: [deserialize: 1]
+  import Bluetooth.HCI.Serializable, only: [serialize: 1]
+
   @behaviour :gen_statem
 
   @doc "Start a transport"
@@ -35,8 +43,8 @@ defmodule Bluetooth.HCI.Transport do
   @doc """
   Send a command via the configured transport
   """
-  @spec command(GenServer.server(), binary()) :: {:ok, map()} | {:error, binary()}
-  def command(pid, packet) do
+  @spec command(GenServer.server(), map()) :: {:ok, map()} | {:error, binary()}
+  def command(pid, %{opcode: _} = packet) do
     :gen_statem.call(pid, {:send_command, packet})
   end
 
@@ -100,12 +108,15 @@ defmodule Bluetooth.HCI.Transport do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
     case handle_packet(packet, data) do
-      {:ok, %Harald.HCI.Event.CommandComplete{}, data} ->
+      {:ok, %CommandComplete{}, data} ->
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
 
-      {:ok, unexpected, data} ->
-        Logger.warn("Unexpected HCI data: #{inspect(unexpected)}")
+      {:ok, %CommandStatus{}, data} ->
+        actions = [{:next_event, :internal, :init}]
+        {:keep_state, data, actions}
+
+      {:ok, _, data} ->
         {:keep_state, data, []}
 
       {:error, reason, data} ->
@@ -142,11 +153,17 @@ defmodule Bluetooth.HCI.Transport do
   end
 
   @doc false
-  def ready({:call, from}, {:send_command, command}, %{config: %module{}, pid: pid} = data) do
-    case module.send_command(pid, command) do
+  def ready(
+        {:call, from},
+        {:send_command, %{opcode: opcode} = command},
+        %{config: %module{}, pid: pid} = data
+      ) do
+    bin = serialize(command)
+
+    case module.send_command(pid, bin) do
       true ->
         Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
-        {:keep_state, %{data | caller: from}}
+        {:keep_state, %{data | caller: {from, opcode}}}
 
       false ->
         goto_unopened(data)
@@ -166,21 +183,27 @@ defmodule Bluetooth.HCI.Transport do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
     case handle_packet(packet, data) do
-      {:ok, %Harald.HCI.Event.CommandComplete{} = reply, data} ->
-        actions = maybe_reply(data, {:ok, reply})
+      {:ok, %CommandComplete{} = reply, data} ->
+        actions = maybe_reply(data, reply)
         {:keep_state, %{data | caller: nil}, actions}
 
-      {:ok, _data, data} ->
+      {:ok, %CommandStatus{} = reply, data} ->
+        actions = maybe_reply(data, reply)
+        {:keep_state, %{data | caller: nil}, actions}
+
+      {:ok, parsed, data} ->
+        IO.inspect(parsed, label: "?????")
         {:keep_state, data, []}
 
-      {:error, _bin, data} ->
+      {:error, bin, data} ->
+        IO.inspect(bin, label: "EPIC FAIL")
         {:keep_state, data, []}
     end
   end
 
   # uses Harald to do HCI deserialization.
   defp handle_packet(packet, data) do
-    case Harald.HCI.deserialize(packet) do
+    case deserialize(packet) do
       {:ok, reply} ->
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
         {:ok, reply, data}
@@ -190,8 +213,10 @@ defmodule Bluetooth.HCI.Transport do
     end
   end
 
-  defp maybe_reply(%{caller: nil}, _), do: []
-  defp maybe_reply(%{caller: caller}, reply), do: [{:reply, caller, reply}]
+  defp maybe_reply(%{caller: {caller, opcode}}, %{opcode: opcode} = reply),
+    do: [{:reply, caller, {:ok, reply}}]
+
+  defp maybe_reply(%{caller: _}, _), do: []
 
   # state change funs
 
