@@ -91,7 +91,7 @@ alias Harald.HCI.{
   LinkPolicy
 }
 config = %Bluetooth.HCI.Transport.UART{
-  device: "ttyACM0",
+  device: "/dev/ttyACM0",
   uart_opts: [speed: 115200],
   init_commands: [
     ControllerAndBaseband.reset(),
