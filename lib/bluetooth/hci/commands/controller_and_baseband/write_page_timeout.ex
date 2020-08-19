@@ -23,7 +23,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WritePageTimeout do
   * `:status` - see `Bluetooth.ErrorCode`
   """
 
-  defparameters(timeout: 0x20)
+  defparameters timeout: 0x20
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode, timeout: timeout}) do
@@ -33,7 +33,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WritePageTimeout do
 
   @impl Bluetooth.HCI.Command
   def deserialize(<<@opcode::binary, 2, timeout::16>>) do
-    {:ok, new(timeout: timeout)}
+    new(timeout: timeout)
   end
 
   @impl Bluetooth.HCI.Command

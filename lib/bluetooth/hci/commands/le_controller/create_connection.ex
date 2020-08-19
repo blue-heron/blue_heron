@@ -74,20 +74,18 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
   Parameters (0x12)
   """
 
-  defparameters(
-    le_scan_interval: 0x0C80,
-    le_scan_window: 0x0640,
-    initiator_filter_policy: 0,
-    peer_address_type: 0,
-    peer_address: nil,
-    own_address_type: 0,
-    connection_interval_min: 0x0024,
-    connection_interval_max: 0x0C80,
-    connection_latency: 0x0012,
-    supervision_timeout: 0x0640,
-    min_ce_length: 0x0006,
-    max_ce_length: 0x0054
-  )
+  defparameters le_scan_interval: 0x0C80,
+                le_scan_window: 0x0640,
+                initiator_filter_policy: 0,
+                peer_address_type: 0,
+                peer_address: nil,
+                own_address_type: 0,
+                connection_interval_min: 0x0024,
+                connection_interval_max: 0x0C80,
+                connection_latency: 0x0012,
+                supervision_timeout: 0x0640,
+                min_ce_length: 0x0006,
+                max_ce_length: 0x0054
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(cc) do
@@ -129,7 +127,7 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
       max_ce_length::16-little
     >> = fields
 
-    cc = %__MODULE__{
+    %__MODULE__{
       le_scan_interval: le_scan_interval,
       le_scan_window: le_scan_window,
       initiator_filter_policy: initiator_filter_policy,
@@ -143,8 +141,6 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
       min_ce_length: min_ce_length,
       max_ce_length: max_ce_length
     }
-
-    {:ok, cc}
   end
 
   @impl Bluetooth.HCI.Command

@@ -46,7 +46,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteSecureConnectionsHost
   @impl Bluetooth.HCI.Command
   def deserialize(<<@opcode::binary, 1, enabled::binary>>) do
     val = if enabled == <<1>>, do: true, else: false
-    {:ok, new(enabled: val)}
+    %__MODULE__{enabled: val}
   end
 
   @impl Bluetooth.HCI.Command
