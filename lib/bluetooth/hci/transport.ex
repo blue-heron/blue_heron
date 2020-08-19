@@ -4,13 +4,51 @@ defmodule Bluetooth.HCI.Transport do
   a physical link that implements the callbacks in this module
   """
 
+  alias Bluetooth.HCI.Command.{
+    ControllerAndBaseband,
+    InformationalParameters,
+    LEController
+  }
+
+  @default_name "Big Blue"
+
   @default_max_error_count 2
+  @default_init_commands [
+    %ControllerAndBaseband.Reset{},
+    %InformationalParameters.ReadLocalVersion{},
+    %ControllerAndBaseband.ReadLocalName{},
+    # %InformationalParameters.ReadLocalSupportedCommands{},
+    # %InformationalParameters.ReadBdAddr{},
+    # %InformationalParameters.ReadBufferSize{},
+    # %InformationalParameters.ReadLocalSupportedFeatures{},
+    %ControllerAndBaseband.SetEventMask{enhanced_flush_complete: false},
+    %ControllerAndBaseband.WriteSimplePairingMode{enabled: true},
+    %ControllerAndBaseband.WritePageTimeout{timeout: 0x60},
+    # %LinkPolicy.WriteDefaultLinkPolicySettings{settings: 0x00},
+    %ControllerAndBaseband.WriteClassOfDevice{class: 0x0C027A},
+    %ControllerAndBaseband.WriteLocalName{name: @default_name},
+    # %ControllerAndBaseband.WriteExtendedInquiryResponse(
+    #   false,
+    #   <<0x1A, 0x9, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x20, 0x38, 0x3A, 0x34,
+    #     0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30, 0x20>>
+    # ),
+    %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
+    %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
+    # <<0x1A, 0x0C, 0x01, 0x00>>,
+    # <<0x2F, 0x0C, 0x01, 0x01>>,
+    # <<0x5B, 0x0C, 0x01, 0x01>>,
+    # <<0x02, 0x20, 0x00>>,
+    # <<0x6D, 0x0C, 0x02, 0x01, 0x00>>,
+    # <<0x0F, 0x20, 0x00>>,
+    # <<0x0B, 0x20, 0x07, 0x01, 0x30, 0x00, 0x30, 0x00, 0x00, 0x00>>
+    %LEController.SetScanEnable{le_scan_enable: false}
+  ]
 
   defstruct errors: 0,
             pid: nil,
             monitor: nil,
             config: nil,
-            init_commands: [],
+            init_commands: @default_init_commands,
             caller: nil,
             handlers: [],
             max_error_count: @default_max_error_count
@@ -243,7 +281,8 @@ defmodule Bluetooth.HCI.Transport do
     init_commands = module.init_commands(config)
     actions = [{:next_event, :internal, :init}, {:state_timeout, 5000, :init_command}]
 
-    {:next_state, :prepare, %{data | pid: pid, monitor: monitor, init_commands: init_commands},
+    {:next_state, :prepare,
+     %{data | pid: pid, monitor: monitor, init_commands: @default_init_commands ++ init_commands},
      actions}
   end
 end

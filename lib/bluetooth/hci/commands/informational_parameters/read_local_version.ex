@@ -7,7 +7,7 @@ defmodule Bluetooth.HCI.Command.InformationalParameters.ReadLocalVersion do
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(rlv) do
-      <<rlv.opcode, 0, "">>
+      <<rlv.opcode::binary, 0>>
     end
   end
 

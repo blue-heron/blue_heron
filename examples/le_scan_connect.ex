@@ -15,33 +15,7 @@ defmodule Bluetooth.Example.LEScanConnect do
     vid: 0x0BDA,
     pid: 0xB82C,
     init_commands: [
-      %ControllerAndBaseband.Reset{},
-      # %InformationalParameters.ReadLocalVersion{},
-      %ControllerAndBaseband.ReadLocalName{},
-      # %InformationalParameters.ReadLocalSupportedCommands{},
-      # %InformationalParameters.ReadBdAddr{},
-      # %InformationalParameters.ReadBufferSize{},
-      # %InformationalParameters.ReadLocalSupportedFeatures{},
-      %ControllerAndBaseband.SetEventMask{enhanced_flush_complete: false},
-      %ControllerAndBaseband.WriteSimplePairingMode{enabled: true},
-      %ControllerAndBaseband.WritePageTimeout{timeout: 0x60},
-      # %LinkPolicy.WriteDefaultLinkPolicySettings{settings: 0x00},
-      %ControllerAndBaseband.WriteClassOfDevice{class: 0x0C027A},
-      %ControllerAndBaseband.WriteLocalName{name: "Bluetooth Test"},
-      # %ControllerAndBaseband.WriteExtendedInquiryResponse(
-      #   false,
-      #   <<0x1A, 0x9, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x20, 0x38, 0x3A, 0x34,
-      #     0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30, 0x20>>
-      # ),
-      # %ControllerAndBaseband.WriteInquiryMode{mode: 0x0},
-      # %ControllerAndBaseband.WriteSecureConnectionsHostSupport{support: true},
-      # <<0x1A, 0x0C, 0x01, 0x00>>,
-      # <<0x2F, 0x0C, 0x01, 0x01>>,
-      # <<0x5B, 0x0C, 0x01, 0x01>>,
-      # <<0x02, 0x20, 0x00>>,
-      # <<0x6D, 0x0C, 0x02, 0x01, 0x00>>,
-      # <<0x0F, 0x20, 0x00>>,
-      # <<0x0B, 0x20, 0x07, 0x01, 0x30, 0x00, 0x30, 0x00, 0x00, 0x00>>
+      %ControllerAndBaseband.WriteLocalName{name: "BLE Scan Test"},
     ]
   }
 
