@@ -1,6 +1,6 @@
 defmodule Bluetooth.HCI.Command do
   @callback return_parameters(binary()) :: map() | binary()
-  @callback deserialize(binary()) :: {:ok, term()} | {:error, term()}
+  @callback deserialize(binary()) :: term()
 
   alias __MODULE__.{ControllerAndBaseband, LEController}
 
@@ -9,6 +9,7 @@ defmodule Bluetooth.HCI.Command do
     ControllerAndBaseband.Reset,
     ControllerAndBaseband.SetEventMask,
     ControllerAndBaseband.WriteClassOfDevice,
+    ControllerAndBaseband.WriteExtendedInquiryResponse,
     ControllerAndBaseband.WriteLocalName,
     ControllerAndBaseband.WritePageTimeout,
     ControllerAndBaseband.WriteSimplePairingMode,

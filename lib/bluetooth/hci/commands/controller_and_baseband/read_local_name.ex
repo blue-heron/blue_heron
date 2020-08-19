@@ -17,7 +17,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.ReadLocalName do
   * `:local_name` - A UTF-8 encoded User Friendly Descriptive Name for the device
   """
 
-  defparameters([])
+  defparameters []
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(%{opcode: opcode}) do
@@ -30,7 +30,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.ReadLocalName do
     # This is a pretty useless function because there aren't
     # any parameters to actually parse out of this, but we
     # can at least assert its correct with matching
-    {:ok, %__MODULE__{}}
+    %__MODULE__{}
   end
 
   @impl true

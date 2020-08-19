@@ -127,7 +127,7 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
       max_ce_length::16-little
     >> = fields
 
-    cc = %__MODULE__{
+    %__MODULE__{
       le_scan_interval: le_scan_interval,
       le_scan_window: le_scan_window,
       initiator_filter_policy: initiator_filter_policy,
@@ -141,8 +141,6 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
       min_ce_length: min_ce_length,
       max_ce_length: max_ce_length
     }
-
-    {:ok, cc}
   end
 
   @impl Bluetooth.HCI.Command
