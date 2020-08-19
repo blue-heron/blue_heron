@@ -13,7 +13,7 @@ defmodule Bluetooth.HCI.Command.InformationalParameters.ReadLocalVersion do
 
   @impl Bluetooth.HCI.Command
   def deserialize(<<@opcode::binary, 0, "">>) do
-    {:ok, %__MODULE__{}}
+    %__MODULE__{}
   end
 
   @impl Bluetooth.HCI.Command

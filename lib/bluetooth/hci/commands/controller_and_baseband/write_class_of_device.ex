@@ -27,7 +27,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteClassOfDevice do
 
   @impl Bluetooth.HCI.Command
   def deserialize(<<@opcode::binary, 3, class::24>>) do
-    {:ok, new(class: class)}
+    new(class: class)
   end
 
   @impl Bluetooth.HCI.Command

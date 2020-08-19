@@ -28,7 +28,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteLocalName do
 
   @impl Bluetooth.HCI.Command
   def deserialize(<<@opcode::binary, 248, padded::binary>>) do
-    {:ok, new(name: String.trim(padded, <<0>>))}
+    new(name: String.trim(padded, <<0>>))
   end
 
   @impl Bluetooth.HCI.Command

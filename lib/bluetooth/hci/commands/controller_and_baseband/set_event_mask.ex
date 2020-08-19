@@ -90,7 +90,7 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.SetEventMask do
 
   @impl Bluetooth.HCI.Command
   def deserialize(<<@opcode::binary, 8, mask::binary>>) do
-    {:ok, new(unmask_events(mask))}
+    new(unmask_events(mask))
   end
 
   @impl Bluetooth.HCI.Command
