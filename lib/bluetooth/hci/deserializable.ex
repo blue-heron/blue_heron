@@ -32,7 +32,7 @@ defimpl Bluetooth.HCI.Deserializable, for: BitString do
 
   def deserialize(bin) do
     error = """
-    Unable to deserialize #{inspect(bin)}
+    Unable to deserialize #{inspect(bin, base: :hex)}
 
     If this is unexpected, then be sure that the target deserialized module
     is defined in the @modules attribute of the appropiate type:

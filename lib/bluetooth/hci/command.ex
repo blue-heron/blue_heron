@@ -12,7 +12,8 @@ defmodule Bluetooth.HCI.Command do
     ControllerAndBaseband.WriteLocalName,
     ControllerAndBaseband.WritePageTimeout,
     ControllerAndBaseband.WriteSimplePairingMode,
-    LEController.CreateConnection
+    LEController.CreateConnection,
+    LEController.SetScanEnable
   ]
 
   def __modules__(), do: @modules

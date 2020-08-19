@@ -164,7 +164,7 @@ defmodule Bluetooth.HCI.Transport do
 
     case module.send_command(pid, bin) do
       true ->
-        Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
+        Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, bin)
         {:keep_state, %{data | caller: {from, opcode}}}
 
       false ->
@@ -193,12 +193,10 @@ defmodule Bluetooth.HCI.Transport do
         actions = maybe_reply(data, reply)
         {:keep_state, %{data | caller: nil}, actions}
 
-      {:ok, parsed, data} ->
-        IO.inspect(parsed, label: "?????")
+      {:ok, _parsed, data} ->
         {:keep_state, data, []}
 
-      {:error, bin, data} ->
-        IO.inspect(bin, label: "EPIC FAIL")
+      {:error, _bin, data} ->
         {:keep_state, data, []}
     end
   end

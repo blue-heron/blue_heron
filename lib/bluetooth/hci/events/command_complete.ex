@@ -61,9 +61,10 @@ defmodule Bluetooth.HCI.Event.CommandComplete do
     kind, value ->
       Logger.warn("""
       (#{inspect(kind)}, #{inspect(value)}) Unable to parse return_parameters for opcode #{
-        inspect(cc.opcode)
+        inspect(cc.opcode, base: :hex)
       }
         return_parameters: #{inspect(cc.return_parameters)}
+        #{inspect(__STACKTRACE__, limit: :infinity, pretty: true)}
       """)
 
       cc

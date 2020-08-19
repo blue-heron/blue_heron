@@ -46,8 +46,8 @@ defmodule Bluetooth.Example.LEScanConnect do
   }
 
   # Packet Types
-  alias Bluetooth.HCI.Event.{LEMeta, LEMeta.AdvertisingReport}
-  alias Bluetooth.HCI.LEController
+  alias Bluetooth.HCI.Event.LEMeta.AdvertisingReport
+  alias Bluetooth.HCI.Command.LEController.SetScanEnable
 
   @doc "Example Entry Point"
   def start_link(config \\ @config) do
@@ -79,7 +79,7 @@ defmodule Bluetooth.Example.LEScanConnect do
   @impl GenServer
   # Sent when HCI is up and running
   def handle_info({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING}, state) do
-    # Bluetooth.hci_command(state.ctx, LEController.set_enable_scan(true))
+    Bluetooth.hci_command(state.ctx, %SetScanEnable{le_scan_enable: true})
     {:noreply, state}
   end
 
@@ -88,11 +88,11 @@ defmodule Bluetooth.Example.LEScanConnect do
     {:noreply, state}
   end
 
-  # defp handle_hci_packet(%LEMeta{subevent: %AdvertisingReport{devices: devices}}, state) do
-  #   Enum.reduce(devices, state, fn device, state ->
-  #     put_device(device.address, device, state)
-  #   end)
-  # end
+  defp handle_hci_packet(%AdvertisingReport{devices: devices}, state) do
+    Enum.reduce(devices, state, fn device, state ->
+      put_device(device.address, device, state)
+    end)
+  end
 
   defp handle_hci_packet(hci, state) do
     IO.inspect(hci, label: "UNHANDLED HCI COMMAND", base: :hex, limit: :infinity)
@@ -111,6 +111,6 @@ defmodule Bluetooth.Example.LEScanConnect do
   end
 
   # def connect(peerBdaddrType, peerBdaddr) do
-  #   Harald.HCI.LEController.create_connection(0x0060, 0x0030, 0x00, peerBdaddrType, peerBdaddr, 0x00, 0x0006, 0x000c, 0x0000, 0x00c8, 0x0004, 0x0006)
+  #   Harald.HCI..create_connection(0x0060, 0x0030, 0x00, peerBdaddrType, peerBdaddr, 0x00, 0x0006, 0x000c, 0x0000, 0x00c8, 0x0004, 0x0006)
   # end
 end

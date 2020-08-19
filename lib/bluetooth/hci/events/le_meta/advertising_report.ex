@@ -30,7 +30,7 @@ defmodule Bluetooth.HCI.Event.LEMeta.AdvertisingReport do
 
   @impl Bluetooth.HCI.Event
   def deserialize(<<@code, _size, @subevent_code, arrayed_bin::binary>>) do
-    {:ok, devices} = Device.deserialize(arrayed_bin)
+    {_, devices} = Device.deserialize(arrayed_bin)
     <<num_reports, _rest::binary>> = arrayed_bin
 
     %__MODULE__{devices: devices, num_reports: num_reports}
