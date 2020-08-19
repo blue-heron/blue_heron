@@ -32,8 +32,18 @@ defimpl HCI.Deserializable, for: BitString do
 
   # Define deserialize/1 for HCI.Event modules
   for mod <- Bluetooth.HCI.Event.__modules__(), code = mod.__code__() do
-    def deserialize(<<unquote(code), _rest::binary>> = bin) do
-      unquote(mod).deserialize(bin)
+    if function_exported?(mod, :__subevent_code__, 0) do
+      # These are LEMeta subevents
+      def deserialize(
+            <<unquote(code), _size, unquote(mod.__subevent_code__()), _rest::binary>> = bin
+          ) do
+        unquote(mod).deserialize(bin)
+      end
+    else
+      # Normal events
+      def deserialize(<<unquote(code), _rest::binary>> = bin) do
+        unquote(mod).deserialize(bin)
+      end
     end
   end
 

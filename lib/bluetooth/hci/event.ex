@@ -7,7 +7,9 @@ defmodule Bluetooth.HCI.Event do
     Event.CommandComplete,
     Event.CommandStatus,
     Event.DisconnectionComplete,
-    Event.InquiryComplete
+    Event.InquiryComplete,
+    Event.LEMeta.AdvertisingReport,
+    Event.LEMeta.ConnectionComplete
   ]
 
   def __modules__(), do: @modules
