@@ -81,8 +81,8 @@ defmodule Bluetooth.HCI.Transport do
   @doc """
   Send a command via the configured transport
   """
-  @spec command(GenServer.server(), map()) :: {:ok, map()} | {:error, binary()}
-  def command(pid, %{opcode: _} = packet) do
+  @spec command(GenServer.server(), map() | binary()) :: {:ok, map()} | {:error, binary()}
+  def command(pid, packet) do
     :gen_statem.call(pid, {:send_command, packet})
   end
 
@@ -172,7 +172,7 @@ defmodule Bluetooth.HCI.Transport do
   def prepare(
         :internal,
         :init,
-        %{pid: pid, config: %module{}, init_commands: [%{} = command | rest]} = data
+        %{pid: pid, config: %module{}, init_commands: [command | rest]} = data
       ) do
     command = serialize(command)
 
@@ -195,10 +195,10 @@ defmodule Bluetooth.HCI.Transport do
   @doc false
   def ready(
         {:call, from},
-        {:send_command, %{opcode: opcode} = command},
+        {:send_command, command},
         %{config: %module{}, pid: pid} = data
       ) do
-    bin = serialize(command)
+    <<opcode::binary-2, _::binary>> = bin = serialize(command)
 
     case module.send_command(pid, bin) do
       true ->
