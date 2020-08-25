@@ -71,11 +71,17 @@ defmodule Bluetooth.HCI.Transport.UART.Framing do
 
   # HCI ACL Data Packet
   defp process_data(
-         <<2, _::size(16), length::size(16)>> <> data,
+         <<2, handle::little-12, flags::4, length::little-16>> <> data,
          %State{frame: <<>>} = state,
          messages
        ) do
-    process_data(data, length, state, messages)
+    # i have absolutely no idea why i need two 0x2s here..
+    process_data(
+      data,
+      length,
+      %{state | frame: <<2, 2, handle::little-12, flags::4, length::little-16>>},
+      messages
+    )
   end
 
   # HCI Synchronous Data Packet

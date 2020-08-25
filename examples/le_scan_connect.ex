@@ -16,12 +16,18 @@ defmodule Bluetooth.Example.GoveBTLED do
     DisconnectionComplete
   }
 
-  @config %Bluetooth.HCI.Transport.LibUSB{
+  @usb_config %Bluetooth.HCI.Transport.LibUSB{
     vid: 0x0BDA,
     pid: 0xB82C,
     init_commands: [
       %ControllerAndBaseband.WriteLocalName{name: "BLE Scan Test"}
     ]
+  }
+
+  @uart_config %Bluetooth.HCI.Transport.UART{
+    device: "ttyACM0",
+    uart_opts: [speed: 115200],
+    init_commands: []
   }
 
   @connect_addr 0xA4C1389D1EAD
@@ -46,8 +52,14 @@ defmodule Bluetooth.Example.GoveBTLED do
   alias Bluetooth.HCI.Command.LEController.SetScanEnable
 
   @doc "Start a linked connection to the bulb"
-  def start_link(config \\ @config) do
-    :gen_statem.start_link(__MODULE__, config, [])
+  def start_link(transport, config \\ %{})
+
+  def start_link(:uart, config) do
+    :gen_statem.start_link(__MODULE__, struct(@uart_config, config), [])
+  end
+
+  def start_link(:usb, config) do
+    :gen_statem.start_link(__MODULE__, struct(@usb_config, config), [])
   end
 
   @doc """
