@@ -98,7 +98,7 @@ defmodule Bluetooth.HCIDump.Logger do
   `payload` must be a binary.
   `metadata` is optional metadata to pass through to Elixir.Logger
   """
-  defmacro hci_packet(type, direction, payload, metadata \\ [])
+  defmacro hci_packet(type, direction, payload, _metadata \\ [])
            when type in [
                   :HCI_COMMAND_DATA_PACKET,
                   :HCI_ACL_DATA_PACKET,
@@ -108,18 +108,24 @@ defmodule Bluetooth.HCIDump.Logger do
                 ] and direction in [:in, :out] do
     quote location: :keep do
       require Logger
+      ts = DateTime.utc_now() |> DateTime.to_unix(:second)
+      usec = 0
+      pktlog = %PKTLOG{type: unquote(type), payload: unquote(payload)}
+      encoded = HCIDump.encode(%PKTLOG{pktlog | tv_sec: ts, tv_us: usec}, unquote(direction))
 
-      metadata = [
-        {:pktlog_direction, unquote(direction)},
-        {:pktlog, %PKTLOG{type: unquote(type), payload: unquote(payload)}} | unquote(metadata)
-      ]
+      File.write("/tmp/hcidump.pklg", encoded, [:append])
 
-      :ok =
-        Logger.log(
-          :debug,
-          ["HCI Packet #{unquote(direction)}", " ", inspect(unquote(payload), base: :hex)],
-          metadata
-        )
+      # metadata = [
+      #   {:pktlog_direction, unquote(direction)},
+      #   {:pktlog, %PKTLOG{type: unquote(type), payload: unquote(payload)}} | unquote(metadata)
+      # ]
+
+      # :ok =
+      #   Logger.log(
+      #     :debug,
+      #     ["HCI Packet #{unquote(direction)}", " ", inspect(unquote(payload), base: :hex)],
+      #     metadata
+      #   )
     end
   end
 

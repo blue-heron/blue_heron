@@ -55,7 +55,7 @@ defmodule Bluetooth.HCI.Transport.LibUSB do
   end
 
   def handle_call({:send_acl, packet}, _from, state) do
-    {:reply, :erlang.port_command(state.port, <<0x1::8>> <> packet), state}
+    {:reply, :erlang.port_command(state.port, <<0x2::8>> <> packet), state}
   end
 
   defp port_executable(), do: Application.app_dir(:bluetooth, ["priv", "hci_transport_libusb"])

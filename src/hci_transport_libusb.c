@@ -19,6 +19,7 @@
 #define ACL_IN_BUFFER_COUNT    3
 #define EVENT_IN_BUFFER_COUNT  3
 #define HCI_ACL_BUFFER_SIZE 255
+#define HCI_INCOMING_PRE_BUFFER_SIZE 2
 
 #define ASYNC_POLLING_INTERVAL_MS 1
 
@@ -62,6 +63,8 @@ static uint8_t hci_cmd_buffer[3 + 256 + LIBUSB_CONTROL_SETUP_SIZE];
 
 // incoming buffer for HCI Events and ACL Packets
 static uint8_t hci_event_in_buffer[EVENT_IN_BUFFER_COUNT][HCI_ACL_BUFFER_SIZE]; // bigger than largest packet
+static uint8_t hci_acl_in_buffer[ACL_IN_BUFFER_COUNT][HCI_INCOMING_PRE_BUFFER_SIZE + HCI_ACL_BUFFER_SIZE]; 
+
 
 // For (ab)use as a linked list of received packets
 static struct libusb_transfer *handle_packet;
@@ -126,6 +129,7 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer){
 
     int r;
     if (transfer->status == LIBUSB_TRANSFER_COMPLETED) {
+        // debug("-> Transfer complete");
         queue_transfer(transfer);
     } else if (transfer->status == LIBUSB_TRANSFER_STALL){
         debug("-> Transfer stalled, trying again");
@@ -154,13 +158,15 @@ static void handle_completed_transfer(struct libusb_transfer *transfer){
     int signal_done = 0;
     unsigned char outbuf[transfer->actual_length+1];
 
+    // debug("handle_completed_transfer endpoint %x %x, %x", transfer->endpoint, acl_in_addr, transfer->endpoint == acl_in_addr);
+
     if (transfer->endpoint == event_in_addr) {
         outbuf[0] = (unsigned char)0x4; // same as UART
         memcpy(&outbuf[1], transfer->buffer, transfer->actual_length);
         write(COMMS_OUT_FD, outbuf, transfer->actual_length+1);
         resubmit = 1;
     } else if (transfer->endpoint == acl_in_addr) {
-        // debug("-> acl");
+        debug("-> acl");
         outbuf[0] = (unsigned char)0x02; // same as UART
         memcpy(&outbuf[1], transfer->buffer, transfer->actual_length);
         write(COMMS_OUT_FD, outbuf, transfer->actual_length+1);
@@ -346,7 +352,16 @@ static int usb_open(void){
         }
     }
 
+    for (c = 0 ; c < ACL_IN_BUFFER_COUNT ; c++) {
+        acl_in_transfer[c]  =  libusb_alloc_transfer(0); // 0 isochronous transfers ACL in
+        if (!acl_in_transfer[c]) {
+            usb_close();
+            return LIBUSB_ERROR_NO_MEM;
+        }
+    }
+
     command_out_transfer = libusb_alloc_transfer(0);
+    acl_out_transfer = libusb_alloc_transfer(0);
 
     libusb_state = LIB_USB_TRANSFERS_ALLOCATED;
 
@@ -362,6 +377,19 @@ static int usb_open(void){
             return r;
         }
     }
+
+    for (c = 0 ; c < ACL_IN_BUFFER_COUNT ; c++) {
+        // configure acl_in handlers
+        libusb_fill_bulk_transfer(acl_in_transfer[c], handle, acl_in_addr, 
+                hci_acl_in_buffer[c] + HCI_INCOMING_PRE_BUFFER_SIZE, HCI_ACL_BUFFER_SIZE, async_callback, NULL, 0) ;
+        r = libusb_submit_transfer(acl_in_transfer[c]);
+        if (r) {
+            debug("Error submitting bulk in transfer %d", r);
+            usb_close();
+            return r;
+        }
+ 
+     }
     return 0;
 }
 
@@ -465,7 +493,7 @@ static int usb_send_acl_packet(uint8_t *packet, int size){
 
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return -1;
 
-    // debug("usb_send_acl_packet enter, size %u", size);
+    debug("usb_send_acl_packet enter, size %u", size);
     
     // prepare transfer
     int completed = 0;
@@ -473,15 +501,19 @@ static int usb_send_acl_packet(uint8_t *packet, int size){
         async_callback, &completed, 0);
     acl_out_transfer->type = LIBUSB_TRANSFER_TYPE_BULK;
 
+    debug("fill complete");
+
     // update stata before submitting transfer
     usb_acl_out_active = 1;
 
     r = libusb_submit_transfer(acl_out_transfer);
+    debug("submit complete");
     if (r < 0) {
         usb_acl_out_active = 0;
         debug("Error submitting acl transfer, %d", r);
         return -1;
     }
+    debug("sent ACL packet");
 
     return 0;
 }
@@ -502,10 +534,11 @@ static int elixir_process() {
       /* EOF. Erlang process was terminated. This happens after a release or if there was an error. */
       exit(EXIT_SUCCESS);
   }
+  debug("elixir_process event=%u", buffer[0]);
   switch(buffer[0]) {
       case 0x0:
         return usb_send_cmd_packet(&buffer[1], amount_read-1);
-      case 0x1:
+      case 0x2:
         return usb_send_acl_packet(&buffer[1], amount_read-1);
       default:
         error("Unknwon message from elixir %u", buffer[0]);
@@ -536,7 +569,6 @@ int main(int argc, char const *argv[])
       fdset[r].events = libusb_pollfd[r]->events;
     }
 
-
     rc = poll(fdset, num_pollfds, -1);
     if (rc < 0) {
         // Retry if EINTR
@@ -562,7 +594,7 @@ int main(int argc, char const *argv[])
         usb_activity = 1;
     }
     if(usb_activity) {
-      debug("usb poll complete");
+    //   debug("usb poll complete");
       usb_process();
     }
 

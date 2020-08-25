@@ -4,9 +4,7 @@ defmodule Bluetooth do
   """
   alias Bluetooth.{
     Context,
-    HCI.Transport,
-    L2CAP,
-    SecurityManager
+    HCI.Transport
   }
 
   @type on_start_error :: {:error, {:already_started, pid()} | term()}
@@ -23,31 +21,6 @@ defmodule Bluetooth do
     end
   end
 
-  @doc "Starts up the L2CAP statemachine"
-  @spec l2cap(Context.t()) :: Context.t()
-  def l2cap(%Context{transport: transport} = context) when is_pid(transport) do
-    {:ok, l2cap} = L2CAP.start_link(transport)
-    %Context{context | l2cap: l2cap}
-  end
-
-  @doc "Optionally start the SecurityManager"
-  @spec sm(Context.t()) :: Context.t()
-  def sm(%Context{transport: transport, l2cap: l2cap} = ctx)
-      when is_pid(transport) and is_pid(l2cap) do
-    {:ok, sm} = SecurityManager.start_link(ctx)
-    %Context{ctx | sm: sm}
-  end
-
-  def sm(%Context{}) do
-    raise ArgumentError, "Transport and L2CAP must be started before starting SecurityManager"
-  end
-
-  @doc "Start a gatt client"
-  @spec gatt_client(Context.t()) :: Context.t()
-  def gatt_client(%Context{} = _context) do
-    raise "Not implemented yet"
-  end
-
   @doc "Subscribe to HCI events"
   def add_event_handler(%Context{transport: transport}) when is_pid(transport) do
     Transport.add_event_handler(transport)
@@ -56,5 +29,10 @@ defmodule Bluetooth do
   @doc "Writes an HCI command via the transport"
   def hci_command(%Context{transport: transport}, %{opcode: _} = packet) do
     Transport.command(transport, packet)
+  end
+
+  @doc "Writes an HCI command via the transport"
+  def acl(%Context{transport: transport}, packet) do
+    Transport.acl(transport, packet)
   end
 end

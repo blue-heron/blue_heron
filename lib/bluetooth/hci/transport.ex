@@ -34,13 +34,13 @@ defmodule Bluetooth.HCI.Transport do
     # ),
     %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
     %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
-    # <<0x1A, 0x0C, 0x01, 0x00>>,
-    # <<0x2F, 0x0C, 0x01, 0x01>>,
-    # <<0x5B, 0x0C, 0x01, 0x01>>,
-    # <<0x02, 0x20, 0x00>>,
-    # <<0x6D, 0x0C, 0x02, 0x01, 0x00>>,
-    # <<0x0F, 0x20, 0x00>>,
-    # <<0x0B, 0x20, 0x07, 0x01, 0x30, 0x00, 0x30, 0x00, 0x00, 0x00>>
+    <<0x1A, 0x0C, 0x01, 0x00>>,
+    <<0x2F, 0x0C, 0x01, 0x01>>,
+    <<0x5B, 0x0C, 0x01, 0x01>>,
+    <<0x02, 0x20, 0x00>>,
+    <<0x6D, 0x0C, 0x02, 0x01, 0x00>>,
+    <<0x0F, 0x20, 0x00>>,
+    <<0x0B, 0x20, 0x07, 0x01, 0x30, 0x00, 0x30, 0x00, 0x00, 0x00>>,
     %LEController.SetScanEnable{le_scan_enable: false}
   ]
 
@@ -86,6 +86,10 @@ defmodule Bluetooth.HCI.Transport do
     :gen_statem.call(pid, {:send_command, packet})
   end
 
+  def acl(pid, packet) do
+    :gen_statem.call(pid, {:send_acl, packet})
+  end
+
   @doc """
   Subscribe to HCI event messages
   """
@@ -108,7 +112,7 @@ defmodule Bluetooth.HCI.Transport do
   def unopened(:internal, :open_transport, %{config: %module{} = config} = data) do
     this = self()
 
-    case module.start_link(config, &Kernel.send(this, {:hci_data, &1})) do
+    case module.start_link(config, &Kernel.send(this, {:transport_data, &1})) do
       {:ok, pid} ->
         goto_prepare(data, pid)
 
@@ -142,10 +146,10 @@ defmodule Bluetooth.HCI.Transport do
     goto_unopened(data)
   end
 
-  def prepare(:info, {:hci_data, <<0x4, hci::binary>>}, data) do
+  def prepare(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
-    case handle_packet(hci, data) do
+    case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{}, data} ->
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
@@ -210,6 +214,21 @@ defmodule Bluetooth.HCI.Transport do
     end
   end
 
+  def ready(
+        {:call, from},
+        {:send_acl, acl},
+        %{config: %module{}, pid: pid} = data
+      ) do
+    case module.send_acl(pid, acl) do
+      true ->
+        Logger.hci_packet(:HCI_ACL_DATA_PACKET, :out, acl)
+        {:keep_state, data, [{:reply, from, :ok}]}
+
+      false ->
+        goto_unopened(data)
+    end
+  end
+
   # TODO Use Elixir Registry for this maybe idk
   def ready({:call, {pid, _tag} = from}, :add_event_handler, data) do
     # When in the ready state, send the HCI_STATE_WORKING signal
@@ -219,10 +238,10 @@ defmodule Bluetooth.HCI.Transport do
     {:keep_state, data, actions}
   end
 
-  def ready(:info, {:hci_data, <<0x4, hci::binary>>}, data) do
+  def ready(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
-    case handle_packet(hci, data) do
+    case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
         actions = maybe_reply(data, reply)
         {:keep_state, %{data | caller: nil}, actions}
@@ -239,8 +258,14 @@ defmodule Bluetooth.HCI.Transport do
     end
   end
 
+  def ready(:info, {:transport_data, <<0x2, acl::binary>>}, data) do
+    Logger.hci_packet(:HCI_ACL_DATA_PACKET, :in, acl)
+    for pid <- data.handlers, do: send(pid, {:HCI_ACL_DATA_PACKET, acl})
+    :keep_state_and_data
+  end
+
   # uses Harald to do HCI deserialization.
-  defp handle_packet(packet, data) do
+  defp handle_hci_packet(packet, data) do
     case deserialize(packet) do
       %{} = reply ->
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})

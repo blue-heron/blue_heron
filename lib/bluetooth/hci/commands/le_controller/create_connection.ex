@@ -94,7 +94,7 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
         cc.le_scan_window::16-little,
         cc.initiator_filter_policy::8,
         cc.peer_address_type::8,
-        cc.peer_address::48,
+        cc.peer_address::little-48,
         cc.own_address_type::8,
         cc.connection_interval_min::16-little,
         cc.connection_interval_max::16-little,
