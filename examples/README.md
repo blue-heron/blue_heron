@@ -1,24 +1,17 @@
 # Bluetooth Examples
 
-## LEScanConnect
+## GoveBTLED
 
 ## USB
 
 ```elixir
-config = %Bluetooth.HCI.Transport.LibUSB{
-  vid: 0x0bda, pid: 0xb82c,
-  init_commands: []
-}
-Bluetooth.Example.LEScanConnect.start_link(config)
+Bluetooth.Example.GoveBTLED.start_link(:usb, vid: 0x0bda, pid: 0xb82c)
+Bluetooth.Example.GoveBTLED.set_color(pid, 0xFFFF40)
 ```
 
 ## UART
 
 ```elixir
-config = %Bluetooth.HCI.Transport.UART{
-  device: "ttyACM0",
-  uart_opts: [speed: 115200],
-  init_commands: []
-}
-Bluetooth.Example.LEScanConnect.start_link(config)
+Bluetooth.Example.GoveBTLED.start_link(:uart, device: "ttyACM0")
+Bluetooth.Example.GoveBTLED.set_color(pid, 0xFFFF40)
 ```
