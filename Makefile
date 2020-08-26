@@ -52,7 +52,7 @@ $(BUILD)/%.o: src/%.c
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(PORT): $(OBJ)
-	$(CC) -o $@ $(LDFLAGS) $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(PREFIX) $(BUILD):
 	mkdir -p $@
