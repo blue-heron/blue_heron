@@ -135,7 +135,7 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer){
         debug("-> Transfer stalled, trying again");
         r = libusb_clear_halt(handle, transfer->endpoint);
         if (r) {
-            debug("Error rclearing halt %d", r);
+            debug("Error clearing halt %d", r);
         }
         r = libusb_submit_transfer(transfer);
         if (r) {
@@ -324,11 +324,11 @@ static int usb_open(void){
     libusb_device * dev = NULL;
 
     // Scan system for an appropriate devices
-    libusb_device **devs;
+    libusb_device **devices;
     ssize_t num_devices;
 
     debug("Scanning for USB Bluetooth device");
-    num_devices = libusb_get_device_list(NULL, &devs);
+    num_devices = libusb_get_device_list(NULL, &devices);
     if (num_devices < 0) {
         usb_close();
         return -1;
@@ -473,7 +473,7 @@ static int usb_send_cmd_packet(uint8_t *packet, int size){
     libusb_fill_control_transfer(command_out_transfer, handle, hci_cmd_buffer, async_callback, &completed, 0);
     command_out_transfer->flags = LIBUSB_TRANSFER_FREE_BUFFER;
 
-    // update stata before submitting transfer
+    // update state before submitting transfer
     usb_command_active = 1;
 
     // submit transfer
@@ -503,7 +503,7 @@ static int usb_send_acl_packet(uint8_t *packet, int size){
 
     debug("fill complete");
 
-    // update stata before submitting transfer
+    // update state before submitting transfer
     usb_acl_out_active = 1;
 
     r = libusb_submit_transfer(acl_out_transfer);
