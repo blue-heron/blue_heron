@@ -57,7 +57,14 @@ $(PORT): $(OBJ)
 $(PREFIX) $(BUILD):
 	mkdir -p $@
 
+format:
+	astyle --style=kr --indent=spaces=4 --align-pointer=name \
+	    --align-reference=name --convert-tabs --attach-namespaces \
+	    --max-code-length=100 --max-instatement-indent=120 --pad-header \
+	    --pad-oper \
+	    src/hci_transport_libusb.c
+
 clean:
 	$(RM) $(PORT) $(OBJ)
 
-.PHONY: all clean calling_from_make install
+.PHONY: all clean calling_from_make install format
