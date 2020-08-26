@@ -3,13 +3,9 @@ defmodule Bluetooth.Context do
   alias Bluetooth.Context
 
   @enforce_keys [:transport]
-  defstruct [:transport, :l2cap, :sm]
+  defstruct [:transport]
 
-  @type t() :: %Context{
-          transport: pid(),
-          l2cap: nil | pid(),
-          sm: nil | pid()
-        }
+  @type t() :: %Context{transport: pid()}
 
   # Context implements Inspect to hide the internals
   # it uses the Transport PID as a unique identifier since

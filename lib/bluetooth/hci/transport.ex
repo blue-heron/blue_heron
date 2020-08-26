@@ -128,7 +128,6 @@ defmodule Bluetooth.HCI.Transport do
 
   @doc false
   def prepare({:call, {pid, _} = from}, :add_event_handler, data) do
-    IO.puts("#{inspect(pid)} subscribed to Bluetooth events")
     {:keep_state, %{data | handlers: [pid | data.handlers]}, [{:reply, from, :ok}]}
   end
 
@@ -219,6 +218,8 @@ defmodule Bluetooth.HCI.Transport do
         {:send_acl, acl},
         %{config: %module{}, pid: pid} = data
       ) do
+    acl = Bluetooth.ACL.serialize(acl)
+
     case module.send_acl(pid, acl) do
       true ->
         Logger.hci_packet(:HCI_ACL_DATA_PACKET, :out, acl)
@@ -260,11 +261,11 @@ defmodule Bluetooth.HCI.Transport do
 
   def ready(:info, {:transport_data, <<0x2, acl::binary>>}, data) do
     Logger.hci_packet(:HCI_ACL_DATA_PACKET, :in, acl)
+    acl = Bluetooth.ACL.deserialize(acl)
     for pid <- data.handlers, do: send(pid, {:HCI_ACL_DATA_PACKET, acl})
     :keep_state_and_data
   end
 
-  # uses Harald to do HCI deserialization.
   defp handle_hci_packet(packet, data) do
     case deserialize(packet) do
       %{} = reply ->

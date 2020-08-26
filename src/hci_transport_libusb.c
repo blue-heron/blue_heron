@@ -26,7 +26,7 @@
 #define COMMS_IN_FD 3
 #define COMMS_OUT_FD 4
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define log_location stderr

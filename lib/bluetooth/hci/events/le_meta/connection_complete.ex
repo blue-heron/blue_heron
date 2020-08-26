@@ -63,7 +63,8 @@ defmodule Bluetooth.HCI.Event.LEMeta.ConnectionComplete do
   def deserialize(<<@code, _size, @subevent_code, bin::binary>>) do
     <<
       status,
-      connection_handle::little-16,
+      connection_handle::little-12,
+      _::4,
       role,
       peer_address_type,
       peer_address::48,
