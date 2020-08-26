@@ -63,8 +63,7 @@ static uint8_t hci_cmd_buffer[3 + 256 + LIBUSB_CONTROL_SETUP_SIZE];
 
 // incoming buffer for HCI Events and ACL Packets
 static uint8_t hci_event_in_buffer[EVENT_IN_BUFFER_COUNT][HCI_ACL_BUFFER_SIZE]; // bigger than largest packet
-static uint8_t hci_acl_in_buffer[ACL_IN_BUFFER_COUNT][HCI_INCOMING_PRE_BUFFER_SIZE + HCI_ACL_BUFFER_SIZE]; 
-
+static uint8_t hci_acl_in_buffer[ACL_IN_BUFFER_COUNT][HCI_INCOMING_PRE_BUFFER_SIZE + HCI_ACL_BUFFER_SIZE];
 
 // For (ab)use as a linked list of received packets
 static struct libusb_transfer *handle_packet;
@@ -80,7 +79,8 @@ static int usb_acl_out_active = 0;
 static void queue_transfer(struct libusb_transfer *transfer);
 static int usb_close(void);
 
-static void queue_transfer(struct libusb_transfer *transfer){
+static void queue_transfer(struct libusb_transfer *transfer)
+{
 
     // debug("queue_transfer %p, endpoint %x size %u", transfer, transfer->endpoint, transfer->actual_length);
 
@@ -188,13 +188,13 @@ static void handle_completed_transfer(struct libusb_transfer *transfer){
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return;
 
     if (resubmit){
-        // Re-submit transfer 
+        // Re-submit transfer
         transfer->user_data = NULL;
         int r = libusb_submit_transfer(transfer);
         if (r) {
             debug("Error re-submitting transfer %d", r);
         }
-    }   
+    }
 }
 
 static void usb_process() {
@@ -218,7 +218,7 @@ static void usb_process() {
         // handle transfer
         handle_completed_transfer(transfer);
 
-        // handle case where libusb_close might be called by hci packet handler        
+        // handle case where libusb_close might be called by hci packet handler
         if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return;
     }
     // debug("end usb_process");
@@ -320,7 +320,7 @@ static int usb_open(void){
 
     // configure debug level
     libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_WARNING);
-    
+
     libusb_device * dev = NULL;
 
     // Scan system for an appropriate devices
@@ -341,7 +341,7 @@ static int usb_open(void){
     }
 
     r = prepare_device(handle);
-    
+
     // allocate transfer handlers
     int c;
     for (c = 0 ; c < EVENT_IN_BUFFER_COUNT ; c++) {
@@ -367,7 +367,7 @@ static int usb_open(void){
 
     for (c = 0 ; c < EVENT_IN_BUFFER_COUNT ; c++) {
         // configure event_in handlers
-        libusb_fill_interrupt_transfer(event_in_transfer[c], handle, event_in_addr, 
+        libusb_fill_interrupt_transfer(event_in_transfer[c], handle, event_in_addr,
                 hci_event_in_buffer[c], HCI_ACL_BUFFER_SIZE, async_callback, NULL, 0) ;
         r = libusb_submit_transfer(event_in_transfer[c]);
         debug("interrupt xfer usb_open \r\n");
@@ -380,7 +380,7 @@ static int usb_open(void){
 
     for (c = 0 ; c < ACL_IN_BUFFER_COUNT ; c++) {
         // configure acl_in handlers
-        libusb_fill_bulk_transfer(acl_in_transfer[c], handle, acl_in_addr, 
+        libusb_fill_bulk_transfer(acl_in_transfer[c], handle, acl_in_addr,
                 hci_acl_in_buffer[c] + HCI_INCOMING_PRE_BUFFER_SIZE, HCI_ACL_BUFFER_SIZE, async_callback, NULL, 0) ;
         r = libusb_submit_transfer(acl_in_transfer[c]);
         if (r) {
@@ -388,7 +388,7 @@ static int usb_open(void){
             usb_close();
             return r;
         }
- 
+
      }
     return 0;
 }
@@ -478,7 +478,7 @@ static int usb_send_cmd_packet(uint8_t *packet, int size){
 
     // submit transfer
     r = libusb_submit_transfer(command_out_transfer);
-    
+
     if (r < 0) {
         usb_command_active = 0;
         debug("Error submitting cmd transfer %d", r);
@@ -494,7 +494,7 @@ static int usb_send_acl_packet(uint8_t *packet, int size){
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return -1;
 
     debug("usb_send_acl_packet enter, size %u", size);
-    
+
     // prepare transfer
     int completed = 0;
     libusb_fill_bulk_transfer(acl_out_transfer, handle, acl_out_addr, packet, size,
@@ -519,10 +519,10 @@ static int usb_send_acl_packet(uint8_t *packet, int size){
 }
 
 static int elixir_process() {
-  int amnt = HCI_ACL_BUFFER_SIZE;
-  uint8_t * buffer = malloc(amnt);
-  memset(buffer, 0, amnt);
-  ssize_t amount_read = read(COMMS_IN_FD, buffer, amnt);
+  int amount = HCI_ACL_BUFFER_SIZE;
+  uint8_t * buffer = malloc(amount);
+  memset(buffer, 0, amount);
+  ssize_t amount_read = read(COMMS_IN_FD, buffer, amount);
   if (amount_read < 0) {
       /* EINTR is ok to get, since we were interrupted by a signal. */
       if (errno == EINTR)
@@ -541,7 +541,7 @@ static int elixir_process() {
       case 0x2:
         return usb_send_acl_packet(&buffer[1], amount_read-1);
       default:
-        error("Unknwon message from elixir %u", buffer[0]);
+        error("Unknown message from elixir %u", buffer[0]);
         err(EXIT_FAILURE, "unknown_packet_type");
   }
 }
@@ -559,7 +559,7 @@ int main(int argc, char const *argv[])
     const struct libusb_pollfd ** libusb_pollfd = libusb_get_pollfds(NULL);
     int num_pollfds;
     for (num_pollfds = 1 ; libusb_pollfd[num_pollfds] ; num_pollfds++);
-    
+
     struct pollfd fdset[num_pollfds];
     fdset[0].fd = COMMS_IN_FD;
     fdset[0].events = POLLIN;
