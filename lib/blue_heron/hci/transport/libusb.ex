@@ -6,8 +6,11 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
   use GenServer
   @behaviour BlueHeron.HCI.Transport
 
+  require Logger
+
   @hci_command_packet 0x01
   @hci_acl_packet 0x02
+  @log_message_packet 0xFC
 
   defstruct vid: 0x0BDA,
             pid: 0xB82C,
@@ -24,6 +27,7 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
   end
 
   @impl BlueHeron.HCI.Transport
+  @spec send_command(atom | pid | {atom, any} | {:via, atom, any}, binary) :: any
   def send_command(pid, command) when is_binary(command) do
     GenServer.call(pid, {:send, [<<@hci_command_packet::8>>, command]})
   end
@@ -47,6 +51,14 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
   end
 
   @impl true
+  def handle_info(
+        {port, {:data, <<@log_message_packet, message::binary>>}},
+        %{port: port} = state
+      ) do
+    Logger.info(["hci_transport_libusb: ", message])
+    {:noreply, state}
+  end
+
   def handle_info({port, {:data, data}}, %{port: port, recv: recv} = state) do
     _ = recv.(data)
     {:noreply, state}
