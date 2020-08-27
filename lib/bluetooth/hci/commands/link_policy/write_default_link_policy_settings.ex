@@ -43,7 +43,12 @@ defmodule Bluetooth.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
   end
 
   @impl Bluetooth.HCI.Command
-  def return_parameters(<<status>>) do
+  def deserialize_return_parameters(<<status>>) do
     %{status: status, status_name: Status.name!(status)}
+  end
+
+  @impl true
+  def serialize_return_parameters(%{status: status}) do
+    <<status::8>>
   end
 end

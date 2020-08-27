@@ -30,9 +30,9 @@ defmodule Bluetooth.HCI.Event.DisconnectionComplete do
   defimpl Bluetooth.HCI.Serializable do
     def serialize(dc) do
       bin = <<
-        Bluetooth.ErrorCode.error_code!(dc.status),
+        dc.status::8,
         dc.connection_handle::little-16,
-        Bluetooth.ErrorCode.error_code!(dc.reason)
+        dc.reason::8
       >>
 
       size = byte_size(bin)

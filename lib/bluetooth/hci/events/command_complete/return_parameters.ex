@@ -5,5 +5,7 @@ defprotocol Bluetooth.HCI.CommandComplete.ReturnParameters do
   This is mainly to allow us to do function generation at compile time
   for handling this parsing for specific commands.
   """
-  def parse(cc_struct)
+  def decode(cc_struct)
+
+  def encode(cc_struct)
 end

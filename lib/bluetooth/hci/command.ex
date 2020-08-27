@@ -1,5 +1,6 @@
 defmodule Bluetooth.HCI.Command do
-  @callback return_parameters(binary()) :: map() | binary()
+  @callback deserialize_return_parameters(binary()) :: map() | binary()
+  @callback serialize_return_parameters(map() | binary()) :: binary()
   @callback deserialize(binary()) :: term()
 
   alias __MODULE__.{ControllerAndBaseband, LEController, LinkPolicy}

@@ -29,6 +29,12 @@ defmodule Bluetooth.ATT.ReadByGroupTypeResponse do
     }
   end
 
+  def serialize(%{attribute_data: attribute_data}) do
+    [single | _] = attribute_data = for attr <- attribute_data, do: AttributeData.serialize(attr)
+    length = byte_size(single)
+    <<0x11, length::8>> <> Enum.join(attribute_data)
+  end
+
   defp deserialize_attribute_data(_, <<>>, attribute_data), do: Enum.reverse(attribute_data)
 
   defp deserialize_attribute_data(item_length, data, acc) do

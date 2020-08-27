@@ -34,12 +34,21 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.ReadLocalName do
   end
 
   @impl true
-  def return_parameters(<<status::8, local_name::binary>>) do
+  def deserialize_return_parameters(<<status::8, local_name::binary>>) do
     %{
       status: Bluetooth.ErrorCode.name!(status),
       # The local name field will fill any remainder of the
       # 248 bytes with null bytes. So just trim those.
       local_name: String.trim(local_name, <<0>>)
     }
+  end
+
+  @impl true
+  def serialize_return_parameters(%{status: status, local_name: local_name}) do
+    name_length = byte_size(local_name)
+    padding = 248 - name_length
+
+    <<Bluetooth.ErrorCode.error_code!(status)::8, local_name::binary-size(name_length),
+      0::size(padding)-unit(8)>>
   end
 end

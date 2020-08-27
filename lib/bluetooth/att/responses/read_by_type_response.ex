@@ -48,7 +48,12 @@ defmodule Bluetooth.ATT.ReadByTypeResponse do
   end
 
   defstruct [:opcode, :attribute_data]
-  def serialize(_), do: raise("connor forgot to implement this")
+
+  def serialize(%{attribute_data: attribute_data}) do
+    [single | _] = attribute_data = for attr <- attribute_data, do: AttributeData.serialize(attr)
+    length = byte_size(single)
+    <<0x9, length::8>> <> Enum.join(attribute_data)
+  end
 
   def deserialize(<<0x9, attribute_data_length::8, attribute_data::binary>>) do
     %__MODULE__{
