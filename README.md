@@ -1,11 +1,79 @@
 # BlueHeron
 
-Elixir Bluetooth Library.
+BlueHeron is a new Elixir Bluetooth LE Library that communicates directly with
+Bluetooth modules via HCI. It is VERY much under construction, and we expect the
+user API to change completely.
 
-## Motivation
+On the plus side, BlueHeron has no dependencies on Linux's `bluez` stack so if
+you either can't use `bluez`, don't want to, or have a simple BLE use case,
+please join us in building this out! We gather on the [Elixir Lang
+slack](https://elixir-slackin.herokuapp.com/) in the `#nerves-bluetooth`
+channel.
 
-[Harald](https://github.com/smartrent/harald/) is unmaintained, and only
-implements the lowest layer of the Bluetooth stack.
+## Goals
+
+BlueHeron development was started since SmartRent had a need for a very simple
+BLE interface on one of its Nerves devices.
+The existing Elixir BLE library, [Harald](https://github.com/verypossible-labs/harald),
+didn't have enough functionality and we made so many modifications that it no
+longer felt like the library followed the spirit of what Harald wanted to be.
+
+Our goals here are to make a one-stop BLE library with support for the
+following:
+
+* Scan for and connect to BLE peripheral devices (BlueHeron takes on the central
+  role like a smartphone)
+* GATT client support
+* Work with USB and UART-based Bluetooth modules
+* Support BLE beacons
+* BLE peripheral and GATT server support
+
+The current focus is on filling out the central role. The API is quite unstable
+at the moment and is intended to look more like high level BLE APIs from other
+languages. Currently, the raw API is helping us learn and iron out quirks
+quickly.
+
+If you are interested in adding support for the other roles, please let us know
+either here or on Slack. While we're very interested in part of this library for
+work, we're also having fun with BLE and figure that we might as well see if we
+can hit some Nerves use cases too.
+
+## Getting started
+
+TBD
+
+## Transports
+
+### LibUSB Transport
+
+BlueHeron partially implements Volume 3 Part B of the Bluetooth spec. This
+should make it work with any off-the-shelf Bluetooth USB dongle.
+
+You will need to know the USB VID/PID of your Bluetooth device since BlueHeron
+doesn't know how to automatically detect it yet. On Linux, use `lsusb` to find
+it.
+
+```elixir
+config = %BlueHeron.HCI.Transport.LibUSB{
+  vid: 0x0bda, pid: 0xb82c
+}
+{:ok, ctx} = BlueHeron.transport(config)
+```
+
+### UART Transport
+
+BlueHeron also supports UART-based Bluetooth modules. Currently, this ONLY
+includes the Cypress Semiconductor
+[BCM43438](https://www.cypress.com/part/cychpset-p62s143438-1). This part is on
+the Raspberry Pi Zero W and the Raspberry Pi 3 B. It is NOT on the 3 B+.
+
+```elixir
+config = %BlueHeron.HCI.Transport.UART{
+  device: "/dev/ttyACM0",
+  uart_opts: [speed: 115200],
+}
+{:ok, ctx} = BlueHeron.transport(config)
+```
 
 ## HCI Logging
 
@@ -36,23 +104,4 @@ iex> Logger.debug("sample data")
 iex>
 ```
 
-### LibUSB Transport
 
-Partially implements Volume 3 Part B of the Bluetooth spec
-
-```elixir
-config = %BlueHeron.HCI.Transport.LibUSB{
-  vid: 0x0bda, pid: 0xb82c
-}
-{:ok, ctx} = BlueHeron.transport(config)
-```
-
-### UART Transport
-
-```elixir
-config = %BlueHeron.HCI.Transport.UART{
-  device: "/dev/ttyACM0",
-  uart_opts: [speed: 115200],
-}
-{:ok, ctx} = BlueHeron.transport(config)
-```
