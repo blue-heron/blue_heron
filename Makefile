@@ -35,7 +35,7 @@ CFLAGS +=  $(shell pkg-config libusb-1.0 --cflags)
 # ERL_CFLAGS ?= -I$(ERL_EI_INCLUDE_DIR)
 # ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR) -lei
 
-SRC = src/hci_transport_libusb.c
+SRC = src/hci_transport_libusb.c src/erlcmd.c
 HEADERS =$(wildcard src/*.h)
 OBJ = $(SRC:src/%.c=$(BUILD)/%.o)
 
