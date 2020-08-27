@@ -104,4 +104,7 @@ iex> Logger.debug("sample data")
 iex>
 ```
 
+## License
 
+This project is coverd by Apache-2.0 unless otherwise noted in the source file header.
+Importantly some files are Copyright 2019 Very.
