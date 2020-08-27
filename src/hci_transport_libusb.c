@@ -38,6 +38,7 @@
 #define debug(...)
 #define error(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); } while(0)
 #endif
+#define fatal(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); exit(EXIT_FAILURE); } while(0)
 
 typedef enum {
     LIB_USB_CLOSED = 0,
@@ -304,7 +305,7 @@ static libusb_device_handle *try_open_device()
     return dev_handle;
 }
 
-static int usb_open(void)
+static int usb_open(uint16_t vid, uint16_t pid)
 {
     handle_packet = NULL;
 
@@ -336,9 +337,9 @@ static int usb_open(void)
         return -1;
     }
 
-    handle = try_open_device();
+    handle = try_open_device(vid, pid);
     if (!handle) {
-        debug("Failed to open device");
+        debug("Failed to open device at 0x%04x:0x%04x", vid, pid);
         return -1;
     }
 
@@ -460,7 +461,7 @@ static int usb_close(void)
     return 0;
 }
 
-static int usb_send_cmd_packet(uint8_t *packet, size_t size)
+static int usb_send_cmd_packet(const uint8_t *packet, size_t size)
 {
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED)
         return -1;
@@ -491,7 +492,7 @@ static int usb_send_cmd_packet(uint8_t *packet, size_t size)
     return 0;
 }
 
-static int usb_send_acl_packet(uint8_t *packet, size_t size)
+static int usb_send_acl_packet(const uint8_t *packet, size_t size)
 {
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED)
         return -1;
@@ -521,7 +522,7 @@ static int usb_send_acl_packet(uint8_t *packet, size_t size)
     return 0;
 }
 
-static void hci_handle_request(uint8_t *buffer, size_t length, void *cookie)
+static void hci_handle_request(const uint8_t *buffer, size_t length, void *cookie)
 {
     debug("hci_handle_request: len=%lu, event=%u", length, buffer[2]);
     switch (buffer[2]) {
@@ -539,15 +540,17 @@ static void hci_handle_request(uint8_t *buffer, size_t length, void *cookie)
 
 int main(int argc, char const *argv[])
 {
-    // TODO: Add handling for argc, argv to main() to get vid/pid
-
-    if (usb_open()) {
-        debug("error opening usb port");
-        return -1;
-    }
-
     struct erlcmd handler;
     erlcmd_init(&handler, hci_handle_request, NULL);
+
+    if (argc != 4 && strcmp(argv[1], "open") == 0)
+        fatal("Expecting 'open <vid> <pid>'");
+
+    uint16_t vid = (uint16_t) strtoul(argv[2], 0, 0);
+    uint16_t pid = (uint16_t) strtoul(argv[3], 0, 0);
+
+    if (usb_open(vid, pid))
+        fatal("error opening USB device 0x%04x:0x%04x", vid, pid);
 
     for (;;) {
         int rc;
