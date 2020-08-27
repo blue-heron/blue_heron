@@ -61,13 +61,13 @@ defmodule BlueHeron.Example.GoveeBTLed do
   @doc """
   Set the color of the bulb.
 
-      iex> GoveBTLED.set_color(pid, 0xFFFFFF) # full white
+      iex> GoveeBTLed.set_color(pid, 0xFFFFFF) # full white
       :ok
-      iex> GoveBTLED.set_color(pid, 0xFF0000) # full red
+      iex> GoveeBTLed.set_color(pid, 0xFF0000) # full red
       :ok
-      iex> GoveBTLED.set_color(pid, 0x00FF00) # full green
+      iex> GoveeBTLed.set_color(pid, 0x00FF00) # full green
       :ok
-      iex> GoveBTLED.set_color(pid, 0x0000FF) # full blue
+      iex> GoveeBTLed.set_color(pid, 0x0000FF) # full blue
       :ok
   """
   def set_color(pid, rgb) do
