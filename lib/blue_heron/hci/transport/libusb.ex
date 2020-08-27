@@ -4,38 +4,47 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
   """
 
   use GenServer
-  alias BlueHeron.HCI.Transport.LibUSB
   @behaviour BlueHeron.HCI.Transport
+
+  use GenServer
+
+  @hci_command_packet 0x01
+  @hci_acl_packet 0x02
 
   defstruct vid: 0x0BDA,
             pid: 0xB82C,
             init_commands: []
 
   @impl BlueHeron.HCI.Transport
-  def init_commands(%LibUSB{init_commands: init_commands}) do
+  def init_commands(%__MODULE__{init_commands: init_commands}) do
     init_commands
   end
 
   @impl BlueHeron.HCI.Transport
-  def start_link(%LibUSB{} = config, recv) when is_function(recv, 1) do
+  def start_link(%__MODULE__{} = config, recv) when is_function(recv, 1) do
     GenServer.start_link(__MODULE__, {config, recv})
   end
 
   @impl BlueHeron.HCI.Transport
   def send_command(pid, command) when is_binary(command) do
-    GenServer.call(pid, {:send_command, command})
+    GenServer.call(pid, {:send, [<<@hci_command_packet::8>>, command]})
   end
 
   @impl BlueHeron.HCI.Transport
   def send_acl(pid, acl) when is_binary(acl) do
-    GenServer.call(pid, {:send_acl, acl})
+    GenServer.call(pid, {:send, [<<@hci_acl_packet::8>>, acl]})
   end
 
   @impl GenServer
-  def init({_config, recv}) do
-    name = {:spawn_executable, port_executable()}
-    opts = [:binary, :nouse_stdio, :exit_status]
-    port = :erlang.open_port(name, opts)
+  def init({%__MODULE__{} = config, recv}) do
+    port =
+      Port.open({:spawn_executable, port_executable()}, [
+        {:args, ["open", "#{config.vid}", "#{config.pid}"]},
+        :binary,
+        :exit_status,
+        {:packet, 2}
+      ])
+
     {:ok, %{port: port, recv: recv}}
   end
 
@@ -50,12 +59,8 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
   end
 
   @impl GenServer
-  def handle_call({:send_command, packet}, _from, state) do
-    {:reply, :erlang.port_command(state.port, <<0x0::8>> <> packet), state}
-  end
-
-  def handle_call({:send_acl, packet}, _from, state) do
-    {:reply, :erlang.port_command(state.port, <<0x2::8>> <> packet), state}
+  def handle_call({:send, packet}, _from, state) do
+    {:reply, Port.command(state.port, packet), state}
   end
 
   defp port_executable(), do: Application.app_dir(:blue_heron, ["priv", "hci_transport_libusb"])

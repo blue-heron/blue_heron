@@ -12,6 +12,10 @@ defmodule BlueHeron.HCI.Transport.UART do
   alias BlueHeron.HCI.Transport.UART.Framing
 
   @behaviour BlueHeron.HCI.Transport
+
+  @hci_command_packet 0x01
+  @hci_acl_packet 0x02
+
   defstruct recv: nil,
             uart_pid: nil,
             uart_opts: [],
@@ -29,12 +33,12 @@ defmodule BlueHeron.HCI.Transport.UART do
 
   @impl BlueHeron.HCI.Transport
   def send_command(pid, command) when is_binary(command) do
-    GenServer.call(pid, {:send_command, command})
+    GenServer.call(pid, {:send, [<<@hci_command_packet::8>>, command]})
   end
 
   @impl BlueHeron.HCI.Transport
   def send_acl(pid, acl) when is_binary(acl) do
-    GenServer.call(pid, {:send_acl, acl})
+    GenServer.call(pid, {:send, [<<@hci_acl_packet::8>>, acl]})
   end
 
   ## Server Callbacks
@@ -48,13 +52,8 @@ defmodule BlueHeron.HCI.Transport.UART do
   end
 
   @impl GenServer
-  def handle_call({:send_command, message}, _from, %{uart_pid: uart_pid} = state) do
-    {:reply, :ok == UART.write(uart_pid, <<1::8>> <> message), state}
-  end
-
-  @impl GenServer
-  def handle_call({:send_acl, message}, _from, %{uart_pid: uart_pid} = state) do
-    {:reply, :ok == UART.write(uart_pid, <<2::8>> <> message), state}
+  def handle_call({:send, message}, _from, %{uart_pid: uart_pid} = state) do
+    {:reply, :ok == UART.write(uart_pid, message), state}
   end
 
   @impl GenServer
