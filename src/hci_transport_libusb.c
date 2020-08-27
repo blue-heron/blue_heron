@@ -4,8 +4,8 @@
  */
 
 #include <libusb-1.0/libusb.h>
-#include <err.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -21,6 +21,7 @@
 #define HCI_ACL_DATA_PACKET         0x02
 #define HCI_SYNCHRONOUS_DATA_PACKET 0x03
 #define HCI_EVENT_PACKET            0x04
+#define LOG_MESSAGE_PACKET          0xfc
 
 #define ACL_IN_BUFFER_COUNT    3
 #define EVENT_IN_BUFFER_COUNT  3
@@ -31,14 +32,12 @@
 
 #define DEBUG
 #ifdef DEBUG
-#define log_location stderr
-#define debug(...) do { fprintf(log_location, __VA_ARGS__); fprintf(log_location, "\r\n"); fflush(log_location); } while(0)
-#define error(...) do { debug(__VA_ARGS__); } while (0)
+#define debug(...) do { send_log(__VA_ARGS__); } while(0)
 #else
 #define debug(...)
-#define error(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); } while(0)
 #endif
-#define fatal(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); exit(EXIT_FAILURE); } while(0)
+#define warn(...) do { send_log(__VA_ARGS__); } while (0)
+#define fatal(...) do { send_log(__VA_ARGS__); exit(EXIT_FAILURE); } while (0)
 
 typedef enum {
     LIB_USB_CLOSED = 0,
@@ -77,6 +76,22 @@ static int usb_acl_out_active = 0;
 
 static void queue_transfer(struct libusb_transfer *transfer);
 static int usb_close(void);
+
+static void send_log(const char *fmt, ...)
+{
+    // Send the event to Elixir to be logged
+    uint8_t message[256];
+
+    va_list ap;
+    va_start(ap, fmt);
+    int size = vsnprintf((char *) &message[3], sizeof(message) - 3, fmt, ap);
+    va_end(ap);
+
+    if (size > 0) {
+        message[2] = LOG_MESSAGE_PACKET;
+        erlcmd_send(message, size + 3);
+    }
+}
 
 static void queue_transfer(struct libusb_transfer *transfer)
 {
@@ -130,14 +145,14 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer)
         // debug("-> Transfer complete");
         queue_transfer(transfer);
     } else if (transfer->status == LIBUSB_TRANSFER_STALL) {
-        debug("-> Transfer stalled, trying again");
+        warn("-> Transfer stalled, trying again");
         r = libusb_clear_halt(handle, transfer->endpoint);
         if (r) {
-            debug("Error clearing halt %d", r);
+            warn("Error clearing halt %d", r);
         }
         r = libusb_submit_transfer(transfer);
         if (r) {
-            debug("Error re-submitting transfer %d", r);
+            warn("Error re-submitting transfer %d", r);
         }
     } else {
         debug("async_callback. not data -> resubmit transfer, endpoint %x, status %x, length %u",
@@ -145,7 +160,7 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer)
         // No usable data, just resubmit packet
         r = libusb_submit_transfer(transfer);
         if (r) {
-            debug("Error re-submitting transfer %d", r);
+            warn("Error re-submitting transfer %d", r);
         }
     }
     // debug("end async_callback");
@@ -167,7 +182,6 @@ static void handle_completed_transfer(struct libusb_transfer *transfer)
 
         resubmit = 1;
     } else if (transfer->endpoint == acl_in_addr) {
-        debug("-> acl");
         response[2] = HCI_ACL_DATA_PACKET; // same as UART
         memcpy(&response[3], transfer->buffer, transfer->actual_length);
         erlcmd_send(response, buffer_size);
@@ -181,7 +195,7 @@ static void handle_completed_transfer(struct libusb_transfer *transfer)
         usb_acl_out_active = 0;
         signal_done = 1;
     } else {
-        debug("usb_process_ds endpoint unknown %x", transfer->endpoint);
+        warn("usb_process_ds endpoint unknown %x", transfer->endpoint);
     }
 
     // if (signal_done){}
@@ -193,7 +207,7 @@ static void handle_completed_transfer(struct libusb_transfer *transfer)
         transfer->user_data = NULL;
         int r = libusb_submit_transfer(transfer);
         if (r) {
-            debug("Error re-submitting transfer %d", r);
+            warn("Error re-submitting transfer %d", r);
         }
     }
 }
@@ -239,7 +253,7 @@ static int prepare_device(libusb_device_handle *aHandle)
 #if !defined(__APPLE__) && !defined(_WIN32) && !defined(__FreeBSD__)
     r = libusb_kernel_driver_active(aHandle, 0);
     if (r < 0) {
-        debug("libusb_kernel_driver_active error %d", r);
+        warn("libusb_kernel_driver_active error %d", r);
         libusb_close(aHandle);
         return r;
     }
@@ -247,7 +261,7 @@ static int prepare_device(libusb_device_handle *aHandle)
     if (r == 1) {
         r = libusb_detach_kernel_driver(aHandle, 0);
         if (r < 0) {
-            debug("libusb_detach_kernel_driver error %d", r);
+            warn("libusb_detach_kernel_driver error %d", r);
             libusb_close(aHandle);
             return r;
         }
@@ -272,7 +286,7 @@ static int prepare_device(libusb_device_handle *aHandle)
     debug("claiming interface 0...");
     r = libusb_claim_interface(aHandle, 0);
     if (r < 0) {
-        debug("Error %d claiming interface 0", r);
+        warn("Error %d claiming interface 0", r);
         if (kernel_driver_detached) {
             libusb_attach_kernel_driver(aHandle, 0);
         }
@@ -282,13 +296,11 @@ static int prepare_device(libusb_device_handle *aHandle)
     return 0;
 }
 
-static libusb_device_handle *try_open_device()
+static libusb_device_handle *try_open_device(uint16_t vid, uint16_t pid)
 {
-    libusb_device_handle *dev_handle;
-    dev_handle = libusb_open_device_with_vid_pid(NULL, 0x0bda, 0xb82c);
-
+    libusb_device_handle *dev_handle = libusb_open_device_with_vid_pid(NULL, vid, pid);
     if (!dev_handle) {
-        debug("libusb_open failed!");
+        warn("libusb_open failed!");
         dev_handle = NULL;
         return NULL;
     }
@@ -298,7 +310,7 @@ static libusb_device_handle *try_open_device()
     // reset device (Not currently possible under FreeBSD 11.x/12.x due to usb framework)
     int rc = libusb_reset_device(dev_handle);
     if (rc < 0) {
-        debug("libusb_reset_device failed!");
+        warn("libusb_reset_device failed!");
         libusb_close(dev_handle);
         return NULL;
     }
@@ -375,7 +387,7 @@ static int usb_open(uint16_t vid, uint16_t pid)
         rc = libusb_submit_transfer(event_in_transfer[c]);
         debug("interrupt xfer usb_open ");
         if (rc) {
-            debug("Error submitting interrupt transfer %d", rc);
+            warn("Error submitting interrupt transfer %d", rc);
             usb_close();
             return rc;
         }
@@ -387,7 +399,7 @@ static int usb_open(uint16_t vid, uint16_t pid)
                                   hci_acl_in_buffer[c] + HCI_INCOMING_PRE_BUFFER_SIZE, HCI_ACL_BUFFER_SIZE, async_callback, NULL, 0) ;
         rc = libusb_submit_transfer(acl_in_transfer[c]);
         if (rc) {
-            debug("Error submitting bulk in transfer %d", rc);
+            warn("Error submitting bulk in transfer %d", rc);
             usb_close();
             return rc;
         }
@@ -425,7 +437,7 @@ static int usb_close(void)
         while (!completed) {
 
             if (--countdown == 0) {
-                debug("Not all transfers cancelled, leaking a bit.");
+                warn("Not all transfers cancelled, leaking a bit.");
                 break;
             }
 
@@ -436,7 +448,7 @@ static int usb_close(void)
             completed = 1;
             for (c = 0; c < EVENT_IN_BUFFER_COUNT; c++) {
                 if (event_in_transfer[c]) {
-                    debug("event_in_transfer[%u] still active (%p)", c, event_in_transfer[c]);
+                    warn("event_in_transfer[%u] still active (%p)", c, event_in_transfer[c]);
                     completed = 0;
                     break;
                 }
@@ -485,7 +497,7 @@ static int usb_send_cmd_packet(const uint8_t *packet, size_t size)
 
     if (rc < 0) {
         usb_command_active = 0;
-        debug("Error submitting cmd transfer %d", rc);
+        warn("Error submitting cmd transfer %d", rc);
         return -1;
     }
 
@@ -505,16 +517,13 @@ static int usb_send_acl_packet(const uint8_t *packet, size_t size)
                               async_callback, &completed, 0);
     acl_out_transfer->type = LIBUSB_TRANSFER_TYPE_BULK;
 
-    debug("fill complete");
-
     // update state before submitting transfer
     usb_acl_out_active = 1;
 
     int rc = libusb_submit_transfer(acl_out_transfer);
-    debug("submit complete");
     if (rc < 0) {
         usb_acl_out_active = 0;
-        debug("Error submitting acl transfer, %d", rc);
+        warn("Error submitting acl transfer, %d", rc);
         return -1;
     }
     debug("sent ACL packet");
@@ -533,14 +542,13 @@ static void hci_handle_request(const uint8_t *buffer, size_t length, void *cooki
         usb_send_acl_packet(&buffer[3], length - 1);
         break;
     default:
-        error("hci_handle_request: unexpected packet type %u", buffer[2]);
-        err(EXIT_FAILURE, "unknown_packet_type");
+        fatal("hci_handle_request: unexpected packet type %u", buffer[2]);
     }
 }
 
 int main(int argc, char const *argv[])
 {
-    struct erlcmd handler;
+    static struct erlcmd handler;
     erlcmd_init(&handler, hci_handle_request, NULL);
 
     if (argc != 4 && strcmp(argv[1], "open") == 0)
@@ -553,8 +561,6 @@ int main(int argc, char const *argv[])
         fatal("error opening USB device 0x%04x:0x%04x", vid, pid);
 
     for (;;) {
-        int rc;
-
         const struct libusb_pollfd **libusb_pollfd = libusb_get_pollfds(NULL);
         int num_pollfds;
         for (num_pollfds = 1; libusb_pollfd[num_pollfds]; num_pollfds++);
@@ -568,13 +574,13 @@ int main(int argc, char const *argv[])
             fdset[r].events = libusb_pollfd[r]->events;
         }
 
-        rc = poll(fdset, num_pollfds, -1);
+        int rc = poll(fdset, num_pollfds, -1);
         if (rc < 0) {
             // Retry if EINTR
             if (errno == EINTR)
                 continue;
 
-            err(EXIT_FAILURE, "poll");
+            fatal("poll failed with %d", errno);
         }
 
         if (fdset[0].revents & (POLLIN | POLLHUP))
