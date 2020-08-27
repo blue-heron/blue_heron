@@ -37,7 +37,7 @@ defmodule Bluetooth.ATT.Client do
     # ATT.ReadByGroupTypeRequest,
     # ATT.ReadByGroupTypeResponse,
     ATT.WriteCommand,
-    ATT.HandleValueNTF,
+    ATT.HandleValueNotification,
     ATT.ReadByGroupTypeResponse,
     ATT.ReadByTypeResponse
   }
@@ -282,7 +282,8 @@ defmodule Bluetooth.ATT.Client do
 
   def connected(
         :info,
-        {:HCI_ACL_DATA_PACKET, %ACL{data: %L2Cap{cid: 4, data: %HandleValueNTF{} = value}}},
+        {:HCI_ACL_DATA_PACKET,
+         %ACL{data: %L2Cap{cid: 4, data: %HandleValueNotification{} = value}}},
         data
       ) do
     {pid, _} = data.caller
