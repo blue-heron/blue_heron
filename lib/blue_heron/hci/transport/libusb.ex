@@ -6,8 +6,6 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
   use GenServer
   @behaviour BlueHeron.HCI.Transport
 
-  use GenServer
-
   @hci_command_packet 0x01
   @hci_acl_packet 0x02
 
