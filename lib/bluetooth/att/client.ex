@@ -6,14 +6,14 @@ defmodule Bluetooth.ATT.Client do
 
   Recieved when a connection is established with the device.
   This value should be treated as opaque. It should be used as a "handle" to the
-  BLE device. See `write_value/3` for more info.
+  BLE device. See `write/3` for more info.
 
-      {Bluetooth.BLEConnection, pid, %Bluetooth.HCI.Event.LEMeta.ConnectionComplete{}}
+      {Bluetooth.ATT.Client, pid, %Bluetooth.HCI.Event.LEMeta.ConnectionComplete{}}
 
   Recieved when a connection is established with the device. Should
   invalidate a previous connection established.
 
-      {Bluetooth.BLEConnection, pid, %Bluetooth.HCI.Event.DisconnectComplete{}}
+      {Bluetooth.ATT.Client, pid, %Bluetooth.HCI.Event.DisconnectComplete{}}
 
   """
   require Logger
@@ -37,7 +37,9 @@ defmodule Bluetooth.ATT.Client do
     # ATT.ReadByGroupTypeRequest,
     # ATT.ReadByGroupTypeResponse,
     ATT.WriteCommand,
-    ATT.HandleValueNTF
+    ATT.HandleValueNTF,
+    ATT.ReadByGroupTypeResponse,
+    ATT.ReadByTypeResponse
   }
 
   @create_connection %CreateConnection{
@@ -54,31 +56,53 @@ defmodule Bluetooth.ATT.Client do
     supervision_timeout: 0x0048
   }
 
+  @type client :: GenServer.server()
+  @type handle ::
+          %ReadByGroupTypeResponse.AttributeData{}
+          | %ReadByTypeResponse.AttributeData{}
+          | 0..0xFFF
+
   @doc """
   Example:
 
-    iex()> {:ok, pid} = BLEConnection.start_link(%Bluetooth.Context{})
+    iex> {:ok, pid} = ATT.Client.start_link(%Bluetooth.Context{})
     {:ok, #PID<0.111.0>}
 
   See the Events portion of the moduledoc to see events that will be delivered
   to the calling processes mailbox
   """
+  @spec start_link(Bluetooth.Context.t(), GenServer.options()) :: GenServer.on_start()
   def start_link(%Bluetooth.Context{} = context, opts \\ []) do
     :gen_statem.start_link(__MODULE__, context, opts)
   end
 
-  def create_connection(conn, args) do
-    :gen_statem.call(conn, struct(@create_connection, args))
+  @doc """
+  Attempt to create a connection with a device
+  Args should be a keyword list of fields that get passed to Bluetooth.HCI.Command.LEController.CreateConnection
+
+    iex> ATT.Client.create_connection(pid, peer_address: 0xabcdefg)
+    :ok
+  """
+  @spec create_connection(client(), Keyword.t()) :: :ok | {:error, any()}
+  def create_connection(pid, args) do
+    :gen_statem.call(pid, struct(@create_connection, args))
   end
 
   @doc """
-  Write a value to a BLE connection
+  Write a value to a handle on a BLE device
 
-    # this will not work. You need to establish a connection first
-    iex()> conn = %ConnectionComplete{}
-    iex()> BLEConnection.write(pid, conn, <<some::8, binary::4, data::4>>)
+    iex> ATT.Client.write(pid, %ATT.ReadByTypeResponse.AttributeData{handle: 0x15}, <<1, 2, 3, 4>>)
+    :ok
 
+    iex> ATT.Client.write(pid, %ATT.ReadByGroupTypeRequest.AttributeData{handle: <<uuid::binary-128>>}, <<1, 2, 3, 4>>)
+    :ok
+
+    iex> ATT.Client.write(pid, 0x15, <<1, 2, 3, 4>>)
+    :ok
   """
+  @spec write(client, handle, binary()) :: :ok | {:error, term()}
+  def write(pid, handle, value)
+
   def write(pid, %{handle: handle}, value), do: write(pid, handle, value)
 
   def write(pid, handle, value) do
@@ -86,8 +110,11 @@ defmodule Bluetooth.ATT.Client do
   end
 
   @doc false
-  def child_spec(_opts) do
-    raise("implement me")
+  def child_spec(opts) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [opts]}
+    }
   end
 
   @impl :gen_statem

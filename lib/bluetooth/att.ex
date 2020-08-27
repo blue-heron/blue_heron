@@ -92,7 +92,7 @@ defmodule Bluetooth.ATT do
   end
 
   defmodule ReadByTypeResponse do
-    defmodule AttributeDate do
+    defmodule AttributeData do
       defstruct [:handle, :characteristic_properties, :characteristic_value_handle, :uuid]
 
       def deserialize(
@@ -154,7 +154,7 @@ defmodule Bluetooth.ATT do
 
     defp deserialize_attribute_data(item_length, attribute_data, acc) do
       <<attribute_data::binary-size(item_length), rest::binary>> = attribute_data
-      attribute_data = AttributeDate.deserialize(attribute_data)
+      attribute_data = AttributeData.deserialize(attribute_data)
       deserialize_attribute_data(item_length, rest, [attribute_data | acc])
     end
   end
