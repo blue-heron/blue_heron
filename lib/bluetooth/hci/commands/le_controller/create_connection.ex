@@ -144,5 +144,10 @@ defmodule Bluetooth.HCI.Command.LEController.CreateConnection do
   end
 
   @impl Bluetooth.HCI.Command
-  def return_parameters(_), do: %{}
+  def serialize_return_parameters(binary), do: binary
+
+  @impl Bluetooth.HCI.Command
+  def deserialize_return_parameters(binary) when is_binary(binary) do
+    binary
+  end
 end

@@ -32,7 +32,12 @@ defmodule Bluetooth.HCI.Command.ControllerAndBaseband.WriteInquiryMode do
   end
 
   @impl Bluetooth.HCI.Command
-  def return_parameters(<<status::8>>) do
+  def deserialize_return_parameters(<<status::8>>) do
     %{status: status, status_name: Bluetooth.ErrorCode.name!(status)}
+  end
+
+  @impl Bluetooth.HCI.Command
+  def serialize_return_parameters(%{status: status}) do
+    <<status::8>>
   end
 end

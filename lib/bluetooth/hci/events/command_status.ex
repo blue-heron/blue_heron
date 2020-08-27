@@ -39,14 +39,8 @@ defmodule Bluetooth.HCI.Event.CommandStatus do
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(data) do
-      bin = <<
-        data.num_hci_command_packets::8,
-        data.opcode::16,
-        data.status
-      >>
-
+      bin = <<data.status::8, data.num_hci_command_packets::8>> <> data.opcode
       size = byte_size(bin)
-
       <<data.code, size, bin::binary>>
     end
   end

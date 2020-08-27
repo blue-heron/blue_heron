@@ -35,14 +35,15 @@ defmodule Bluetooth.HCI.Event.LEMeta.ConnectionComplete do
     :connection_interval,
     :connection_latency,
     :supervision_timeout,
-    :master_clock_accuracy
+    :master_clock_accuracy,
+    :subevent_code
   ]
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(cc) do
       bin = <<
         cc.subevent_code,
-        Status.error_code!(cc.status),
+        cc.status::8,
         cc.connection_handle::little-16,
         cc.role,
         cc.peer_address_type,
@@ -75,6 +76,7 @@ defmodule Bluetooth.HCI.Event.LEMeta.ConnectionComplete do
     >> = bin
 
     %__MODULE__{
+      subevent_code: @subevent_code,
       status: status,
       status_name: Status.name!(status),
       connection_handle: connection_handle,

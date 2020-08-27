@@ -16,30 +16,35 @@ defmodule Bluetooth.HCI.Event.CommandComplete do
 
   defimpl Bluetooth.HCI.Serializable do
     def serialize(data) do
-      bin = <<
-        data.num_hci_command_packets::8,
-        data.opcode::16,
-        data.return_parameters::binary
-      >>
-
+      data = Bluetooth.HCI.CommandComplete.ReturnParameters.encode(data)
+      bin = <<data.num_hci_command_packets::8>> <> data.opcode <> data.return_parameters
       size = byte_size(bin)
-
-      <<data.code::binary, size, bin::binary>>
+      <<data.code::8, size::8>> <> bin
     end
   end
 
   defimpl Bluetooth.HCI.CommandComplete.ReturnParameters do
-    def parse(cc) do
-      %{cc | return_parameters: do_parse(cc.opcode, cc.return_parameters)}
+    def decode(cc) do
+      %{cc | return_parameters: do_decode(cc.opcode, cc.return_parameters)}
+    end
+
+    def encode(cc) do
+      %{cc | return_parameters: do_encode(cc.opcode, cc.return_parameters)}
     end
 
     # Generate return_parameter parsing function for all available command
     # modules based on the requirements in Bluetooth.HCI.Command behaviour
     for mod <- Bluetooth.HCI.Command.__modules__(), opcode = mod.__opcode__() do
-      defp do_parse(unquote(opcode), rp_bin) do
-        unquote(mod).return_parameters(rp_bin)
+      defp do_decode(unquote(opcode), rp_bin) do
+        unquote(mod).deserialize_return_parameters(rp_bin)
+      end
+
+      defp do_encode(unquote(opcode), rp_map) do
+        unquote(mod).serialize_return_parameters(rp_map)
       end
     end
+
+    defp do_encode(_unknown_opcode, data) when is_binary(data), do: data
   end
 
   @impl Bluetooth.HCI.Event
@@ -50,17 +55,17 @@ defmodule Bluetooth.HCI.Event.CommandComplete do
       return_parameters: rp_bin
     }
 
-    maybe_parse_return_parameters(command_complete)
+    maybe_decode_return_parameters(command_complete)
   end
 
   def deserialize(bin), do: {:error, bin}
 
-  def maybe_parse_return_parameters(cc) do
-    Bluetooth.HCI.CommandComplete.ReturnParameters.parse(cc)
+  def maybe_decode_return_parameters(cc) do
+    Bluetooth.HCI.CommandComplete.ReturnParameters.decode(cc)
   catch
     kind, value ->
       Logger.warn("""
-      (#{inspect(kind)}, #{inspect(value)}) Unable to parse return_parameters for opcode #{
+      (#{inspect(kind)}, #{inspect(value)}) Unable to decode return_parameters for opcode #{
         inspect(cc.opcode, base: :hex)
       }
         return_parameters: #{inspect(cc.return_parameters)}
