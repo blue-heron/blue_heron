@@ -21,12 +21,10 @@
 PREFIX = $(MIX_APP_PATH)/priv
 BUILD  = $(MIX_APP_PATH)/obj
 
-PORT = $(PREFIX)/hci_transport_libusb
+PORT = $(PREFIX)/hci_transport
 
-CFLAGS ?= -O2 -Wno-unused-parameter -pedantic
-CFLAGS += $(TARGET_CFLAGS)
-
-$(info **** MIX_ENV set to [$(MIX_ENV)] ****)
+CFLAGS ?= -O2 -Wno-unused-parameter -pedantic -Wall
+CFLAGS += $(TARGET_CFLAGS) -Wall -pedantic
 
 LDFLAGS += $(shell pkg-config libusb-1.0 --libs)
 CFLAGS +=  $(shell pkg-config libusb-1.0 --cflags)
@@ -35,7 +33,7 @@ CFLAGS +=  $(shell pkg-config libusb-1.0 --cflags)
 # ERL_CFLAGS ?= -I$(ERL_EI_INCLUDE_DIR)
 # ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR) -lei
 
-SRC = src/hci_transport_libusb.c src/erlcmd.c
+SRC = src/hci_transport.c src/erlcmd.c src/btusb.c
 HEADERS =$(wildcard src/*.h)
 OBJ = $(SRC:src/%.c=$(BUILD)/%.o)
 
@@ -62,7 +60,7 @@ format:
 	    --align-reference=name --convert-tabs --attach-namespaces \
 	    --max-code-length=100 --max-instatement-indent=120 --pad-header \
 	    --pad-oper \
-	    src/hci_transport_libusb.c
+	    src/hci_transport.c
 
 clean:
 	$(RM) $(PORT) $(OBJ)

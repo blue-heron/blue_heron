@@ -51,10 +51,10 @@ defmodule BlueHeronTransportLibUSB do
 
   @impl true
   def handle_info(
-        {port, {:data, <<@log_message_packet, message::binary>>}},
+        {port, {:data, <<@log_message_packet, level_num, message::binary>>}},
         %{port: port} = state
       ) do
-    Logger.info(["hci_transport_libusb: ", message])
+    Logger.log(level(level_num), ["hci_transport_libusb: ", message])
     {:noreply, state}
   end
 
@@ -72,6 +72,12 @@ defmodule BlueHeronTransportLibUSB do
     {:reply, Port.command(state.port, packet), state}
   end
 
-  defp port_executable(),
-    do: Application.app_dir(:blue_heron_transport_libusb, ["priv", "hci_transport_libusb"])
+  defp port_executable() do
+    Application.app_dir(:blue_heron_transport_libusb, ["priv", "hci_transport"])
+  end
+
+  # See hci_transport.h for levels
+  defp level(0), do: :error
+  defp level(1), do: :warn
+  defp level(2), do: :debug
 end
