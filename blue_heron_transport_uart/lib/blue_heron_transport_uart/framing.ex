@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-defmodule BlueHeron.HCI.Transport.UART.Framing do
+defmodule BlueHeronTransportUART.Framing do
   @moduledoc """
   A framer module that defines a frame as a HCI packet.
 
