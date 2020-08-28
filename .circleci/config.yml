@@ -56,12 +56,18 @@ commands:
           name: <<parameters.lib>> docs
           working_directory: <<parameters.lib>>
           command: mix docs
-      - run:
-          name: <<parameters.lib>> build
-          working_directory: <<parameters.lib>>
-          command: mix hex.build
-      # - run: MIX_ENV=test mix credo -a
-      # - run: mix dialyzer
+      # - run:
+      #     name: <<parameters.lib>> build
+      #     working_directory: <<parameters.lib>>
+      #     command: mix hex.build
+      # - run:
+      #     name: <<parameters.lib>> credo
+      #     working_directory: <<parameters.lib>>
+      #     command: MIX_ENV=test mix credo -a
+      # - run:
+      #     name: <<parameters.lib>> dialyzer
+      #     working_directory: <<parameters.lib>>
+      #     command: mix dialyzer
       - save_cache:
           name: <<parameters.lib>> save cache
           key: v1-mix-cache-{{ checksum "<<parameters.lib>>/mix.lock" }}
