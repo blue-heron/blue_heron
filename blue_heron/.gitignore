@@ -20,7 +20,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-bt-*.tar
+blue_heron-*.tar
 
 .elixir_ls
 
