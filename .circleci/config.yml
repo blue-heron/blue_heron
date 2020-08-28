@@ -1,0 +1,124 @@
+version: 2.1
+
+install_elixir: &install_elixir
+  run:
+    name: Install Elixir
+    command: |
+      wget https://repo.hex.pm/builds/elixir/v$ELIXIR_VERSION.zip
+      unzip -d /usr/local/elixir v$ELIXIR_VERSION.zip
+      echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
+
+install_hex_rebar: &install_hex_rebar
+  run:
+    name: Install hex and rebar
+    command: |
+      mix local.hex --force
+      mix local.rebar --force
+
+install_system_deps: &install_system_deps
+  run:
+    name: Install system dependencies
+    command: |
+      apt update
+      apt install -y unzip libusb-1.0
+
+defaults: &defaults
+  working_directory: ~/repo
+
+commands:
+  run_lib:
+    parameters:
+      lib:
+        description: library to run CI with
+        default: blue_heron
+        type: string
+    steps:
+      - restore_cache:
+          name: Restore <<parameters.lib>> cache
+          key: v1-mix-cache-{{ checksum "<<parameters.lib>>/mix.lock" }}
+      - run:
+          name: <<parameters.lib>> deps
+          working_directory: <<parameters.lib>>
+          command: mix deps.get
+      - run:
+          name: <<parameters.lib>> compile
+          working_directory: <<parameters.lib>>
+          command: mix compile --warnings-as-errors
+      - run:
+          name: <<parameters.lib>> test
+          working_directory: <<parameters.lib>>
+          command: mix test
+      - run:
+          name: <<parameters.lib>> format
+          working_directory: <<parameters.lib>>
+          command: mix format --check-formatted
+      - run:
+          name: <<parameters.lib>> docs
+          working_directory: <<parameters.lib>>
+          command: mix docs
+      - run:
+          name: <<parameters.lib>> build
+          working_directory: <<parameters.lib>>
+          command: mix hex.build
+      # - run: MIX_ENV=test mix credo -a
+      # - run: mix dialyzer
+      - save_cache:
+          name: <<parameters.lib>> save cache
+          key: v1-mix-cache-{{ checksum "<<parameters.lib>>/mix.lock" }}
+          paths:
+            - <<parameters.lib>>/_build
+            - <<parameters.lib>>/deps
+
+jobs:
+  build_elixir_1_10_otp_23:
+    docker:
+      - image: erlang:23.0.3
+    environment:
+          ELIXIR_VERSION: 1.10.4-otp-23
+          LC_ALL: C.UTF-8
+    <<: *defaults
+    steps:
+      - checkout
+      - <<: *install_system_deps
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - run_lib:
+         lib: "blue_heron"
+
+  build_elixir_1_10_otp_22:
+    docker:
+      - image: erlang:22.3
+    environment:
+          ELIXIR_VERSION: 1.10.4-otp-22
+          LC_ALL: C.UTF-8
+    <<: *defaults
+    steps:
+      - checkout
+      - <<: *install_system_deps
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - run_lib:
+         lib: "blue_heron"
+
+  build_elixir_1_9_otp_22:
+    docker:
+      - image: erlang:22.3
+        environment:
+          ELIXIR_VERSION: 1.9.4-otp-22
+          LC_ALL: C.UTF-8
+    <<: *defaults
+    steps:
+      - checkout
+      - <<: *install_system_deps
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - run_lib:
+         lib: "blue_heron"
+
+workflows:
+  version: 2
+  build_test:
+    jobs:
+      - build_elixir_1_10_otp_23
+      - build_elixir_1_10_otp_22
+      - build_elixir_1_9_otp_22
