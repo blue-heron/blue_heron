@@ -37,37 +37,19 @@ commands:
           name: Restore <<parameters.lib>> cache
           key: v1-mix-cache-{{ checksum "<<parameters.lib>>/mix.lock" }}
       - run:
-          name: <<parameters.lib>> deps
+          name: Run <<parameters.lib>>
           working_directory: <<parameters.lib>>
-          command: mix deps.get
-      - run:
-          name: <<parameters.lib>> compile
-          working_directory: <<parameters.lib>>
-          command: mix compile --warnings-as-errors
-      - run:
-          name: <<parameters.lib>> test
-          working_directory: <<parameters.lib>>
-          command: mix test
-      - run:
-          name: <<parameters.lib>> format
-          working_directory: <<parameters.lib>>
-          command: mix format --check-formatted
-      - run:
-          name: <<parameters.lib>> docs
-          working_directory: <<parameters.lib>>
-          command: mix docs
-      # - run:
-      #     name: <<parameters.lib>> build
-      #     working_directory: <<parameters.lib>>
-      #     command: mix hex.build
-      # - run:
-      #     name: <<parameters.lib>> credo
-      #     working_directory: <<parameters.lib>>
-      #     command: MIX_ENV=test mix credo -a
-      # - run:
-      #     name: <<parameters.lib>> dialyzer
-      #     working_directory: <<parameters.lib>>
-      #     command: mix dialyzer
+          command: |
+            if git diff-tree origin/main..$CIRCLE_BRANCH --no-commit-id --name-only | grep -q "^<<parameters.lib>>$"; then
+              echo "<<parameters.lib>> has changes. Running steps..."
+              mix deps.get || exit 1
+              mix compile --warnings-as-errors || exit 1
+              mix test || exit 1
+              mix format --check-formatted || exit 1
+              mix docs || exit 1
+            else
+              echo "<<parameters.lib>> has no changes. Skipping run."
+            fi
       - save_cache:
           name: <<parameters.lib>> save cache
           key: v1-mix-cache-{{ checksum "<<parameters.lib>>/mix.lock" }}
