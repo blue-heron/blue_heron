@@ -85,7 +85,7 @@ defmodule BlueHeron.Example.GoveeBTLed do
     # Start the ATT Client (this is what we use to read/write data with)
     {:ok, conn} = BlueHeron.ATT.Client.start_link(ctx)
 
-    {:ok, %{conn: conn, ctx: ctx}}
+    {:ok, %{conn: conn, ctx: ctx, connected?: false}}
   end
 
   @impl GenServer
@@ -104,7 +104,7 @@ defmodule BlueHeron.Example.GoveeBTLed do
          %AdvertisingReport{devices: [%Device{address: addr, data: ["\tMinger" <> _]}]}},
         state
       ) do
-    Logger.info("Trying to connect to #{inspect(addr, base: :hex)}")
+    Logger.info("Trying to connect to Govee LED #{inspect(addr, base: :hex)}")
     # Attempt to create a connection with it.
     :ok = BlueHeron.ATT.Client.create_connection(state.conn, peer_address: addr)
     {:noreply, state}
@@ -118,37 +118,41 @@ defmodule BlueHeron.Example.GoveeBTLed do
 
   # Sent when create_connection/2 is complete
   def handle_info({BlueHeron.ATT.Client, conn, %ConnectionComplete{}}, %{conn: conn} = state) do
-    Logger.info("Connection established")
-    {:noreply, state}
+    Logger.info("Govee LED connection established")
+    {:noreply, %{state | connected?: true}}
   end
 
   # Sent if a connection is dropped
   def handle_info({BlueHeron.ATT.Client, _, %DisconnectionComplete{reason_name: reason}}, state) do
-    Logger.warn("Connection dropped: #{reason}")
-    {:noreply, state}
+    Logger.warn("Govee LED connection dropped: #{reason}")
+    {:noreply, %{state | connected?: false}}
   end
 
   # Ignore other ATT data
-  def handle_info({BlueHeron.ATT.Client, _, event}, state) do
-    Logger.error("Unhandled BLE Event: #{inspect(event)}")
+  def handle_info({BlueHeron.ATT.Client, _, _event}, state) do
     {:noreply, state}
   end
 
   @impl GenServer
   # Assembles the raw RGB data into a binary that the bulb expects
   # this was found here https://github.com/Freemanium/govee_btled#analyzing-the-traffic
+  def handle_call({:set_color, _rgb}, _from, %{connected?: false} = state) do
+    Logger.warn("Not currently connected to a bulb")
+    {:reply, {:error, :disconnected}, state}
+  end
+
   def handle_call({:set_color, rgb}, _from, state) do
     value = <<0x33, 0x5, 0x2, rgb::24, 0, rgb::24, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
     checksum = calculate_xor(value, 0)
 
     case BlueHeron.ATT.Client.write(state.conn, 0x0015, <<value::binary-19, checksum::8>>) do
       :ok ->
-        Logger.info("Setting LED Color: ##{inspect(rgb, base: :hex)}")
+        Logger.info("Setting Govee LED Color: ##{inspect(rgb, base: :hex)}")
         {:reply, :ok, state}
 
-      :error ->
-        Logger.info("Failed to set LED color")
-        {:reply, {:error, :write}, state}
+      error ->
+        Logger.info("Failed to set Govee LED color")
+        {:reply, error, state}
     end
   end
 

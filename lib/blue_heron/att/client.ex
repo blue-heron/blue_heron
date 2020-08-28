@@ -73,7 +73,7 @@ defmodule BlueHeron.ATT.Client do
   """
   @spec start_link(BlueHeron.Context.t(), GenServer.options()) :: GenServer.on_start()
   def start_link(%BlueHeron.Context{} = context, opts \\ []) do
-    :gen_statem.start_link(__MODULE__, context, opts)
+    :gen_statem.start_link(__MODULE__, [context, self()], opts)
   end
 
   @doc """
@@ -121,20 +121,31 @@ defmodule BlueHeron.ATT.Client do
   @doc false
   def callback_mode(), do: :state_functions
 
+  defstruct attributes: [],
+            caller: nil,
+            client_mtu: 1961,
+            connection: nil,
+            controlling_process: nil,
+            create_connection: nil,
+            ctx: nil,
+            server_mtu: nil,
+            starting_handle: 0x0001
+
   @impl :gen_statem
   @doc false
-  def init(ctx) do
+  def init([ctx, controlling_process]) do
     :ok = BlueHeron.add_event_handler(ctx)
 
-    data = %{
-      ctx: ctx,
+    data = %__MODULE__{
+      attributes: [],
       caller: nil,
-      connection: nil,
-      create_connection: nil,
       client_mtu: 1961,
+      connection: nil,
+      controlling_process: controlling_process,
+      create_connection: nil,
+      ctx: ctx,
       server_mtu: nil,
-      starting_handle: 0x0001,
-      attributes: []
+      starting_handle: 0x0001
     }
 
     {:ok, :wait_working, data, []}
@@ -158,8 +169,8 @@ defmodule BlueHeron.ATT.Client do
     {:next_state, :connecting, %{data | caller: from, create_connection: cmd}, actions}
   end
 
-  def ready({:call, _from}, {:write_value, _handle, _value}, data) do
-    {:keep_state, data, [{:reply, {:error, :disconnected}}]}
+  def ready({:call, from}, {:write_value, _handle, _value}, data) do
+    {:keep_state, data, [{:reply, from, {:error, :disconnected}}]}
   end
 
   # ignore all HCI packets in ready state
@@ -171,17 +182,18 @@ defmodule BlueHeron.ATT.Client do
 
     case BlueHeron.hci_command(data.ctx, data.create_connection) do
       {:ok, _} ->
-        {:keep_state, data, [{:reply, data.caller, :ok}]}
+        {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, :ok)}
 
       error ->
-        {:keep_state, data, [{:reply, data.caller, error}]}
+        {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, error)}
     end
   end
 
+  def connecting({:call, _from}, _call, _data), do: {:keep_state_and_data, [:postpone]}
+
   def connecting(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = connection}, data) do
     Logger.info("Connection established")
-    {pid, _} = data.caller
-    send(pid, {__MODULE__, self(), connection})
+    send(data.controlling_process, {__MODULE__, self(), connection})
     actions = [{:next_event, :internal, :exchange_mtu}]
     {:next_state, :connected, %{data | connection: connection}, actions}
   end
@@ -204,11 +216,16 @@ defmodule BlueHeron.ATT.Client do
 
     case BlueHeron.acl(data.ctx, acl) do
       :ok ->
-        {:keep_state, %{data | caller: from}, [{:reply, from, :ok}]}
+        {:keep_state, %{data | caller: nil}, maybe_reply(from, :ok)}
 
       error ->
-        {:keep_state, data, [{:reply, from, error}]}
+        {:keep_state, %{data | caller: nil}, maybe_reply(from, error)}
     end
+  end
+
+  def connected({:call, from}, %CreateConnection{}, data) do
+    Logger.warn("Create connection called, but already connected!")
+    {:keep_state, %{data | caller: nil}, maybe_reply(from, :ok)}
   end
 
   def connected(:internal, :exchange_mtu, data) do
@@ -254,12 +271,14 @@ defmodule BlueHeron.ATT.Client do
 
   # Reply to a caller if it exists, reconnect
   def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{} = disconnect}, data) do
-    actions = [
-      {:reply, data.caller, {:error, disconnect}},
-      {:next_event, :internal, :create_connection}
-    ]
+    actions =
+      [
+        {:next_event, :internal, :create_connection}
+      ]
+      |> maybe_reply(data.caller, {:error, disconnect})
 
-    {:next_state, :connecting, data, actions}
+    send(data.controlling_process, {__MODULE__, self(), disconnect})
+    {:next_state, :connecting, %__MODULE__{data | caller: nil}, actions}
   end
 
   # ignore all other HCI packets in connected state
@@ -286,8 +305,7 @@ defmodule BlueHeron.ATT.Client do
          %ACL{data: %L2Cap{cid: 4, data: %HandleValueNotification{} = value}}},
         data
       ) do
-    {pid, _} = data.caller
-    send(pid, {__MODULE__, self(), value})
+    send(data.controlling_process, {__MODULE__, self(), value})
     :keep_state_and_data
   end
 
@@ -296,4 +314,8 @@ defmodule BlueHeron.ATT.Client do
   #   send pid, self(), {__MODULE__, response}
   #   {:keep_state, %{data | starting_handle: }}
   # end
+
+  defp maybe_reply(actions \\ [], caller, reply)
+  defp maybe_reply(actions, nil, _reply), do: actions
+  defp maybe_reply(actions, {_pid, _ref} = caller, reply), do: [{:reply, caller, reply} | actions]
 end
