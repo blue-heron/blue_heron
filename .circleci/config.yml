@@ -84,6 +84,8 @@ jobs:
       - <<: *install_hex_rebar
       - run_lib:
          lib: "blue_heron"
+      - run_lib:
+         lib: "blue_heron_transport_libusb"
 
   build_elixir_1_10_otp_22:
     docker:
@@ -99,6 +101,8 @@ jobs:
       - <<: *install_hex_rebar
       - run_lib:
          lib: "blue_heron"
+      - run_lib:
+         lib: "blue_heron_transport_libusb"
 
   build_elixir_1_9_otp_22:
     docker:
@@ -114,6 +118,8 @@ jobs:
       - <<: *install_hex_rebar
       - run_lib:
          lib: "blue_heron"
+      - run_lib:
+         lib: "blue_heron_transport_libusb"
 
 workflows:
   version: 2
