@@ -44,7 +44,7 @@ TBD
 
 ## Transports
 
-### LibUSB Transport
+### USB Transport
 
 BlueHeron partially implements Volume 3 Part B of the Bluetooth spec. This
 should make it work with any off-the-shelf Bluetooth USB dongle.
