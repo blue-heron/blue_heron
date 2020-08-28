@@ -63,11 +63,6 @@ defmodule BlueHeron.ATT.Client do
           | 0..0xFFF
 
   @doc """
-  Example:
-
-    iex> {:ok, pid} = ATT.Client.start_link(%BlueHeron.Context{})
-    {:ok, #PID<0.111.0>}
-
   See the Events portion of the moduledoc to see events that will be delivered
   to the calling processes mailbox
   """
