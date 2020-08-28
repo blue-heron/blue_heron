@@ -86,6 +86,8 @@ jobs:
          lib: "blue_heron"
       - run_lib:
          lib: "blue_heron_transport_libusb"
+      - run_lib:
+         lib: "blue_heron_transport_uart"
 
   build_elixir_1_10_otp_22:
     docker:
@@ -103,6 +105,8 @@ jobs:
          lib: "blue_heron"
       - run_lib:
          lib: "blue_heron_transport_libusb"
+      - run_lib:
+         lib: "blue_heron_transport_uart"
 
   build_elixir_1_9_otp_22:
     docker:
@@ -120,6 +124,8 @@ jobs:
          lib: "blue_heron"
       - run_lib:
          lib: "blue_heron_transport_libusb"
+      - run_lib:
+         lib: "blue_heron_transport_uart"
 
 workflows:
   version: 2

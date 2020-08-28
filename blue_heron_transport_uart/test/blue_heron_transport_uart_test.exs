@@ -1,8 +1,4 @@
-defmodule BlueHeronTransportUartTest do
+defmodule BlueHeronTransportUARTTest do
   use ExUnit.Case
-  doctest BlueHeronTransportUart
-
-  test "greets the world" do
-    assert BlueHeronTransportUart.hello() == :world
-  end
+  doctest BlueHeronTransportUART
 end
