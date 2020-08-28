@@ -73,5 +73,6 @@ defmodule BlueHeronTransportLibUSB do
     {:reply, Port.command(state.port, packet), state}
   end
 
-  defp port_executable(), do: Application.app_dir(:blue_heron_transport_libusb, ["priv", "hci_transport_libusb"])
+  defp port_executable(),
+    do: Application.app_dir(:blue_heron_transport_libusb, ["priv", "hci_transport_libusb"])
 end
