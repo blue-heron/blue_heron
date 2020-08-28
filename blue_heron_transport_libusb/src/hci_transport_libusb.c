@@ -17,11 +17,12 @@
 #include <poll.h>
 #include "erlcmd.h"
 
+// Match the UART HCI packet types for convenience.
 #define HCI_COMMAND_PACKET          0x01
 #define HCI_ACL_DATA_PACKET         0x02
 #define HCI_SYNCHRONOUS_DATA_PACKET 0x03
 #define HCI_EVENT_PACKET            0x04
-#define LOG_MESSAGE_PACKET          0xfc
+#define LOG_MESSAGE_PACKET          0xfc // custom
 
 #define ACL_IN_BUFFER_COUNT    3
 #define EVENT_IN_BUFFER_COUNT  3
@@ -57,6 +58,7 @@ static struct libusb_transfer *acl_in_transfer[ACL_IN_BUFFER_COUNT];
 
 // outgoing buffer for HCI Command packets
 static uint8_t hci_cmd_buffer[3 + 256 + LIBUSB_CONTROL_SETUP_SIZE];
+static uint8_t hci_acl_out_buffer[HCI_ACL_BUFFER_SIZE];
 
 // incoming buffer for HCI Events and ACL Packets
 static uint8_t hci_event_in_buffer[EVENT_IN_BUFFER_COUNT][HCI_ACL_BUFFER_SIZE]; // bigger than largest packet
@@ -70,9 +72,6 @@ static struct libusb_transfer *handle_packet;
 static int event_in_addr;
 static int acl_in_addr;
 static int acl_out_addr;
-
-static int usb_command_active = 0;
-static int usb_acl_out_active = 0;
 
 static void queue_transfer(struct libusb_transfer *transfer);
 static int usb_close(void);
@@ -115,7 +114,6 @@ static void queue_transfer(struct libusb_transfer *transfer)
 
 LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer)
 {
-
     int c;
 
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) {
@@ -166,43 +164,34 @@ LIBUSB_CALL static void async_callback(struct libusb_transfer *transfer)
     // debug("end async_callback");
 }
 
+static void report_event(uint8_t packet_type, const uint8_t *buffer, size_t buffer_size)
+{
+    uint8_t response[buffer_size + 3];
+    response[2] = packet_type;
+    memcpy(&response[3], buffer, buffer_size);
+    erlcmd_send(response, buffer_size + 3);
+}
+
 static void handle_completed_transfer(struct libusb_transfer *transfer)
 {
-    const size_t buffer_size = transfer->actual_length + 3;
-    unsigned char response[buffer_size];
     int resubmit = 0;
-    int signal_done = 0;
 
     // debug("handle_completed_transfer endpoint %x %x, %x", transfer->endpoint, acl_in_addr, transfer->endpoint == acl_in_addr);
-
     if (transfer->endpoint == event_in_addr) {
-        response[2] = HCI_EVENT_PACKET; // same as UART
-        memcpy(&response[3], transfer->buffer, transfer->actual_length);
-        erlcmd_send(response, buffer_size);
-
+        report_event(HCI_EVENT_PACKET, transfer->buffer, transfer->actual_length);
         resubmit = 1;
     } else if (transfer->endpoint == acl_in_addr) {
-        response[2] = HCI_ACL_DATA_PACKET; // same as UART
-        memcpy(&response[3], transfer->buffer, transfer->actual_length);
-        erlcmd_send(response, buffer_size);
+        report_event(HCI_ACL_DATA_PACKET, transfer->buffer, transfer->actual_length);
         resubmit = 1;
     } else if (transfer->endpoint == 0) {
         // debug("command done, size %u", transfer->actual_length);
-        usb_command_active = 0;
-        signal_done = 1;
     } else if (transfer->endpoint == acl_out_addr) {
         // debug("acl out done, size %u", transfer->actual_length);
-        usb_acl_out_active = 0;
-        signal_done = 1;
     } else {
         warn("usb_process_ds endpoint unknown %x", transfer->endpoint);
     }
 
-    // if (signal_done){}
-
-    if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return;
-
-    if (resubmit) {
+    if (libusb_state == LIB_USB_TRANSFERS_ALLOCATED && resubmit) {
         // Re-submit transfer
         transfer->user_data = NULL;
         int r = libusb_submit_transfer(transfer);
@@ -214,18 +203,16 @@ static void handle_completed_transfer(struct libusb_transfer *transfer)
 
 static void usb_process()
 {
-
-    if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED)
-        return;
-
     // debug("begin usb_process");
     // always handling an event as we're called when data is ready
     struct timeval tv;
     memset(&tv, 0, sizeof(struct timeval));
-    libusb_handle_events_timeout(NULL, &tv);
+    int rc = libusb_handle_events_timeout_completed(NULL, &tv, NULL);
+    if (rc != LIBUSB_SUCCESS)
+        fatal("libusb_handle_events_timeout_completed returned %d", rc);
 
     // Handle any packet in the order that they were received
-    while (handle_packet) {
+    while (handle_packet && libusb_state == LIB_USB_TRANSFERS_ALLOCATED) {
         // debug("handle packet %p, endpoint %x, status %x", handle_packet, handle_packet->endpoint, handle_packet->status);
 
         // pop next transfer
@@ -234,9 +221,6 @@ static void usb_process()
 
         // handle transfer
         handle_completed_transfer(transfer);
-
-        // handle case where libusb_close might be called by hci packet handler
-        if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED) return;
     }
     // debug("end usb_process");
 }
@@ -317,6 +301,65 @@ static libusb_device_handle *try_open_device(uint16_t vid, uint16_t pid)
     return dev_handle;
 }
 
+#define NUM_POLLFD_ENTRIES 32
+#define FIRST_USB_POLLFD_ENTRY 1
+
+static struct pollfd fdset[NUM_POLLFD_ENTRIES];
+static int num_pollfds = 0;
+
+static void pollfd_added(int fd, short events, void *user_data)
+{
+    debug("pollfd_added %d %d", fd, events);
+    if (num_pollfds == NUM_POLLFD_ENTRIES)
+        fatal("raise the number of pollfds");
+
+    fdset[num_pollfds].fd = fd;
+    fdset[num_pollfds].events = events;
+    fdset[num_pollfds].revents = 0;
+
+    num_pollfds++;
+}
+
+static void pollfd_removed(int fd, void *user_data)
+{
+    debug("pollfd_removed %d", fd);
+
+    for (int i = FIRST_USB_POLLFD_ENTRY; i < NUM_POLLFD_ENTRIES; i++) {
+        if (fdset[i].fd == fd) {
+            memmove(&fdset[i], &fdset[i + 1], (num_pollfds - i - 1) * sizeof(fdset[0]));
+            num_pollfds--;
+
+            // Set obviously invalid fd on newly freed entry to make debugging less confusing.
+            fdset[num_pollfds].fd = -1;
+            return;
+        }
+    }
+    fatal("pollfd_removed unexpected fd=%d", fd);
+}
+
+static void usb_init()
+{
+    memset(fdset, -1, sizeof(fdset));
+    fdset[0].fd = STDIN_FILENO;
+    fdset[0].events = POLLIN;
+    fdset[0].revents = 0;
+    num_pollfds = 1;
+
+    int rc = libusb_init(NULL);
+    if (rc < 0)
+        fatal("libusb_init failed %d", rc);
+
+    libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_WARNING);
+
+    libusb_set_pollfd_notifiers(NULL, pollfd_added, pollfd_removed, NULL);
+
+    const struct libusb_pollfd **initial_pollfds = libusb_get_pollfds(NULL);
+    for (int i = 0; initial_pollfds[i] != NULL; i++)
+        pollfd_added(initial_pollfds[i]->fd, initial_pollfds[i]->events, NULL);
+
+    libusb_free_pollfds(initial_pollfds);
+}
+
 static int usb_open(uint16_t vid, uint16_t pid)
 {
     handle_packet = NULL;
@@ -326,24 +369,15 @@ static int usb_open(uint16_t vid, uint16_t pid)
     acl_in_addr =   0x82; // EP2, IN bulk
     acl_out_addr =  0x02; // EP2, OUT bulk
 
-    // USB init
-    int rc = libusb_init(NULL);
-    if (rc < 0)
-        return -1;
-
     libusb_state = LIB_USB_OPENED;
 
-    // configure debug level
-    libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_WARNING);
 
     libusb_device *dev = NULL;
 
     // Scan system for an appropriate devices
-    libusb_device **devices;
-    ssize_t num_devices;
-
     debug("Scanning for USB Bluetooth device");
-    num_devices = libusb_get_device_list(NULL, &devices);
+    libusb_device **devices;
+    ssize_t num_devices = libusb_get_device_list(NULL, &devices);
     if (num_devices < 0) {
         usb_close();
         return -1;
@@ -355,7 +389,7 @@ static int usb_open(uint16_t vid, uint16_t pid)
         return -1;
     }
 
-    rc = prepare_device(handle);
+    int rc = prepare_device(handle);
 
     // allocate transfer handlers
     int c;
@@ -478,25 +512,21 @@ static int usb_send_cmd_packet(const uint8_t *packet, size_t size)
     if (libusb_state != LIB_USB_TRANSFERS_ALLOCATED)
         return -1;
 
+//FIXME - ALLOCATE TRANSFER AND MALLOC BUFFER AND SEND AND MARK THAT LIBUSB SHOULD FREE EVERYTHING!
+//ALSO KEEP TRACK OF TRANSFERS ON THE WIRE!!!
+
     // async
     libusb_fill_control_setup(hci_cmd_buffer, LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE, 0,
                               0, 0, size);
     memcpy(hci_cmd_buffer + LIBUSB_CONTROL_SETUP_SIZE, packet, size);
 
     // prepare transfer
-    int completed = 0;
-    libusb_fill_control_transfer(command_out_transfer, handle, hci_cmd_buffer, async_callback,
-                                 &completed, 0);
+    libusb_fill_control_transfer(command_out_transfer, handle, hci_cmd_buffer, async_callback, NULL, 0);
     command_out_transfer->flags = LIBUSB_TRANSFER_FREE_BUFFER;
-
-    // update state before submitting transfer
-    usb_command_active = 1;
 
     // submit transfer
     int rc = libusb_submit_transfer(command_out_transfer);
-
     if (rc < 0) {
-        usb_command_active = 0;
         warn("Error submitting cmd transfer %d", rc);
         return -1;
     }
@@ -511,18 +541,21 @@ static int usb_send_acl_packet(const uint8_t *packet, size_t size)
 
     debug("usb_send_acl_packet enter, size %lu", size);
 
-    // prepare transfer
-    int completed = 0;
-    libusb_fill_bulk_transfer(acl_out_transfer, handle, acl_out_addr, packet, size,
-                              async_callback, &completed, 0);
-    acl_out_transfer->type = LIBUSB_TRANSFER_TYPE_BULK;
+    if (size > HCI_ACL_BUFFER_SIZE) {
+        warn("ACL packet too large (%d > %d)", size, HCI_ACL_BUFFER_SIZE);
+        return -1;
+    }
 
-    // update state before submitting transfer
-    usb_acl_out_active = 1;
+//FIXME - ALLOCATE TRANSFER AND MALLOC BUFFER AND THEN FREE!!!
+
+    // prepare transfer
+    memcpy(hci_acl_out_buffer, packet, size);
+    libusb_fill_bulk_transfer(acl_out_transfer, handle, acl_out_addr, hci_acl_out_buffer, size,
+                              async_callback, NULL, 0);
+    acl_out_transfer->type = LIBUSB_TRANSFER_TYPE_BULK;
 
     int rc = libusb_submit_transfer(acl_out_transfer);
     if (rc < 0) {
-        usb_acl_out_active = 0;
         warn("Error submitting acl transfer, %d", rc);
         return -1;
     }
@@ -557,22 +590,14 @@ int main(int argc, char const *argv[])
     uint16_t vid = (uint16_t) strtoul(argv[2], 0, 0);
     uint16_t pid = (uint16_t) strtoul(argv[3], 0, 0);
 
+    usb_init();
+
     if (usb_open(vid, pid))
         fatal("error opening USB device 0x%04x:0x%04x", vid, pid);
 
     for (;;) {
-        const struct libusb_pollfd **libusb_pollfd = libusb_get_pollfds(NULL);
-        int num_pollfds;
-        for (num_pollfds = 1; libusb_pollfd[num_pollfds]; num_pollfds++);
-
-        struct pollfd fdset[num_pollfds];
-        fdset[0].fd = STDIN_FILENO;
-        fdset[0].events = POLLIN;
-        fdset[0].revents = 0;
-        for (int r = 1; r < num_pollfds; r++) {
-            fdset[r].fd = libusb_pollfd[r]->fd;
-            fdset[r].events = libusb_pollfd[r]->events;
-        }
+        for (int i = 0; i < num_pollfds; i++)
+            fdset[i].revents = 0;
 
         int rc = poll(fdset, num_pollfds, -1);
         if (rc < 0) {
@@ -586,17 +611,7 @@ int main(int argc, char const *argv[])
         if (fdset[0].revents & (POLLIN | POLLHUP))
             erlcmd_process(&handler);
 
-        int usb_activity = 0;
-        for (int r = 1 ; r < num_pollfds ; r++) {
-            if (fdset[r].revents)
-                usb_activity = 1;
-        }
-        if (usb_activity) {
-            //   debug("usb poll complete");
-            usb_process();
-        }
-
-        libusb_free_pollfds(libusb_pollfd);
+        usb_process();
     }
     return 0;
 }
