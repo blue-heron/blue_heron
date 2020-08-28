@@ -356,8 +356,10 @@ static void usb_init()
     const struct libusb_pollfd **initial_pollfds = libusb_get_pollfds(NULL);
     for (int i = 0; initial_pollfds[i] != NULL; i++)
         pollfd_added(initial_pollfds[i]->fd, initial_pollfds[i]->events, NULL);
-
     libusb_free_pollfds(initial_pollfds);
+
+    if (libusb_pollfds_handle_timeouts(NULL) == 0)
+        fatal("Platform missing timerfd support. Need to implement timer handling...");
 }
 
 static int usb_open(uint16_t vid, uint16_t pid)
@@ -599,6 +601,7 @@ int main(int argc, char const *argv[])
         for (int i = 0; i < num_pollfds; i++)
             fdset[i].revents = 0;
 
+        // Skipping libusb_get_next_timeout(). See check in usb_init().
         int rc = poll(fdset, num_pollfds, -1);
         if (rc < 0) {
             // Retry if EINTR
