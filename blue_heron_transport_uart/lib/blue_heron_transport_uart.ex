@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-defmodule BlueHeron.HCI.Transport.UART do
+defmodule BlueHeronTransportUART do
   @moduledoc """
   > The objective of this HCI UART Transport Layer is to make it possible to use the Bluetooth HCI
   > over a serial interface between two UARTs on the same PCB. The HCI UART Transport Layer
@@ -30,7 +30,7 @@ defmodule BlueHeron.HCI.Transport.UART do
 
   use GenServer
   alias Circuits.UART
-  alias BlueHeron.HCI.Transport.UART.Framing
+  alias BlueHeronTransportUART.Framing
 
   @behaviour BlueHeron.HCI.Transport
 
@@ -44,11 +44,11 @@ defmodule BlueHeron.HCI.Transport.UART do
             init_commands: []
 
   @impl BlueHeron.HCI.Transport
-  def init_commands(%BlueHeron.HCI.Transport.UART{init_commands: init_commands}),
+  def init_commands(%BlueHeronTransportUART{init_commands: init_commands}),
     do: init_commands
 
   @impl BlueHeron.HCI.Transport
-  def start_link(%BlueHeron.HCI.Transport.UART{} = config, recv) when is_function(recv, 1) do
+  def start_link(%BlueHeronTransportUART{} = config, recv) when is_function(recv, 1) do
     GenServer.start_link(__MODULE__, %{config | recv: recv})
   end
 

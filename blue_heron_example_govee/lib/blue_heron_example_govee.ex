@@ -1,4 +1,4 @@
-defmodule BlueHeron.Example.GoveeBTLed do
+defmodule BlueHeronExampleGovee do
   @moduledoc """
   Sample ATT application that can control
   the Govee LED Light Bulb
@@ -23,13 +23,13 @@ defmodule BlueHeron.Example.GoveeBTLed do
   # Sets the name of the BLE device
   @write_local_name %WriteLocalName{name: "Govee Controller"}
 
-  @usb_config %BlueHeron.HCI.Transport.LibUSB{
+  @usb_config %BlueHeronTransportLibUSB{
     vid: 0x0BDA,
     pid: 0xB82C,
     init_commands: [@write_local_name]
   }
 
-  @uart_config %BlueHeron.HCI.Transport.UART{
+  @uart_config %BlueHeronTransportUART{
     device: "ttyACM0",
     uart_opts: [speed: 115_200],
     init_commands: [@write_local_name]

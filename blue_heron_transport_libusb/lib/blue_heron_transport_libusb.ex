@@ -1,4 +1,4 @@
-defmodule BlueHeron.HCI.Transport.LibUSB do
+defmodule BlueHeronTransportLibUSB do
   @moduledoc """
   Partially implements Volume 4 Part C of the Bluetooth Spec
   """
@@ -73,5 +73,5 @@ defmodule BlueHeron.HCI.Transport.LibUSB do
     {:reply, Port.command(state.port, packet), state}
   end
 
-  defp port_executable(), do: Application.app_dir(:blue_heron, ["priv", "hci_transport_libusb"])
+  defp port_executable(), do: Application.app_dir(:blue_heron_transport_libusb, ["priv", "hci_transport_libusb"])
 end
