@@ -15,9 +15,11 @@ defmodule BlueHeronTransportLibUSB.MixProject do
       make_clean: ["clean"],
       deps: deps(),
       description: description(),
+      dialyzer: dialyzer(),
       docs: docs(),
       package: package(),
       preferred_cli_env: [
+        credo: :test,
         docs: :docs,
         "hex.build": :docs,
         "hex.publish": :docs
@@ -33,14 +35,22 @@ defmodule BlueHeronTransportLibUSB.MixProject do
 
   defp deps do
     [
+      {:blue_heron, path: "../blue_heron"},
       {:elixir_make, "~> 0.6.0", runtime: false},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
-      {:blue_heron, path: "../blue_heron"}
+      {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.2", only: :test, runtime: false}
     ]
   end
 
   defp description() do
-    "Communicate with BLE modules via LibUSB"
+    "BlueHeron Transport for USB-connected BT modules"
+  end
+
+  defp dialyzer() do
+    [
+      flags: [:race_conditions, :unmatched_returns, :error_handling, :underspecs]
+    ]
   end
 
   defp docs() do
@@ -57,9 +67,7 @@ defmodule BlueHeronTransportLibUSB.MixProject do
     [
       licenses: ["Apache-2.0"],
       links: %{
-        "GitHub" => @source_url,
-        "Bluetooth Core Specification v5.2" =>
-          "https://www.bluetooth.org/docman/handlers/downloaddoc.ashx?doc_id=478726"
+        "GitHub" => @source_url
       }
     ]
   end
