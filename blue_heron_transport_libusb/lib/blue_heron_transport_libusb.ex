@@ -27,7 +27,6 @@ defmodule BlueHeronTransportLibUSB do
   end
 
   @impl BlueHeron.HCI.Transport
-  @spec send_command(atom | pid | {atom, any} | {:via, atom, any}, binary) :: any
   def send_command(pid, command) when is_binary(command) do
     GenServer.call(pid, {:send, [<<@hci_command_packet::8>>, command]})
   end
