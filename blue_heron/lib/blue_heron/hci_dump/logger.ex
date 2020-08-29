@@ -113,7 +113,7 @@ defmodule BlueHeron.HCIDump.Logger do
       pktlog = %PKTLOG{type: unquote(type), payload: unquote(payload)}
       encoded = HCIDump.encode(%PKTLOG{pktlog | tv_sec: ts, tv_us: usec}, unquote(direction))
 
-      File.write("/tmp/hcidump.pklg", encoded, [:append])
+      _ = File.write("/tmp/hcidump.pklg", encoded, [:append])
 
       # metadata = [
       #   {:pktlog_direction, unquote(direction)},
@@ -188,7 +188,7 @@ defmodule BlueHeron.HCIDump.Logger do
           nil
       end
 
-    if encoded, do: File.write(state[:logfile], encoded, [:append])
+    _ = if encoded, do: File.write(state[:logfile], encoded, [:append])
 
     {:ok, state}
   end

@@ -73,8 +73,8 @@ defmodule BlueHeron.HCI.Transport do
   @behaviour :gen_statem
 
   @doc "Start a transport"
-  @spec start_link(config) :: GenServer.on_start()
-  def start_link(%_module{} = config) do
+  @spec start_link(config()) :: :gen_statem.start_ret()
+  def start_link(%{} = config) do
     :gen_statem.start_link(__MODULE__, config, [])
   end
 
