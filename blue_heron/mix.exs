@@ -24,14 +24,12 @@ defmodule BlueHeron.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application() do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps() do
     [
       {:ex_bin, "~> 0.4"},
@@ -42,7 +40,7 @@ defmodule BlueHeron.MixProject do
   end
 
   defp description() do
-    "Elixir BLE library to communicate with Bluetooth modules"
+    "Use Bluetooth LE in Elixir"
   end
 
   defp dialyzer() do
