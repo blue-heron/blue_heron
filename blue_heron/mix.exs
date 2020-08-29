@@ -12,6 +12,7 @@ defmodule BlueHeron.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
+      dialyzer: dialyzer(),
       docs: docs(),
       package: package(),
       preferred_cli_env: [
@@ -35,12 +36,19 @@ defmodule BlueHeron.MixProject do
     [
       {:ex_bin, "~> 0.4"},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
+      {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.2", only: :test, runtime: false}
     ]
   end
 
   defp description() do
     "Elixir BLE library to communicate with Bluetooth modules"
+  end
+
+  defp dialyzer() do
+    [
+      flags: [:race_conditions, :unmatched_returns, :error_handling, :underspecs]
+    ]
   end
 
   defp docs() do
