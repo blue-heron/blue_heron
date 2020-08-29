@@ -1,7 +1,7 @@
-defmodule BlueHeronExampleGovee do
+defmodule GoveeBulb do
   @moduledoc """
-  Sample ATT application that can control
-  the Govee LED Light Bulb
+  Sample ATT application that can control the Govee LED Light Bulb
+
   They can be found [here](https://www.amazon.com/MINGER-Dimmable-Changing-Equivalent-Multi-Color/dp/B07CL2RMR7/)
   """
 
@@ -40,12 +40,12 @@ defmodule BlueHeronExampleGovee do
 
   ## UART
 
-      iex> {:ok, pid} = GoveeBTLed.start_link(:uart, device: "ttyACM0")
+      iex> {:ok, pid} = GoveeBulb.start_link(:uart, device: "ttyACM0")
       {:ok, #PID<0.111.0>}
 
   ## USB
 
-      iex> {:ok, pid} = GoveeBTLed.start_link(:usb)
+      iex> {:ok, pid} = GoveeBulb.start_link(:usb)
       {:ok, #PID<0.111.0>}
   """
   def start_link(transport_type, config \\ %{})
@@ -61,13 +61,13 @@ defmodule BlueHeronExampleGovee do
   @doc """
   Set the color of the bulb.
 
-      iex> GoveeBTLed.set_color(pid, 0xFFFFFF) # full white
+      iex> GoveeBulb.set_color(pid, 0xFFFFFF) # full white
       :ok
-      iex> GoveeBTLed.set_color(pid, 0xFF0000) # full red
+      iex> GoveeBulb.set_color(pid, 0xFF0000) # full red
       :ok
-      iex> GoveeBTLed.set_color(pid, 0x00FF00) # full green
+      iex> GoveeBulb.set_color(pid, 0x00FF00) # full green
       :ok
-      iex> GoveeBTLed.set_color(pid, 0x0000FF) # full blue
+      iex> GoveeBulb.set_color(pid, 0x0000FF) # full blue
       :ok
   """
   def set_color(pid, rgb) do
@@ -76,7 +76,7 @@ defmodule BlueHeronExampleGovee do
 
   @impl GenServer
   def init(config) do
-    # Create a context foro Bluetooth to operate with
+    # Create a context for Bluetooth to operate with
     {:ok, ctx} = BlueHeron.transport(config)
 
     # Subscribe to HCI and ACL events
