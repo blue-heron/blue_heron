@@ -35,7 +35,7 @@ defmodule BlueHeronTransportLibUSB.MixProject do
     [
       {:elixir_make, "~> 0.6.0", runtime: false},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
-      {:blue_heron, path: "../blue_heron", env: Mix.env()}
+      {:blue_heron, path: "../blue_heron"}
     ]
   end
 
