@@ -10,7 +10,7 @@ defmodule BlueHeron.HCI.Transport do
     LEController
   }
 
-  @default_name "Big Blue"
+  @default_name "BlueHeron"
 
   @default_max_error_count 2
   @default_init_commands [
