@@ -16,7 +16,7 @@ $ mix compile
 
 # The "easiest" way of giving the port process low level access to the USB
 # port is to setuid root it. This needs to be done on every recompile, so
-# if you're suddenly find that you don't have access, try running the following
+# if you suddenly find that you don't have access, try running the following
 # again.
 $ sudo chown root:root ./_build/dev/lib/blue_heron_transport_libusb/priv/hci_transport
 $ sudo chmod +s ./_build/dev/lib/blue_heron_transport_libusb/priv/hci_transport
