@@ -126,8 +126,7 @@ defmodule GoveeBulb do
   end
 
   # ignore other HCI Events
-  def handle_info({:HCI_EVENT_PACKET, pkt}, state) do
-    IO.inspect(pkt)
+  def handle_info({:HCI_EVENT_PACKET, _pkt}, state) do
     {:noreply, state}
   end
 

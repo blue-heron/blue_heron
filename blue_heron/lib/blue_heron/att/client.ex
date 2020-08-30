@@ -177,15 +177,11 @@ defmodule BlueHeron.ATT.Client do
   @doc false
   def connecting(:internal, :create_connection, data) do
     Logger.info("Opening connection")
-    IO.inspect(data.create_connection, base: :hex)
-
     case BlueHeron.hci_command(data.ctx, data.create_connection) do
       {:ok, result} ->
-        IO.inspect result, label: "ADASSDFLKJSDFLKJFD"
-        {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, :ok)}
+        {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, {:ok, result})}
 
       error ->
-        IO.inspect(error, label: "FAIL")
         {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, error)}
     end
   end
@@ -214,8 +210,6 @@ defmodule BlueHeron.ATT.Client do
 
   # ignore all other HCI packets in connecting state
   def connecting(:info, {:HCI_EVENT_PACKET, packet}, _data) do
-    # IO.inspect(packet, label: "CONNECTING")
-
     :keep_state_and_data
   end
 
