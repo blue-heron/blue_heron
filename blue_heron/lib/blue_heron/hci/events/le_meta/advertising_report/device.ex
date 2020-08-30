@@ -25,9 +25,7 @@ defmodule BlueHeron.HCI.Event.LEMeta.AdvertisingReport.Device do
   alias BlueHeron.{DataType.ManufacturerData}
   require BlueHeron.AssignedNumbers.GenericAccessProfile, as: GenericAccessProfile
 
-  @enforce_keys [:event_type, :address_type, :address, :data, :rss]
-
-  defstruct @enforce_keys
+  defstruct [:event_type, :address_type, :address, :data, :rss]
 
   @arrayed_data_schema [
     event_type: 8,

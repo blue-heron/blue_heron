@@ -1,12 +1,10 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteClassOfDevice do
-  use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0024
-
   @moduledoc """
   This command writes the value for the Class_Of_Device parameter.
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x3`
+  * OCF: `0x24`
+  * Opcode: `0xc24`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.26
 
@@ -16,18 +14,21 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteClassOfDevice do
   ## Return Parameters
   * `:status` - see `BlueHeron.ErrorCode`
   """
+  @behaviour BlueHeron.HCI.Command
 
-  defparameters class: 0x00
+  defstruct class: 0
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(%{opcode: opcode, class: class}) do
-      <<opcode::binary, 3, class::24>>
-    end
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0xC24
+
+  @impl BlueHeron.HCI.Command
+  def serialize(%{class: class}) do
+    <<class::24>>
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 3, class::24>>) do
-    new(class: class)
+  def deserialize(<<class::24>>) do
+    %__MODULE__{class: class}
   end
 
   @impl BlueHeron.HCI.Command

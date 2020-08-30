@@ -1,7 +1,4 @@
 defmodule BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
-  use BlueHeron.HCI.Command.LinkPolicy, ocf: 0x000F
-  alias BlueHeron.ErrorCode, as: Status
-
   @moduledoc """
   This command writes the Default Link Policy configuration value.
 
@@ -11,28 +8,24 @@ defmodule BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
 
   Note: See the Link Policy Settings configuration parameter for more information. See Section 6.18.
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x02`
+  * OCF: `0x0F`
+  * Opcode: `0x80f`
   """
 
-  defparameters enable_role_switch: 0, enable_hold_mode: 0, enable_sniff_mode: 0
+  @behaviour BlueHeron.HCI.Command
+  defstruct enable_role_switch: 0, enable_hold_mode: 0, enable_sniff_mode: 0
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(data) do
-      <<
-        data.opcode,
-        2,
-        0::13,
-        data.enable_sniff_mode::1,
-        data.enable_hold_mode::1,
-        data.enable_role_switch::1
-      >>
-    end
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0x80F
+
+  @impl BlueHeron.HCI.Command
+  def serialize(data) do
+    <<0::13, data.enable_sniff_mode::1, data.enable_hold_mode::1, data.enable_role_switch::1>>
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode, _size, 0::13, dlps::binary-3-unit(1)>>) do
+  def deserialize(<<0::13, dlps::binary-3-unit(1)>>) do
     <<enable_sniff_mode::1, enable_hold_mode::1, enable_role_switch::1>> = dlps
 
     %__MODULE__{
@@ -44,10 +37,10 @@ defmodule BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: status, status_name: Status.name!(status)}
+    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
   end
 
-  @impl true
+  @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status}) do
     <<status::8>>
   end

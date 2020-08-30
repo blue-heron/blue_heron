@@ -1,6 +1,4 @@
 defmodule BlueHeron.HCI.Event.DisconnectionComplete do
-  use BlueHeron.HCI.Event, code: 0x05
-
   @moduledoc """
   The HCI_Disconnection_Complete event occurs when a connection is terminated.
 
@@ -19,7 +17,9 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
   Reference: Version 5.2, Vol 4, Part E, 7.7.5
   """
 
-  defparameters [
+  @behaviour BlueHeron.HCI.Event
+
+  defstruct [
     :connection_handle,
     :reason,
     :reason_name,
@@ -27,22 +27,17 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
     :status_name
   ]
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(dc) do
-      bin = <<
-        dc.status::8,
-        dc.connection_handle::little-16,
-        dc.reason::8
-      >>
-
-      size = byte_size(bin)
-
-      <<dc.code, size, bin::binary>>
-    end
+  @impl BlueHeron.HCI.Event
+  def serialize(dc) do
+    <<
+      dc.status::8,
+      dc.connection_handle::little-16,
+      dc.reason::8
+    >>
   end
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, status::8, connection_handle::little-16, reason::8>>) do
+  def deserialize(<<status::8, connection_handle::little-16, reason::8>>) do
     %__MODULE__{
       connection_handle: connection_handle,
       reason: reason,
@@ -51,6 +46,4 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
       status_name: BlueHeron.ErrorCode.name!(status)
     }
   end
-
-  def deserialize(bin), do: {:error, bin}
 end

@@ -1,6 +1,4 @@
 defmodule BlueHeron.HCI.Event.CommandStatus do
-  use BlueHeron.HCI.Event, code: 0x0F
-
   @moduledoc """
   The HCI_Command_Status event is used to indicate that the command described by
   the Command_Opcode parameter has been received, and that the Controller is
@@ -26,34 +24,27 @@ defmodule BlueHeron.HCI.Event.CommandStatus do
   Reference: Version 5.2, Vol 4, Part E, 7.7.15
   """
 
-  alias BlueHeron.ErrorCode, as: Status
-
-  require Logger
-
-  defparameters [
+  defstruct [
     :num_hci_command_packets,
     :opcode,
     :status_name,
     :status
   ]
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(data) do
-      bin = <<data.status::8, data.num_hci_command_packets::8>> <> data.opcode
-      size = byte_size(bin)
-      <<data.code, size, bin::binary>>
-    end
-  end
+  @behaviour BlueHeron.HCI.Event
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, status::8, num_hci_command_packets::8, opcode::binary-2>>) do
+  def deserialize(<<status::8, num_hci_command_packets::8, opcode::little-16>>) do
     %__MODULE__{
       num_hci_command_packets: num_hci_command_packets,
       opcode: opcode,
       status: status,
-      status_name: Status.name!(status)
+      status_name: BlueHeron.ErrorCode.name!(status)
     }
   end
 
-  def deserialize(bin), do: {:error, bin}
+  @impl BlueHeron.HCI.Event
+  def serialize(data) do
+    <<data.status::8, data.num_hci_command_packets::8, data.opcode::little-16>>
+  end
 end

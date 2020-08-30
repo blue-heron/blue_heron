@@ -27,7 +27,7 @@ defmodule BlueHeron do
   end
 
   @doc "Writes an HCI command via the transport"
-  def hci_command(%Context{transport: transport}, %{opcode: _} = packet) do
+  def hci_command(%Context{transport: transport}, packet) do
     Transport.command(transport, packet)
   end
 

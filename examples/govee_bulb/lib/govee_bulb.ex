@@ -94,24 +94,42 @@ defmodule GoveeBulb do
   def handle_info({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING}, state) do
     # Enable BLE Scanning. This will deliver messages to the process mailbox
     # when other devices broadcast
-    BlueHeron.hci_command(state.ctx, %SetScanEnable{le_scan_enable: true})
+    {:ok, _} = BlueHeron.hci_command(state.ctx, %SetScanEnable{le_scan_enable: true})
     {:noreply, state}
   end
 
   # Match for the Bulb.
   def handle_info(
         {:HCI_EVENT_PACKET,
-         %AdvertisingReport{devices: [%Device{address: addr, data: ["\tMinger" <> _]}]}},
+         %BlueHeron.HCI.Event{
+           data: %BlueHeron.HCI.Event.LEMeta{
+             data: %AdvertisingReport{devices: [%Device{address: addr, data: ["\tMinger" <> _]}]}
+           }
+         }},
         state
       ) do
     Logger.info("Trying to connect to Govee LED #{inspect(addr, base: :hex)}")
     # Attempt to create a connection with it.
     :ok = BlueHeron.ATT.Client.create_connection(state.conn, peer_address: addr)
+    IO.puts("CREATE CONNECTION DONE")
+    {:noreply, state}
+  end
+
+  def handle_info(
+        {:HCI_EVENT_PACKET,
+         %BlueHeron.HCI.Event{
+           data: %BlueHeron.HCI.Event.LEMeta{data: %AdvertisingReport{devices: _}}
+         }},
+        state
+      ) do
     {:noreply, state}
   end
 
   # ignore other HCI Events
-  def handle_info({:HCI_EVENT_PACKET, _}, state), do: {:noreply, state}
+  def handle_info({:HCI_EVENT_PACKET, pkt}, state) do
+    IO.inspect(pkt)
+    {:noreply, state}
+  end
 
   # ignore other HCI ACL data (ATT handles this for us)
   def handle_info({:HCI_ACL_DATA_PACKET, _}, state), do: {:noreply, state}

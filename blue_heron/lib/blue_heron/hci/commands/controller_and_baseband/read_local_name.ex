@@ -5,9 +5,9 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
   The Read_Local_Name command provides the ability to read the stored user-friendly name for
   the BR/EDR Controller. See Section 6.23 and 7.3.12 for more details
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x03`
+  * OCF: `0x0014`
+  * Opcode: 0xC14
 
   ## Command Parameters
   > None
@@ -17,20 +17,31 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
   * `:local_name` - A UTF-8 encoded User Friendly Descriptive Name for the device
   """
 
-  defparameters []
+  @behaviour BlueHeron.HCI.Command
+  defstruct []
+  @impl BlueHeron.HCI.Command
+  def opcode, do: 0xC14
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(%{opcode: opcode}) do
-      <<opcode::binary, 0::8, "">>
-    end
+  @impl BlueHeron.HCI.Command
+  def serialize(%__MODULE__{}), do: ""
+
+  @impl BlueHeron.HCI.Command
+  def deserialize(<<>>), do: %__MODULE__{}
+
+  @impl BlueHeron.HCI.Command
+  def deserialize_return_parameters(<<status::8, local_name::binary>>) do
+    %{
+      status: status,
+      status_name: BlueHeron.ErrorCode.name!(status),
+      local_name: String.trim(local_name, <<0>>)
+    }
   end
 
   @impl true
-  def deserialize(<<@opcode::binary, 0::8, "">>) do
-    # This is a pretty useless function because there aren't
-    # any parameters to actually parse out of this, but we
-    # can at least assert its correct with matching
-    %__MODULE__{}
+  def serialize_return_parameters(%{status: status, local_name: local_name}) do
+    local_name_length = byte_size(local_name)
+    pad_length = 248 - local_name_length
+    <<status::8, local_name::binary-size(local_name_length), 0::size(pad_length)-unit(8)>>
   end
 
   @impl true

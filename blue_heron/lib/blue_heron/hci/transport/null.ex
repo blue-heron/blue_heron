@@ -1,19 +1,10 @@
 defmodule BlueHeron.HCI.Transport.NULL do
   @moduledoc """
   Transport impl that can be used to mock out HCI commands
-
-  Example:
-
-      iex> BlueHeron.HCI.Transport.start_link(%BlueHeron.HCI.Transport.NULL{
-      ...>  init_commands: [Harald.HCI.ControllerAndBaseband.reset()],
-      ...>  replies: %{
-      ...>    Harald.HCI.ControllerAndBaseband.reset() => "\\x0e\\x04\\x03\\x03\\x0c\\x00"
-      ...> }})
   """
   use GenServer
   require Logger
   alias BlueHeron.HCI.Transport.NULL
-  import BlueHeron.HCI.Serializable, only: [serialize: 1]
 
   @behaviour BlueHeron.HCI.Transport
 
@@ -54,23 +45,5 @@ defmodule BlueHeron.HCI.Transport.NULL do
   def handle_call({:send_acl, acl}, _from, state) do
     send(self(), {:handle_out, acl})
     {:reply, true, state}
-  end
-
-  @impl GenServer
-  def handle_info({:handle_out, command}, state) do
-    # attach a 0x04 here due to a bug in Harald's HCI deserialize funciton
-    case state.replies[command] do
-      %{} = reply ->
-        {:ok, binary} = serialize(reply)
-        state.recv.(<<0x04>> <> binary)
-
-      reply when is_binary(reply) ->
-        state.recv.(<<0x04>> <> reply)
-
-      _ ->
-        Logger.error("No reply for #{inspect(command, base: :hex, limit: :infinity)}")
-    end
-
-    {:noreply, state}
   end
 end

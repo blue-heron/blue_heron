@@ -1,6 +1,4 @@
 defmodule BlueHeron.HCI.Event.LEMeta.AdvertisingReport do
-  use BlueHeron.HCI.Event.LEMeta, subevent_code: 0x02
-
   @moduledoc """
   A struct representing a LE Advertising Report.
 
@@ -15,26 +13,22 @@ defmodule BlueHeron.HCI.Event.LEMeta.AdvertisingReport do
   Reference: Version 5.2, Vol 4, Part E, 7.7.65.2
   """
 
+  # TODO(Connor) - Rewrite this. ArrayedData is broken
+  @behaviour BlueHeron.HCI.Event
   alias BlueHeron.HCI.{Event.LEMeta.AdvertisingReport.Device}
 
-  defparameters devices: [], num_reports: 0
-
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(report) do
-      {:ok, bin} = Device.serialize(report.devices)
-      size = byte_size(bin) + 1
-
-      <<report.code, size, report.subevent_code, bin::binary>>
-    end
-  end
+  defstruct devices: [], num_reports: 0
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, @subevent_code, arrayed_bin::binary>>) do
+  def deserialize(<<num_reports, _::binary>> = arrayed_bin) do
     {_, devices} = Device.deserialize(arrayed_bin)
-    <<num_reports, _rest::binary>> = arrayed_bin
-
+    # devices
     %__MODULE__{devices: devices, num_reports: num_reports}
   end
 
-  def deserialize(bin), do: {:error, bin}
+  @impl BlueHeron.HCI.Event
+  def serialize(%__MODULE__{devices: devices}) do
+    {:ok, bin} = Device.serialize(devices)
+    bin
+  end
 end

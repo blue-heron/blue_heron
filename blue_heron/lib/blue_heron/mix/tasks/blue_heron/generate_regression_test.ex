@@ -18,7 +18,7 @@ defmodule Mix.Tasks.BlueHeron.GenerateRegressionTest do
 
     deserialised_events =
       for %{payload: pl} = log <- hci_events,
-          do: {pl, BlueHeron.HCI.Deserializable.deserialize(pl), log}
+          do: {pl, BlueHeron.HCI.Event.deserialize(pl), log}
 
     successful_hci_events = for {_, %{}, _} = successful <- deserialised_events, do: successful
 
@@ -29,23 +29,42 @@ defmodule Mix.Tasks.BlueHeron.GenerateRegressionTest do
         """
         test \"#{log.tv_sec}.#{log.tv_us}\" do
           binary = #{pl_str}
-          expected = #{inspect(data, limit: :infinity)}
-          actual =  BlueHeron.HCI.Deserializable.deserialize(binary)
+          expected = #{inspect(data, limit: :infinity, base: :hex)}
+          actual =  BlueHeron.HCI.Event.deserialize(binary)
           assert match?(^expected, actual)
-          assert(BlueHeron.HCI.Serializable.serialize(actual) == binary,
-          \"\"\"
-          Serializating failed.
-          Got: \#{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-          Exp: \#{inspect(binary, base: :hex)}
-          \"\"\")
+          assert(BlueHeron.HCI.Event.serialize(actual) == binary)
         end
         """
       end
 
-    hci_events = for %{type: :HCI_ACL_DATA_PACKET} = event <- log, do: event
+    hci_commands = for %{type: :HCI_COMMAND_DATA_PACKET} = event <- log, do: event
+
+    deserialised_commands =
+      for %{payload: pl} = log <- hci_commands,
+          do: {pl, BlueHeron.HCI.Command.deserialize(pl), log}
+
+    successful_hci_commands =
+      for {_, %{}, _} = successful <- deserialised_commands, do: successful
+
+    hci_command_tests =
+      for {pl, data, log} <- successful_hci_commands do
+        pl_str = inspect(pl, base: :hex, limit: :infinity)
+
+        """
+        test \"#{log.tv_sec}.#{log.tv_us}\" do
+          binary = #{pl_str}
+          expected = #{inspect(data, limit: :infinity, base: :hex)}
+          actual =  BlueHeron.HCI.Command.deserialize(binary)
+          assert match?(^expected, actual)
+          assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+        end
+        """
+      end
+
+    hci_acl = for %{type: :HCI_ACL_DATA_PACKET} = event <- log, do: event
 
     deserialised_acl =
-      for %{payload: pl} = log <- hci_events do
+      for %{payload: pl} = log <- hci_acl do
         try do
           {pl, BlueHeron.ACL.deserialize(pl), log}
         catch
@@ -62,7 +81,7 @@ defmodule Mix.Tasks.BlueHeron.GenerateRegressionTest do
         """
         test \"#{log.tv_sec}.#{log.tv_us}\" do
           binary = #{pl_str}
-          expected = #{inspect(data, limit: :infinity)}
+          expected = #{inspect(data, limit: :infinity, base: :hex)}
           actual =  BlueHeron.ACL.deserialize(binary)
           assert match?(^expected, actual)
           assert BlueHeron.ACL.serialize(actual) == binary
@@ -78,6 +97,10 @@ defmodule Mix.Tasks.BlueHeron.GenerateRegressionTest do
 
         describe "HCI_EVENT_PACKET" do
           #{Enum.join(hci_event_tests, "\n")}
+        end
+
+        describe "HCI_COMMAND_DATA_PACKET" do
+          #{Enum.join(hci_command_tests, "\n")}
         end
 
         describe "ACL Data" do
