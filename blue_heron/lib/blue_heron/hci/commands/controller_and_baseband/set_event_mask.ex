@@ -1,12 +1,10 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask do
-  use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0001
-
   @moduledoc """
   Reset the baseband
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x3`
+  * OCF: `0x1`
+  * Opcode: `0x0c01`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.1
 
@@ -23,8 +21,6 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask do
   ## Return Parameters
   * `:status` - see `BlueHeron.ErrorCode`
   """
-
-  alias __MODULE__
 
   @events_map %{
     0 => :inquiry_complete,
@@ -78,19 +74,25 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask do
     61 => :le_meta
   }
 
-  defparameters Enum.map(@events_map, fn {_bit_position, name} -> {name, true} end)
+  @behaviour BlueHeron.HCI.Command
+  defstruct Enum.map(@events_map, fn {_bit_position, name} -> {name, true} end)
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(%{opcode: opcode} = sem) do
-      mask = SetEventMask.mask_events(sem)
-      size = byte_size(mask)
-      <<opcode::binary, size::8, mask::binary>>
-    end
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0x0C01
+
+  @impl BlueHeron.HCI.Command
+  def serialize(set_event_mask) do
+    # mask_events(set_event_mask)
+    <<0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff>>
+
+    # set_event_mask
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 8, mask::binary>>) do
-    new(unmask_events(mask))
+  def deserialize(set_event_mask) do
+    %__MODULE__{}
+    # <<0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff>>
+    # struct(__MODULE__, unmask_events(set_event_mask))
   end
 
   @impl BlueHeron.HCI.Command

@@ -1,12 +1,10 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteLocalName do
-  use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0013
-
   @moduledoc """
   The HCI_Write_Local_Name command provides the ability to modify the user- friendly name for the BR/EDR Controller.
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x3`
+  * OCF: `0x13`
+  * Opcode: `0xc13`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.11
 
@@ -16,28 +14,31 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteLocalName do
   ## Return Parameters
   * `:status` - see `BlueHeron.ErrorCode`
   """
+  @behaviour BlueHeron.HCI.Command
 
-  defparameters name: "Bluetooth"
+  defstruct name: "Bluetooth"
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(%{opcode: opcode, name: name}) do
-      padded = for _i <- 1..(248 - byte_size(name)), into: name, do: <<0>>
-      <<opcode::binary, 248, padded::binary>>
-    end
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0xC13
+
+  @impl BlueHeron.HCI.Command
+  def serialize(%__MODULE__{name: name}) do
+    padded = for _i <- 1..(248 - byte_size(name)), into: name, do: <<0>>
+    <<padded::binary>>
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 248, padded::binary>>) do
-    new(name: String.trim(padded, <<0>>))
+  def deserialize(<<padded::binary>>) do
+    %__MODULE__{name: String.trim(padded, <<0>>)}
   end
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status::8>>) do
-    %{status: BlueHeron.ErrorCode.name!(status)}
+    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
   end
 
-  @impl true
+  @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status}) do
-    <<BlueHeron.ErrorCode.error_code!(status)::8>>
+    <<status::8>>
   end
 end

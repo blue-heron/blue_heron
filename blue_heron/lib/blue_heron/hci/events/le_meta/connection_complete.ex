@@ -1,6 +1,4 @@
 defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
-  use BlueHeron.HCI.Event.LEMeta, subevent_code: 0x01
-
   @moduledoc """
   The HCI_LE_Connection_Complete event indicates to both of the Hosts forming
   the connection that a new connection has been created.
@@ -23,9 +21,9 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
   Reference: Version 5.2, Vol 4, Part E, 7.7.65.1
   """
 
-  alias BlueHeron.ErrorCode, as: Status
+  @behaviour BlueHeron.HCI.Event
 
-  defparameters [
+  defstruct [
     :status,
     :status_name,
     :connection_handle,
@@ -35,33 +33,26 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
     :connection_interval,
     :connection_latency,
     :supervision_timeout,
-    :master_clock_accuracy,
-    :subevent_code
+    :master_clock_accuracy
   ]
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(cc) do
-      bin = <<
-        cc.subevent_code,
-        cc.status::8,
-        cc.connection_handle::little-16,
-        cc.role,
-        cc.peer_address_type,
-        cc.peer_address::48,
-        cc.connection_interval::little-16,
-        cc.connection_latency::little-16,
-        cc.supervision_timeout::little-16,
-        cc.master_clock_accuracy
-      >>
-
-      size = byte_size(bin)
-
-      <<cc.code, size, bin::binary>>
-    end
+  @impl BlueHeron.HCI.Event
+  def serialize(cc) do
+    <<
+      cc.status::8,
+      cc.connection_handle::little-16,
+      cc.role,
+      cc.peer_address_type,
+      cc.peer_address::48,
+      cc.connection_interval::little-16,
+      cc.connection_latency::little-16,
+      cc.supervision_timeout::little-16,
+      cc.master_clock_accuracy
+    >>
   end
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, @subevent_code, bin::binary>>) do
+  def deserialize(bin) do
     <<
       status,
       connection_handle::little-12,
@@ -76,9 +67,8 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
     >> = bin
 
     %__MODULE__{
-      subevent_code: @subevent_code,
       status: status,
-      status_name: Status.name!(status),
+      status_name: BlueHeron.ErrorCode.name!(status),
       connection_handle: connection_handle,
       role: role,
       peer_address_type: peer_address_type,
@@ -89,6 +79,4 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
       master_clock_accuracy: master_clock_accuracy
     }
   end
-
-  def deserialize(bin), do: {:error, bin}
 end

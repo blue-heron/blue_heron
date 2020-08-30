@@ -1,12 +1,10 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteInquiryMode do
-  use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0045
-
   @moduledoc """
   This command writes the Inquiry_Mode configuration parameter of the local BR/EDR Controller. See Section 6.5.
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x3`
+  * OCF: `0x45`
+  * Opcode: `0xc45`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.50
 
@@ -18,16 +16,19 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteInquiryMode do
   * `:status_name` - Friendly status name. see `BlueHeron.ErrorCode`
   """
 
-  defparameters inquiry_mode: 0
+  @behaviour BlueHeron.HCI.Command
+  defstruct inquiry_mode: 0
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(data) do
-      <<data.opcode::binary, 1, data.inquiry_mode>>
-    end
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0xC45
+
+  @impl BlueHeron.HCI.Command
+  def serialize(data) do
+    <<data.inquiry_mode>>
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, _size, mode>>) do
+  def deserialize(<<mode>>) do
     %__MODULE__{inquiry_mode: mode}
   end
 

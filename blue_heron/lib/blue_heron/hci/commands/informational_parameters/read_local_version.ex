@@ -1,20 +1,15 @@
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
-  use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0001
-
-  alias BlueHeron.ErrorCode, as: Status
-
-  defparameters []
-
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(rlv) do
-      <<rlv.opcode::binary, 0>>
-    end
-  end
+  @behaviour BlueHeron.HCI.Command
+  defstruct []
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 0, "">>) do
-    %__MODULE__{}
-  end
+  def opcode, do: 0xC14
+
+  @impl BlueHeron.HCI.Command
+  def serialize(%__MODULE__{}), do: ""
+
+  @impl BlueHeron.HCI.Command
+  def deserialize(_), do: %__MODULE__{}
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status::8, bin::binary>>) do
@@ -28,7 +23,7 @@ defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
 
     %{
       status: status,
-      status_name: Status.name!(status),
+      status_name: BlueHeron.ErrorCode.name!(status),
       hci_version: hci_version,
       hci_revision: hci_revision,
       lmp_pal_version: lmp_pal_version,

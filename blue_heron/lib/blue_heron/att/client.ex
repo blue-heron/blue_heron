@@ -19,11 +19,14 @@ defmodule BlueHeron.ATT.Client do
   require Logger
   @behaviour :gen_statem
 
+  alias BlueHeron.HCI.Event
+
   alias BlueHeron.HCI.Command.{
     LEController.CreateConnection
   }
 
   alias BlueHeron.HCI.Event.{
+    LEMeta,
     LEMeta.ConnectionComplete,
     DisconnectionComplete,
     CommandStatus
@@ -152,7 +155,7 @@ defmodule BlueHeron.ATT.Client do
   end
 
   def wait_working(:info, {:HCI_EVENT_PACKET, packet}, _data) do
-    Logger.info("Unknown packet for state CONNECT: #{inspect(packet, base: :hex, pretty: true)}")
+    # Logger.info("Unknown packet for state CONNECT: #{inspect(packet, pretty: true)}")
     :keep_state_and_data
   end
 
@@ -174,32 +177,47 @@ defmodule BlueHeron.ATT.Client do
   @doc false
   def connecting(:internal, :create_connection, data) do
     Logger.info("Opening connection")
+    IO.inspect(data.create_connection, base: :hex)
 
     case BlueHeron.hci_command(data.ctx, data.create_connection) do
-      {:ok, _} ->
+      {:ok, result} ->
+        IO.inspect result, label: "ADASSDFLKJSDFLKJFD"
         {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, :ok)}
 
       error ->
+        IO.inspect(error, label: "FAIL")
         {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, error)}
     end
   end
 
   def connecting({:call, _from}, _call, _data), do: {:keep_state_and_data, [:postpone]}
 
-  def connecting(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = connection}, data) do
+  def connecting(
+        :info,
+        {:HCI_EVENT_PACKET, %Event{data: %LEMeta{data: %ConnectionComplete{} = connection}}},
+        data
+      ) do
     Logger.info("Connection established")
     send(data.controlling_process, {__MODULE__, self(), connection})
     actions = [{:next_event, :internal, :exchange_mtu}]
     {:next_state, :connected, %{data | connection: connection}, actions}
   end
 
-  def connecting(:info, {:HCI_EVENT_PACKET, %CommandStatus{status: 18} = error}, data) do
+  def connecting(
+        :info,
+        {:HCI_EVENT_PACKET, %Event{data: %CommandStatus{status: 18} = error}},
+        data
+      ) do
     Logger.error("Could not establish connection")
     {:stop, error, data}
   end
 
   # ignore all other HCI packets in connecting state
-  def connecting(:info, {:HCI_EVENT_PACKET, _}, _data), do: :keep_state_and_data
+  def connecting(:info, {:HCI_EVENT_PACKET, packet}, _data) do
+    # IO.inspect(packet, label: "CONNECTING")
+
+    :keep_state_and_data
+  end
 
   @doc false
   def connected({:call, from}, {:write_value, handle, value}, data) do
@@ -265,7 +283,11 @@ defmodule BlueHeron.ATT.Client do
   # end
 
   # Reply to a caller if it exists, reconnect
-  def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{} = disconnect}, data) do
+  def connected(
+        :info,
+        {:HCI_EVENT_PACKET, %Event{data: %DisconnectionComplete{} = disconnect}},
+        data
+      ) do
     actions =
       [
         {:next_event, :internal, :create_connection}

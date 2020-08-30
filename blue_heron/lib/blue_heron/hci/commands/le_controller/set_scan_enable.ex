@@ -1,44 +1,50 @@
 defmodule BlueHeron.HCI.Command.LEController.SetScanEnable do
-  use BlueHeron.HCI.Command.LEController, ocf: 0x000C
+  @moduledoc """
+  The HCI_LE_Set_Scan_Enable command is used to start and stop scanning.
+  Scanning is used to discover advertising devices nearby.
 
-  defparameters le_scan_enable: false,
-                filter_duplicates: false
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.11
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(cc) do
-      fields = <<
-        as_uint8(cc.le_scan_enable),
-        as_uint8(cc.filter_duplicates)
-      >>
+  * OGF: `0x0C`
+  * OCF: `0x8`
+  * Opcode: `0x200C`
+  """
 
-      fields_size = byte_size(fields)
+  @behaviour BlueHeron.HCI.Command
+  defstruct le_scan_enable: false,
+            filter_duplicates: false
 
-      <<cc.opcode::binary, fields_size, fields::binary>>
-    end
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0x200C
 
-    defp as_uint8(true), do: 1
-    defp as_uint8(false), do: 0
+  @impl BlueHeron.HCI.Command
+  def serialize(cc) do
+    <<
+      as_uint8(cc.le_scan_enable),
+      as_uint8(cc.filter_duplicates)
+    >>
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, _fields_size, le_scan_enable::8, filter_duplicates::8>>) do
-    {:ok,
-     %__MODULE__{
-       le_scan_enable: as_boolean(le_scan_enable),
-       filter_duplicates: as_boolean(filter_duplicates)
-     }}
+  def deserialize(<<le_scan_enable::8, filter_duplicates::8>>) do
+    %__MODULE__{
+      le_scan_enable: as_boolean(le_scan_enable),
+      filter_duplicates: as_boolean(filter_duplicates)
+    }
   end
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status::8>>) do
-    %{status: BlueHeron.ErrorCode.name!(status)}
+    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
   end
 
   @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status}) do
-    <<BlueHeron.ErrorCode.error_code!(status)::8>>
+    <<status::8>>
   end
 
   defp as_boolean(val) when val in [1, "1", true, <<1>>], do: true
   defp as_boolean(_), do: false
+  defp as_uint8(true), do: 1
+  defp as_uint8(false), do: 0
 end

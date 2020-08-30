@@ -4,6 +4,8 @@ defmodule BlueHeron.HCI.Transport do
   a physical link that implements the callbacks in this module
   """
 
+  alias BlueHeron.HCI.{Command, Event}
+
   alias BlueHeron.HCI.Command.{
     ControllerAndBaseband,
     InformationalParameters,
@@ -44,6 +46,8 @@ defmodule BlueHeron.HCI.Transport do
     %LEController.SetScanEnable{le_scan_enable: false}
   ]
 
+  def init_commands, do: @default_init_commands
+
   defstruct errors: 0,
             pid: nil,
             monitor: nil,
@@ -67,15 +71,16 @@ defmodule BlueHeron.HCI.Transport do
     CommandStatus
   }
 
-  import BlueHeron.HCI.Deserializable, only: [deserialize: 1]
-  import BlueHeron.HCI.Serializable, only: [serialize: 1]
-
   @behaviour :gen_statem
 
   @doc "Start a transport"
   @spec start_link(config()) :: :gen_statem.start_ret()
   def start_link(%{} = config) do
     :gen_statem.start_link(__MODULE__, config, [])
+  end
+
+  def terminate(reason, state, data) do
+    Logger.error "Transport Crash in state: #{inspect(state)} #{inspect(reason)} data: #{inspect(data)}"
   end
 
   @doc """
@@ -149,19 +154,15 @@ defmodule BlueHeron.HCI.Transport do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
     case handle_hci_packet(hci, data) do
-      {:ok, %CommandComplete{}, data} ->
+      %Event{data: %CommandComplete{}} ->
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
 
-      {:ok, %CommandStatus{}, data} ->
+      %Event{data: %CommandStatus{}} ->
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
 
-      {:ok, _, data} ->
-        {:keep_state, data, []}
-
-      {:error, reason, data} ->
-        Logger.warn("Could not decode init_command response: #{inspect(reason)}")
+      _ ->
         {:keep_state, data, []}
     end
   end
@@ -177,8 +178,7 @@ defmodule BlueHeron.HCI.Transport do
         :init,
         %{pid: pid, config: %module{}, init_commands: [command | rest]} = data
       ) do
-    command = serialize(command)
-
+    command = Command.serialize(command)
     case module.send_command(pid, command) do
       true ->
         Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
@@ -201,7 +201,7 @@ defmodule BlueHeron.HCI.Transport do
         {:send_command, command},
         %{config: %module{}, pid: pid} = data
       ) do
-    <<opcode::binary-2, _::binary>> = bin = serialize(command)
+    <<opcode::little-16, _::binary>> = bin = Command.serialize(command)
 
     case module.send_command(pid, bin) do
       true ->
@@ -241,20 +241,16 @@ defmodule BlueHeron.HCI.Transport do
 
   def ready(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
-
     case handle_hci_packet(hci, data) do
-      {:ok, %CommandComplete{} = reply, data} ->
+      %Event{data: %CommandComplete{} = reply} ->
         actions = maybe_reply(data, reply)
         {:keep_state, %{data | caller: nil}, actions}
 
-      {:ok, %CommandStatus{} = reply, data} ->
+      %Event{data: %CommandStatus{} = reply} ->
         actions = maybe_reply(data, reply)
         {:keep_state, %{data | caller: nil}, actions}
 
-      {:ok, _parsed, data} ->
-        {:keep_state, data, []}
-
-      {:error, _bin, data} ->
+      _event ->
         {:keep_state, data, []}
     end
   end
@@ -267,20 +263,20 @@ defmodule BlueHeron.HCI.Transport do
   end
 
   defp handle_hci_packet(packet, data) do
-    case deserialize(packet) do
-      %{} = reply ->
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      {:error, unknown} ->
-        {:error, unknown, data}
-    end
+    reply = Event.deserialize(packet)
+    for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+    reply
   end
 
-  defp maybe_reply(%{caller: {caller, opcode}}, %{opcode: opcode} = reply),
-    do: [{:reply, caller, {:ok, reply}}]
+  defp maybe_reply(%{caller: {caller, opcode}}, %{opcode: opcode} = reply)
+    do
+      IO.puts "replying to #{inspect(opcode, base: :hex)}"
+      [{:reply, caller, {:ok, reply}}] end
 
-  defp maybe_reply(%{caller: _}, _), do: []
+  defp maybe_reply(%{caller: caller}, reply) do
+    IO.puts "no caller: #{inspect(caller, base: :hex)} #{inspect(reply, base: :hex)}"
+    []
+  end
 
   # state change funs
 

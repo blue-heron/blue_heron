@@ -1,15 +1,13 @@
 defmodule BlueHeron.HCI.Command.LEController.CreateConnection do
-  use BlueHeron.HCI.Command.LEController, ocf: 0x000D
-
   @moduledoc """
   The HCI_LE_Create_Connection command is used to create an ACL connection to a
   connectable advertiser
 
   Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.12
 
-  * OGF: `#{inspect(@ogf, base: :hex)}`
-  * OCF: `#{inspect(@ocf, base: :hex)}`
-  * Opcode: `#{inspect(@opcode)}`
+  * OGF: `0x0D`
+  * OCF: `0x8`
+  * Opcode: `0x200D`
 
   The LE_Scan_Interval and LE_Scan_Window parameters are recommendations from
   the Host on how long (LE_Scan_Window) and how frequently (LE_Scan_Interval)
@@ -73,51 +71,50 @@ defmodule BlueHeron.HCI.Command.LEController.CreateConnection do
   initialized, the Controller shall return the error code Invalid HCI Command
   Parameters (0x12)
   """
+  @behaviour BlueHeron.HCI.Command
 
-  defparameters le_scan_interval: 0x0C80,
-                le_scan_window: 0x0640,
-                initiator_filter_policy: 0,
-                peer_address_type: 0,
-                peer_address: nil,
-                own_address_type: 0,
-                connection_interval_min: 0x0024,
-                connection_interval_max: 0x0C80,
-                connection_latency: 0x0012,
-                supervision_timeout: 0x0640,
-                min_ce_length: 0x0006,
-                max_ce_length: 0x0054
+  defstruct le_scan_interval: 0x0C80,
+            le_scan_window: 0x0640,
+            initiator_filter_policy: 0,
+            peer_address_type: 0,
+            peer_address: nil,
+            own_address_type: 0,
+            connection_interval_min: 0x0024,
+            connection_interval_max: 0x0C80,
+            connection_latency: 0x0012,
+            supervision_timeout: 0x0640,
+            min_ce_length: 0x0006,
+            max_ce_length: 0x0054
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(cc) do
-      fields = <<
-        cc.le_scan_interval::16-little,
-        cc.le_scan_window::16-little,
-        cc.initiator_filter_policy::8,
-        cc.peer_address_type::8,
-        cc.peer_address::little-48,
-        cc.own_address_type::8,
-        cc.connection_interval_min::16-little,
-        cc.connection_interval_max::16-little,
-        cc.connection_latency::16-little,
-        cc.supervision_timeout::16-little,
-        cc.min_ce_length::16-little,
-        cc.max_ce_length::16-little
-      >>
+  @impl BlueHeron.HCI.Command
+  def opcode(), do: 0x200D
 
-      fields_size = byte_size(fields)
-
-      <<cc.opcode::binary, fields_size, fields::binary>>
-    end
+  @impl BlueHeron.HCI.Command
+  def serialize(cc) do
+    <<
+      cc.le_scan_interval::16-little,
+      cc.le_scan_window::16-little,
+      cc.initiator_filter_policy::8,
+      cc.peer_address_type::8,
+      cc.peer_address::little-48,
+      cc.own_address_type::8,
+      cc.connection_interval_min::16-little,
+      cc.connection_interval_max::16-little,
+      cc.connection_latency::16-little,
+      cc.supervision_timeout::16-little,
+      cc.min_ce_length::16-little,
+      cc.max_ce_length::16-little
+    >>
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, _fields_size, fields::binary>>) do
+  def deserialize(fields) do
     <<
       le_scan_interval::16-little,
       le_scan_window::16-little,
       initiator_filter_policy::8,
       peer_address_type::8,
-      peer_address::48,
+      peer_address::little-48,
       own_address_type::8,
       connection_interval_min::16-little,
       connection_interval_max::16-little,
@@ -144,10 +141,12 @@ defmodule BlueHeron.HCI.Command.LEController.CreateConnection do
   end
 
   @impl BlueHeron.HCI.Command
-  def serialize_return_parameters(binary), do: binary
+  def deserialize_return_parameters(<<status::8>>) do
+    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
+  end
 
   @impl BlueHeron.HCI.Command
-  def deserialize_return_parameters(binary) when is_binary(binary) do
-    binary
+  def serialize_return_parameters(%{status: status}) do
+    <<status::8>>
   end
 end

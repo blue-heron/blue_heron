@@ -3,50 +3,78 @@ defmodule BlueHeronRegressionTest do
   use ExUnit.Case
 
   describe "HCI_EVENT_PACKET" do
+    test "1597079476.610593" do
+      binary = <<0x60, 0x1, 0x1>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1>>, event_code: 0x60}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.611803" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
     test "1597079476.759177" do
       binary = <<0xE, 0x4, 0x3, 0x3, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 3,
-        opcode: <<3, 12>>,
-        return_parameters: %{status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x3,
+          opcode: 0xC03
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.760386" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.760418" do
       binary = <<0xE, 0xC, 0x2, 0x1, 0x10, 0x0, 0x7, 0xB, 0x0, 0x7, 0x5D, 0x0, 0x22, 0x88>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<1, 16>>,
-        return_parameters: <<0, 7, 11, 0, 7, 93, 0, 34, 136>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{
+            hci_revision: 0xB,
+            hci_version: 0x7,
+            lmp_pal_subversion: 0x8822,
+            lmp_pal_version: 0x7,
+            manufacturer_name: 0x5D,
+            status: 0x0,
+            status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>
+          },
+          num_hci_command_packets: 0x2,
+          opcode: 0x1001
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.761680" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.777342" do
@@ -68,24 +96,30 @@ defmodule BlueHeronRegressionTest do
           0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
           0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<20, 12>>,
-        return_parameters: %{local_name: "RTK_BT_4.1", status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{
+            local_name: <<0x52, 0x54, 0x4B, 0x5F, 0x42, 0x54, 0x5F, 0x34, 0x2E, 0x31>>,
+            status: 0x0,
+            status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>
+          },
+          num_hci_command_packets: 0x2,
+          opcode: 0xC14
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.778561" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.783077" do
@@ -96,672 +130,740 @@ defmodule BlueHeronRegressionTest do
           0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
           0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<2, 16>>,
-        return_parameters:
-          <<0, 255, 255, 255, 3, 254, 255, 255, 255, 63, 255, 255, 159, 243, 15, 232, 254, 63,
-            247, 143, 255, 28, 0, 0, 0, 97, 247, 255, 255, 127, 0, 224, 255, 255, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data:
+            <<0x0, 0xFF, 0xFF, 0xFF, 0x3, 0xFE, 0xFF, 0xFF, 0xFF, 0x3F, 0xFF, 0xFF, 0x9F, 0xF3,
+              0xF, 0xE8, 0xFE, 0x3F, 0xF7, 0x8F, 0xFF, 0x1C, 0x0, 0x0, 0x0, 0x61, 0xF7, 0xFF,
+              0xFF, 0x7F, 0x0, 0xE0, 0xFF, 0xFF, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+              0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+              0x0, 0x0, 0x0, 0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x1002
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.784315" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.784339" do
       binary = <<0xE, 0xA, 0x2, 0x9, 0x10, 0x0, 0x50, 0xA4, 0x81, 0x6, 0x4E, 0xE8>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<9, 16>>,
-        return_parameters: <<0, 80, 164, 129, 6, 78, 232>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x50, 0xA4, 0x81, 0x6, 0x4E, 0xE8>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x1009
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.785553" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.785578" do
       binary = <<0xE, 0xB, 0x2, 0x5, 0x10, 0x0, 0x34, 0x3, 0xFF, 0x8, 0x0, 0x10, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<5, 16>>,
-        return_parameters: <<0, 52, 3, 255, 8, 0, 16, 0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x34, 0x3, 0xFF, 0x8, 0x0, 0x10, 0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x1005
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.786783" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.787950" do
       binary = <<0xE, 0xC, 0x2, 0x3, 0x10, 0x0, 0xFF, 0xFF, 0xFF, 0xFE, 0xDB, 0xFF, 0x7B, 0x87>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<3, 16>>,
-        return_parameters: <<0, 255, 255, 255, 254, 219, 255, 123, 135>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0xFF, 0xFF, 0xFF, 0xFE, 0xDB, 0xFF, 0x7B, 0x87>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x1003
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.789162" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.789190" do
       binary = <<0xE, 0x4, 0x2, 0x1, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<1, 12>>,
-        return_parameters: %{status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC01
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.790364" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.790385" do
       binary = <<0xE, 0x4, 0x2, 0x56, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "V\f",
-        return_parameters: %{status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC56
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.791547" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.791571" do
       binary = <<0xE, 0x4, 0x2, 0x18, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 12>>,
-        return_parameters: %{status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC18
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.792755" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.792775" do
       binary = <<0xE, 0x4, 0x2, 0xF, 0x8, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<15, 8>>,
-        return_parameters: %{status: 0, status_name: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0x80F
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.793935" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.795071" do
       binary = <<0xE, 0x4, 0x2, 0x24, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "$\f",
-        return_parameters: %{status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC24
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.796305" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.796330" do
       binary = <<0xE, 0x4, 0x2, 0x13, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<19, 12>>,
-        return_parameters: %{status: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC13
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.797557" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.797585" do
       binary = <<0xE, 0x4, 0x2, 0x52, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "R\f",
-        return_parameters: %{status: 0, status_name: "Success"}
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC52
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.798759" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.798783" do
       binary = <<0xE, 0x4, 0x2, 0x45, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "E\f",
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: %{status: 0x0, status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>},
+          num_hci_command_packets: 0x2,
+          opcode: 0xC45
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.799938" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.801107" do
       binary = <<0xE, 0x4, 0x2, 0x7A, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "z\f",
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0xC7A
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.802305" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.802329" do
       binary = <<0xE, 0x4, 0x2, 0x1A, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<26, 12>>,
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0xC1A
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.802352" do
+      binary = <<0x66, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x0>>, event_code: 0x66}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.803543" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.803567" do
       binary = <<0xE, 0x4, 0x2, 0x2F, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "/\f",
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0xC2F
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.804761" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.804785" do
       binary = <<0xE, 0x4, 0x2, 0x5B, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "[\f",
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0xC5B
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.805996" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.807170" do
       binary = <<0xE, 0x7, 0x2, 0x2, 0x20, 0x0, 0x1B, 0x0, 0x10>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<2, 32>>,
-        return_parameters: <<0, 27, 0, 16>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x1B, 0x0, 0x10>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2002
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.808351" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.808376" do
       binary = <<0xE, 0x4, 0x2, 0x6D, 0xC, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "m\f",
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0xC6D
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.809588" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.809612" do
       binary = <<0xE, 0x5, 0x2, 0xF, 0x20, 0x0, 0x20>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<15, 32>>,
-        return_parameters: <<0, 32>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x20>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x200F
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.810944" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.812129" do
       binary = <<0xE, 0x4, 0x2, 0xB, 0x20, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: "\v ",
-        return_parameters: <<0>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x200B
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.812170" do
+      binary = <<0x60, 0x1, 0x2>>
+      expected = %BlueHeron.HCI.Event{data: <<0x2>>, event_code: 0x60}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.813816" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.813845" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x99, 0x9D, 0x4D, 0xCA, 0xCF, 0xCE, 0x26, 0xE1>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 153, 157, 77, 202, 207, 206, 38, 225>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x99, 0x9D, 0x4D, 0xCA, 0xCF, 0xCE, 0x26, 0xE1>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.815024" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.816205" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x8F, 0x46, 0xBC, 0xD5, 0x44, 0x23, 0xDE, 0xEE>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 143, 70, 188, 213, 68, 35, 222, 238>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x8F, 0x46, 0xBC, 0xD5, 0x44, 0x23, 0xDE, 0xEE>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.817397" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.817430" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x2E, 0xC0, 0xBF, 0x76, 0x17, 0xE0, 0x5F, 0x3B>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 46, 192, 191, 118, 23, 224, 95, 59>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x2E, 0xC0, 0xBF, 0x76, 0x17, 0xE0, 0x5F, 0x3B>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.818631" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.818657" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x1C, 0x8D, 0xC3, 0xE6, 0x8E, 0xC6, 0x61, 0x73>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 28, 141, 195, 230, 142, 198, 97, 115>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x1C, 0x8D, 0xC3, 0xE6, 0x8E, 0xC6, 0x61, 0x73>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.819836" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.820966" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x4F, 0xF4, 0x43, 0x9F, 0x24, 0xFA, 0xA1, 0xCB>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 79, 244, 67, 159, 36, 250, 161, 203>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x4F, 0xF4, 0x43, 0x9F, 0x24, 0xFA, 0xA1, 0xCB>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.822156" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.822180" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0xE2, 0x8F, 0x84, 0x93, 0xF1, 0x47, 0xC2, 0x49>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 226, 143, 132, 147, 241, 71, 194, 73>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0xE2, 0x8F, 0x84, 0x93, 0xF1, 0x47, 0xC2, 0x49>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.823362" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.823385" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x2E, 0x9D, 0xD4, 0x28, 0x97, 0x4E, 0x6A, 0x14>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 46, 157, 212, 40, 151, 78, 106, 20>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x2E, 0x9D, 0xD4, 0x28, 0x97, 0x4E, 0x6A, 0x14>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.824549" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.824567" do
       binary = <<0xE, 0xC, 0x2, 0x18, 0x20, 0x0, 0x2C, 0x52, 0xA9, 0xA0, 0x16, 0xA9, 0x54, 0x50>>
 
-      expected = %BlueHeron.HCI.Event.CommandComplete{
-        code: 14,
-        num_hci_command_packets: 2,
-        opcode: <<24, 32>>,
-        return_parameters: <<0, 44, 82, 169, 160, 22, 169, 84, 80>>
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandComplete{
+          data: <<0x0, 0x2C, 0x52, 0xA9, 0xA0, 0x16, 0xA9, 0x54, 0x50>>,
+          num_hci_command_packets: 0x2,
+          opcode: 0x2018
+        },
+        event_code: 0xE
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.835796" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.836986" do
       binary = <<0xF, 0x4, 0x0, 0x2, 0xD, 0x20>>
 
-      expected = %BlueHeron.HCI.Event.CommandStatus{
-        code: 15,
-        num_hci_command_packets: 2,
-        opcode: "\r ",
-        status: 0,
-        status_name: "Success"
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandStatus{
+          num_hci_command_packets: 0x2,
+          opcode: <<0xD, 0x20>>,
+          status: 0x0,
+          status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>
+        },
+        event_code: 0xF
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
-
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079476.854206" do
@@ -769,81 +871,1342 @@ defmodule BlueHeronRegressionTest do
         <<0x3E, 0x13, 0x1, 0x0, 0x10, 0x0, 0x0, 0x0, 0xAD, 0x1E, 0x9D, 0x38, 0xC1, 0xA4, 0x18,
           0x0, 0x4, 0x0, 0x48, 0x0, 0x0>>
 
-      expected = %BlueHeron.HCI.Event.LEMeta.ConnectionComplete{
-        code: 62,
-        connection_handle: 16,
-        connection_interval: 24,
-        connection_latency: 4,
-        master_clock_accuracy: 0,
-        peer_address: 190_346_998_366_628,
-        peer_address_type: 0,
-        role: 0,
-        status: 0,
-        status_name: "Success",
-        subevent_code: 1,
-        supervision_timeout: 72
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.LEMeta{
+          data: %BlueHeron.HCI.Event.LEMeta.ConnectionComplete{
+            connection_handle: 0x10,
+            connection_interval: 0x18,
+            connection_latency: 0x4,
+            master_clock_accuracy: 0x0,
+            peer_address: 0xAD1E9D38C1A4,
+            peer_address_type: 0x0,
+            role: 0x0,
+            status: 0x0,
+            status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>,
+            supervision_timeout: 0x48
+          },
+          subevent_code: 0x1
+        },
+        event_code: 0x3E
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079476.854262" do
+      binary = <<0x61, 0x1, 0x1>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1>>, event_code: 0x61}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.854306" do
+      binary = <<0xD8, 0x9, 0x10, 0x0, 0x0, 0xAD, 0x1E, 0x9D, 0x38, 0xC1, 0xA4>>
+
+      expected = %BlueHeron.HCI.Event{
+        data: <<0x10, 0x0, 0x0, 0xAD, 0x1E, 0x9D, 0x38, 0xC1, 0xA4>>,
+        event_code: 0xD8
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.854475" do
+      binary = <<0xD9, 0x9, 0x10, 0x0, 0x0, 0xAD, 0x1E, 0x9D, 0x38, 0xC1, 0xA4>>
+
+      expected = %BlueHeron.HCI.Event{
+        data: <<0x10, 0x0, 0x0, 0xAD, 0x1E, 0x9D, 0x38, 0xC1, 0xA4>>,
+        event_code: 0xD9
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.855699" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.855721" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.873938" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.904072" do
+      binary = <<0xAB, 0x4, 0x10, 0x0, 0x17, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x17, 0x0>>, event_code: 0xAB}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.905277" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.905299" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.933451" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.963128" do
+      binary =
+        <<0xA1, 0x16, 0x10, 0x0, 0x1, 0x0, 0x7, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0, 0x0, 0x80,
+          0x0, 0x10, 0x0, 0x0, 0x0, 0x18, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x1, 0x0, 0x7, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0, 0x0, 0x80, 0x0,
+            0x10, 0x0, 0x0, 0x0, 0x18, 0x0, 0x0>>,
+        event_code: 0xA1
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.963138" do
+      binary =
+        <<0xA1, 0x16, 0x10, 0x0, 0x8, 0x0, 0xB, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0, 0x0, 0x80,
+          0x0, 0x10, 0x0, 0x0, 0x1, 0x18, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x8, 0x0, 0xB, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0, 0x0, 0x80, 0x0,
+            0x10, 0x0, 0x0, 0x1, 0x18, 0x0, 0x0>>,
+        event_code: 0xA1
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.963146" do
+      binary =
+        <<0xA1, 0x16, 0x10, 0x0, 0xC, 0x0, 0xE, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0, 0x0, 0x80,
+          0x0, 0x10, 0x0, 0x0, 0xA, 0x18, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0xC, 0x0, 0xE, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0, 0x0, 0x80, 0x0,
+            0x10, 0x0, 0x0, 0xA, 0x18, 0x0, 0x0>>,
+        event_code: 0xA1
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.964340" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.964362" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079476.993829" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.23365" do
+      binary =
+        <<0xA1, 0x16, 0x10, 0x0, 0xF, 0x0, 0x16, 0x0, 0x10, 0x19, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8,
+          0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0xF, 0x0, 0x16, 0x0, 0x10, 0x19, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8, 0x7, 0x6,
+            0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>,
+        event_code: 0xA1
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.24574" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.24596" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.53436" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.82794" do
+      binary =
+        <<0xA1, 0x16, 0x10, 0x0, 0x17, 0x0, 0x1A, 0x0, 0x12, 0x19, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8,
+          0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x17, 0x0, 0x1A, 0x0, 0x12, 0x19, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8, 0x7, 0x6,
+            0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>,
+        event_code: 0xA1
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.84006" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.84033" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.113568" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.142720" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.143933" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.143953" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.173362" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.202729" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x2, 0x0, 0x3, 0x0, 0x3, 0x0, 0x12, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x0, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x2, 0x0, 0x3, 0x0, 0x3, 0x0, 0x12, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x0, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.202740" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x4, 0x0, 0x5, 0x0, 0x5, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x1, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x4, 0x0, 0x5, 0x0, 0x5, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x1, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.202750" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x6, 0x0, 0x7, 0x0, 0x7, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x4, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x6, 0x0, 0x7, 0x0, 0x7, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x4, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.202773" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.203966" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.203991" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.233318" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.262920" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x2, 0x0, 0x3, 0x0, 0x3, 0x0, 0x12, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x0, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x2, 0x0, 0x3, 0x0, 0x3, 0x0, 0x12, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x0, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.262932" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x4, 0x0, 0x5, 0x0, 0x5, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x1, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x4, 0x0, 0x5, 0x0, 0x5, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x1, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.262942" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x6, 0x0, 0x7, 0x0, 0x7, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x4, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x6, 0x0, 0x7, 0x0, 0x7, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x4, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.262966" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.264338" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.264367" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.323516" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.353921" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.353942" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.383699" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.412872" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x9, 0x0, 0xA, 0x0, 0xB, 0x0, 0x20, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x5, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x9, 0x0, 0xA, 0x0, 0xB, 0x0, 0x20, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x5, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.412900" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.414117" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.414139" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.443795" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.473175" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0xD, 0x0, 0xE, 0x0, 0xE, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F,
+          0x80, 0x0, 0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x50, 0x2A, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0xD, 0x0, 0xE, 0x0, 0xE, 0x0, 0x2, 0x0, 0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0,
+            0x0, 0x80, 0x0, 0x10, 0x0, 0x0, 0x50, 0x2A, 0x0, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.473202" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.474906" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.474928" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.503870" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.534514" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.534537" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.563179" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.593439" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x10, 0x0, 0x11, 0x0, 0x13, 0x0, 0x12, 0x0, 0x10, 0x2B, 0xD, 0xC,
+          0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x10, 0x0, 0x11, 0x0, 0x13, 0x0, 0x12, 0x0, 0x10, 0x2B, 0xD, 0xC, 0xB, 0xA,
+            0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.594799" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.594856" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.623232" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.652754" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x14, 0x0, 0x15, 0x0, 0x16, 0x0, 0x6, 0x0, 0x11, 0x2B, 0xD, 0xC,
+          0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x14, 0x0, 0x15, 0x0, 0x16, 0x0, 0x6, 0x0, 0x11, 0x2B, 0xD, 0xC, 0xB, 0xA,
+            0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.652824" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.654004" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.654025" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.655173" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.655195" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.683546" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.684743" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.715009" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.715031" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.743179" do
+      binary = <<0x13, 0x5, 0x1, 0x10, 0x0, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x1, 0x10, 0x0, 0x1, 0x0>>, event_code: 0x13}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.773046" do
+      binary =
+        <<0xA2, 0x1A, 0x10, 0x0, 0x18, 0x0, 0x19, 0x0, 0x1A, 0x0, 0x6, 0x0, 0x12, 0x2B, 0xD, 0xC,
+          0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>
+
+      expected = %BlueHeron.HCI.Event{
+        data:
+          <<0x10, 0x0, 0x18, 0x0, 0x19, 0x0, 0x1A, 0x0, 0x6, 0x0, 0x12, 0x2B, 0xD, 0xC, 0xB, 0xA,
+            0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1, 0x0>>,
+        event_code: 0xA2
+      }
+
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.773074" do
+      binary = <<0xA0, 0x3, 0x10, 0x0, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x10, 0x0, 0x0>>, event_code: 0xA0}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.774277" do
+      binary = <<0x6E, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<>>, event_code: 0x6E}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079477.774304" do
+      binary = <<0x78, 0x2, 0x4, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x4, 0x0>>, event_code: 0x78}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079477.774324" do
       binary = <<0xF, 0x4, 0x0, 0x2, 0x6, 0x4>>
 
-      expected = %BlueHeron.HCI.Event.CommandStatus{
-        code: 15,
-        num_hci_command_packets: 2,
-        opcode: <<6, 4>>,
-        status: 0,
-        status_name: "Success"
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.CommandStatus{
+          num_hci_command_packets: 0x2,
+          opcode: <<0x6, 0x4>>,
+          status: 0x0,
+          status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>
+        },
+        event_code: 0xF
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
-
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
     end
 
     test "1597079477.803651" do
       binary = <<0x5, 0x4, 0x0, 0x10, 0x0, 0x16>>
 
-      expected = %BlueHeron.HCI.Event.DisconnectionComplete{
-        code: 5,
-        connection_handle: 16,
-        reason: 22,
-        reason_name: "Connection Terminated By Local Host",
-        status: 0,
-        status_name: "Success"
+      expected = %BlueHeron.HCI.Event{
+        data: %BlueHeron.HCI.Event.DisconnectionComplete{
+          connection_handle: 0x10,
+          reason: 0x16,
+          reason_name:
+            <<0x43, 0x6F, 0x6E, 0x6E, 0x65, 0x63, 0x74, 0x69, 0x6F, 0x6E, 0x20, 0x54, 0x65, 0x72,
+              0x6D, 0x69, 0x6E, 0x61, 0x74, 0x65, 0x64, 0x20, 0x42, 0x79, 0x20, 0x4C, 0x6F, 0x63,
+              0x61, 0x6C, 0x20, 0x48, 0x6F, 0x73, 0x74>>,
+          status: 0x0,
+          status_name: <<0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73>>
+        },
+        event_code: 0x5
       }
 
-      actual = BlueHeron.HCI.Deserializable.deserialize(binary)
+      actual = BlueHeron.HCI.Event.deserialize(binary)
       assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
 
-      assert(
-        BlueHeron.HCI.Serializable.serialize(actual) == binary,
-        """
-        Serializating failed.
-        Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
-        Exp: #{inspect(binary, base: :hex)}
-        """
-      )
+    test "1597079477.803785" do
+      binary = <<0x61, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x0>>, event_code: 0x61}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079479.176079" do
+      binary = <<0x60, 0x1, 0x3>>
+      expected = %BlueHeron.HCI.Event{data: <<0x3>>, event_code: 0x60}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079479.177497" do
+      binary = <<0x60, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x0>>, event_code: 0x60}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+
+    test "1597079479.177542" do
+      binary = <<0x60, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Event{data: <<0x0>>, event_code: 0x60}
+      actual = BlueHeron.HCI.Event.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Event.serialize(actual) == binary)
+    end
+  end
+
+  describe "HCI_COMMAND_DATA_PACKET" do
+    test "1597079476.610623" do
+      binary = <<0x3, 0xC, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.Reset{},
+        ocf: 0x3,
+        ogf: 0x3,
+        opcode: 0xC03
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.759214" do
+      binary = <<0x1, 0x10, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion{},
+        ocf: 0x1,
+        ogf: 0x4,
+        opcode: 0x1001
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.760527" do
+      binary = <<0x14, 0xC, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName{},
+        ocf: 0x14,
+        ogf: 0x3,
+        opcode: 0xC14
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.777394" do
+      binary = <<0x2, 0x10, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x2, ogf: 0x4, opcode: 0x1002}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.783128" do
+      binary = <<0x9, 0x10, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x9, ogf: 0x4, opcode: 0x1009}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.784368" do
+      binary = <<0x5, 0x10, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x5, ogf: 0x4, opcode: 0x1005}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.785606" do
+      binary = <<0x3, 0x10, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x3, ogf: 0x4, opcode: 0x1003}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.788001" do
+      binary = <<0x1, 0xC, 0x8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x3F>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask{
+          hardware_error: 0x1,
+          encryption_change: 0x1,
+          inquiry_result: 0x1,
+          link_supervision_timeout_changed: 0x1,
+          remote_host_supported_features_notification: 0x1,
+          extended_inquiry_result: 0x1,
+          enhanced_flush_complete: 0x0,
+          disconnection_complete: 0x1,
+          page_scan_repetition_mode_change: 0x1,
+          read_clock_offset_complete: 0x1,
+          io_capability_request: 0x1,
+          encryption_key_refresh_complete: 0x1,
+          page_scan_mode_change: 0x1,
+          master_link_key_complete: 0x1,
+          read_remote_version_information_complete: 0x1,
+          loopback_command: 0x1,
+          user_passkey_request: 0x1,
+          mode_change: 0x1,
+          inquiry_complete: 0x1,
+          data_buffer_overflow: 0x1,
+          return_link_keys: 0x1,
+          authentication_complete: 0x1,
+          sniff_subrating: 0x1,
+          max_slots_change: 0x1,
+          inquiry_resultwith_rssi: 0x1,
+          le_meta: 0x1,
+          synchronous_connection_complete: 0x1,
+          qos_setup_complete: 0x1,
+          pin_code_request: 0x1,
+          connection_packet_type_changed: 0x1,
+          link_key_notification: 0x1,
+          read_remote_supported_features_complete: 0x1,
+          synchronous_connection_changed: 0x1,
+          link_key_request: 0x1,
+          read_remote_extended_features_complete: 0x1,
+          io_capability_response: 0x1,
+          connection_complete: 0x1,
+          user_passkey_notification: 0x1,
+          change_connection_link_key_complete: 0x1,
+          user_confirmation_request: 0x1,
+          keypress_notification: 0x1,
+          flush_occurred: 0x1,
+          remote_oob_data_request: 0x1,
+          connection_request: 0x1,
+          role_change: 0x1,
+          flow_specification_complete: 0x1,
+          remote_name_request_complete: 0x1,
+          qos_violation: 0x1,
+          simple_pairing_complete: 0x1
+        },
+        ocf: 0x1,
+        ogf: 0x3,
+        opcode: 0xC01
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.789207" do
+      binary = <<0x56, 0xC, 0x1, 0x1>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.WriteSimplePairingMode{enabled: true},
+        ocf: 0x56,
+        ogf: 0x3,
+        opcode: 0xC56
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.790400" do
+      binary = <<0x18, 0xC, 0x2, 0x0, 0x60>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.WritePageTimeout{timeout: 0x60},
+        ocf: 0x18,
+        ogf: 0x3,
+        opcode: 0xC18
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.791588" do
+      binary = <<0xF, 0x8, 0x2, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings{
+          enable_hold_mode: 0x0,
+          enable_role_switch: 0x0,
+          enable_sniff_mode: 0x0
+        },
+        ocf: 0xF,
+        ogf: 0x2,
+        opcode: 0x80F
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.792787" do
+      binary = <<0x24, 0xC, 0x3, 0xC, 0x2, 0x7A>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.WriteClassOfDevice{class: 0xC027A},
+        ocf: 0x24,
+        ogf: 0x3,
+        opcode: 0xC24
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.795100" do
+      binary =
+        <<0x13, 0xC, 0xF8, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x38, 0x3A, 0x34,
+          0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.WriteLocalName{
+          name:
+            <<0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x38, 0x3A, 0x34, 0x45, 0x3A,
+              0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30>>
+        },
+        ocf: 0x13,
+        ogf: 0x3,
+        opcode: 0xC13
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.796346" do
+      binary =
+        <<0x52, 0xC, 0xF1, 0x0, 0x1A, 0x9, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45,
+          0x38, 0x3A, 0x34, 0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A,
+          0x35, 0x30, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+          0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.WriteExtendedInquiryResponse{
+          extended_inquiry_response:
+            <<0x1A, 0x9, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x38, 0x3A, 0x34,
+              0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30>>,
+          fec_required?: false
+        },
+        ocf: 0x52,
+        ogf: 0x3,
+        opcode: 0xC52
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.797602" do
+      binary = <<0x45, 0xC, 0x1, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
+        ocf: 0x45,
+        ogf: 0x3,
+        opcode: 0xC45
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.798799" do
+      binary = <<0x7A, 0xC, 0x1, 0x1>>
+      expected = %BlueHeron.HCI.Command{data: <<0x1>>, ocf: 0x7A, ogf: 0x3, opcode: 0xC7A}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.801133" do
+      binary = <<0x1A, 0xC, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<0x0>>, ocf: 0x1A, ogf: 0x3, opcode: 0xC1A}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.802366" do
+      binary = <<0x2F, 0xC, 0x1, 0x1>>
+      expected = %BlueHeron.HCI.Command{data: <<0x1>>, ocf: 0x2F, ogf: 0x3, opcode: 0xC2F}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.803580" do
+      binary = <<0x5B, 0xC, 0x1, 0x1>>
+      expected = %BlueHeron.HCI.Command{data: <<0x1>>, ocf: 0x5B, ogf: 0x3, opcode: 0xC5B}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.804798" do
+      binary = <<0x2, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x2, ogf: 0x8, opcode: 0x2002}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.807208" do
+      binary = <<0x6D, 0xC, 0x2, 0x1, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<0x1, 0x0>>, ocf: 0x6D, ogf: 0x3, opcode: 0xC6D}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.808403" do
+      binary = <<0xF, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0xF, ogf: 0x8, opcode: 0x200F}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.809640" do
+      binary = <<0xB, 0x20, 0x7, 0x1, 0xE0, 0x1, 0x30, 0x0, 0x0, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: <<0x1, 0xE0, 0x1, 0x30, 0x0, 0x0, 0x0>>,
+        ocf: 0xB,
+        ogf: 0x8,
+        opcode: 0x200B
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.812530" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.813874" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.816245" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.817465" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.818687" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.821005" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.822209" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.823416" do
+      binary = <<0x18, 0x20, 0x0>>
+      expected = %BlueHeron.HCI.Command{data: <<>>, ocf: 0x18, ogf: 0x8, opcode: 0x2018}
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079476.834613" do
+      binary =
+        <<0xD, 0x20, 0x19, 0x60, 0x0, 0x30, 0x0, 0x0, 0x0, 0xAD, 0x1E, 0x9D, 0x38, 0xC1, 0xA4,
+          0x0, 0x8, 0x0, 0x18, 0x0, 0x4, 0x0, 0x48, 0x0, 0x2, 0x0, 0x30, 0x0>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: %BlueHeron.HCI.Command.LEController.CreateConnection{
+          connection_interval_max: 0x18,
+          connection_interval_min: 0x8,
+          connection_latency: 0x4,
+          initiator_filter_policy: 0x0,
+          le_scan_interval: 0x60,
+          le_scan_window: 0x30,
+          max_ce_length: 0x30,
+          min_ce_length: 0x2,
+          own_address_type: 0x0,
+          peer_address: 0xA4C1389D1EAD,
+          peer_address_type: 0x0,
+          supervision_timeout: 0x48
+        },
+        ocf: 0xD,
+        ogf: 0x8,
+        opcode: 0x200D
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
+    end
+
+    test "1597079477.773087" do
+      binary = <<0x6, 0x4, 0x3, 0x10, 0x0, 0x13>>
+
+      expected = %BlueHeron.HCI.Command{
+        data: <<0x10, 0x0, 0x13>>,
+        ocf: 0x6,
+        ogf: 0x1,
+        opcode: 0x406
+      }
+
+      actual = BlueHeron.HCI.Command.deserialize(binary)
+      assert match?(^expected, actual)
+      assert(BlueHeron.HCI.Command.serialize(actual) == binary)
     end
   end
 
@@ -853,11 +2216,11 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
-          data: %BlueHeron.ATT.ExchageMTURequest{client_rx_mtu: 1691, opcode: 2}
+          cid: 0x4,
+          data: %BlueHeron.ATT.ExchageMTURequest{client_rx_mtu: 0x69B, opcode: 0x2}
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -870,11 +2233,11 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
-          data: %BlueHeron.ATT.ExchageMTUResponse{opcode: 3, server_rx_mtu: 23}
+          cid: 0x4,
+          data: %BlueHeron.ATT.ExchageMTUResponse{opcode: 0x3, server_rx_mtu: 0x17}
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -887,16 +2250,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeRequest{
-            ending_handle: 65535,
-            opcode: 16,
-            starting_handle: 1,
-            uuid: 10240
+            ending_handle: 0xFFFF,
+            opcode: 0x10,
+            starting_handle: 0x1,
+            uuid: 0x2800
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -911,30 +2274,30 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 7,
-                handle: 1,
-                uuid: 6144
+                end_group_handle: 0x7,
+                handle: 0x1,
+                uuid: 0x1800
               },
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 11,
-                handle: 8,
-                uuid: 6145
+                end_group_handle: 0xB,
+                handle: 0x8,
+                uuid: 0x1801
               },
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 14,
-                handle: 12,
-                uuid: 6154
+                end_group_handle: 0xE,
+                handle: 0xC,
+                uuid: 0x180A
               }
             ],
-            opcode: 17
+            opcode: 0x11
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -947,16 +2310,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeRequest{
-            ending_handle: 65535,
-            opcode: 16,
-            starting_handle: 15,
-            uuid: 10240
+            ending_handle: 0xFFFF,
+            opcode: 0x10,
+            starting_handle: 0xF,
+            uuid: 0x2800
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -971,20 +2334,20 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 22,
-                handle: 15,
-                uuid: 5_233_100_606_242_806_050_955_395_731_364_112
+                end_group_handle: 0x16,
+                handle: 0xF,
+                uuid: 0x102030405060708090A0B0C0D1910
               }
             ],
-            opcode: 17
+            opcode: 0x11
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -997,16 +2360,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeRequest{
-            ending_handle: 65535,
-            opcode: 16,
-            starting_handle: 23,
-            uuid: 10240
+            ending_handle: 0xFFFF,
+            opcode: 0x10,
+            starting_handle: 0x17,
+            uuid: 0x2800
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1021,20 +2384,20 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 26,
-                handle: 23,
-                uuid: 5_233_100_606_242_806_050_955_395_731_364_114
+                end_group_handle: 0x1A,
+                handle: 0x17,
+                uuid: 0x102030405060708090A0B0C0D1912
               }
             ],
-            opcode: 17
+            opcode: 0x11
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1047,16 +2410,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByGroupTypeRequest{
-            ending_handle: 65535,
-            opcode: 16,
-            starting_handle: 27,
-            uuid: 10240
+            ending_handle: 0xFFFF,
+            opcode: 0x10,
+            starting_handle: 0x1B,
+            uuid: 0x2800
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1069,16 +2432,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ErrorResponse{
             error: :attribute_not_found,
-            handle: 27,
-            opcode: 1,
-            request_opcode: 16
+            handle: 0x1B,
+            opcode: 0x1,
+            request_opcode: 0x10
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1091,16 +2454,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 7,
-            opcode: 8,
-            starting_handle: 1,
-            uuid: 10243
+            ending_handle: 0x7,
+            opcode: 0x8,
+            starting_handle: 0x1,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1115,33 +2478,33 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 18,
-                characteristic_value_handle: 3,
-                handle: 2,
-                uuid: 10752
+                characteristic_properties: 0x12,
+                characteristic_value_handle: 0x3,
+                handle: 0x2,
+                uuid: 0x2A00
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 2,
-                characteristic_value_handle: 5,
-                handle: 4,
-                uuid: 10753
+                characteristic_properties: 0x2,
+                characteristic_value_handle: 0x5,
+                handle: 0x4,
+                uuid: 0x2A01
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 2,
-                characteristic_value_handle: 7,
-                handle: 6,
-                uuid: 10756
+                characteristic_properties: 0x2,
+                characteristic_value_handle: 0x7,
+                handle: 0x6,
+                uuid: 0x2A04
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1154,16 +2517,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 7,
-            opcode: 8,
-            starting_handle: 1,
-            uuid: 10243
+            ending_handle: 0x7,
+            opcode: 0x8,
+            starting_handle: 0x1,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1178,33 +2541,33 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 18,
-                characteristic_value_handle: 3,
-                handle: 2,
-                uuid: 10752
+                characteristic_properties: 0x12,
+                characteristic_value_handle: 0x3,
+                handle: 0x2,
+                uuid: 0x2A00
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 2,
-                characteristic_value_handle: 5,
-                handle: 4,
-                uuid: 10753
+                characteristic_properties: 0x2,
+                characteristic_value_handle: 0x5,
+                handle: 0x4,
+                uuid: 0x2A01
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 2,
-                characteristic_value_handle: 7,
-                handle: 6,
-                uuid: 10756
+                characteristic_properties: 0x2,
+                characteristic_value_handle: 0x7,
+                handle: 0x6,
+                uuid: 0x2A04
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1217,16 +2580,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 11,
-            opcode: 8,
-            starting_handle: 8,
-            uuid: 10243
+            ending_handle: 0xB,
+            opcode: 0x8,
+            starting_handle: 0x8,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1241,21 +2604,21 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 32,
-                characteristic_value_handle: 10,
-                handle: 9,
-                uuid: 10757
+                characteristic_properties: 0x20,
+                characteristic_value_handle: 0xA,
+                handle: 0x9,
+                uuid: 0x2A05
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1268,16 +2631,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 11,
-            opcode: 8,
-            starting_handle: 11,
-            uuid: 10243
+            ending_handle: 0xB,
+            opcode: 0x8,
+            starting_handle: 0xB,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1290,16 +2653,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ErrorResponse{
             error: :attribute_not_found,
-            handle: 11,
-            opcode: 1,
-            request_opcode: 8
+            handle: 0xB,
+            opcode: 0x1,
+            request_opcode: 0x8
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1312,16 +2675,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 14,
-            opcode: 8,
-            starting_handle: 12,
-            uuid: 10243
+            ending_handle: 0xE,
+            opcode: 0x8,
+            starting_handle: 0xC,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1336,21 +2699,21 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 2,
-                characteristic_value_handle: 14,
-                handle: 13,
-                uuid: 10832
+                characteristic_properties: 0x2,
+                characteristic_value_handle: 0xE,
+                handle: 0xD,
+                uuid: 0x2A50
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1363,16 +2726,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 22,
-            opcode: 8,
-            starting_handle: 15,
-            uuid: 10243
+            ending_handle: 0x16,
+            opcode: 0x8,
+            starting_handle: 0xF,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1387,21 +2750,21 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 18,
-                characteristic_value_handle: 17,
-                handle: 16,
-                uuid: 5_233_100_606_242_806_050_955_395_731_368_720
+                characteristic_properties: 0x12,
+                characteristic_value_handle: 0x11,
+                handle: 0x10,
+                uuid: 0x102030405060708090A0B0C0D2B10
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1414,16 +2777,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 22,
-            opcode: 8,
-            starting_handle: 18,
-            uuid: 10243
+            ending_handle: 0x16,
+            opcode: 0x8,
+            starting_handle: 0x12,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1438,21 +2801,21 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 6,
-                characteristic_value_handle: 21,
-                handle: 20,
-                uuid: 5_233_100_606_242_806_050_955_395_731_368_721
+                characteristic_properties: 0x6,
+                characteristic_value_handle: 0x15,
+                handle: 0x14,
+                uuid: 0x102030405060708090A0B0C0D2B11
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1465,16 +2828,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 22,
-            opcode: 8,
-            starting_handle: 22,
-            uuid: 10243
+            ending_handle: 0x16,
+            opcode: 0x8,
+            starting_handle: 0x16,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1487,16 +2850,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ErrorResponse{
             error: :attribute_not_found,
-            handle: 22,
-            opcode: 1,
-            request_opcode: 8
+            handle: 0x16,
+            opcode: 0x1,
+            request_opcode: 0x8
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1511,15 +2874,17 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.WriteCommand{
-            data: <<51, 5, 2, 255, 0, 0, 0, 255, 137, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 175>>,
-            handle: 21,
-            opcode: 82
+            data:
+              <<0x33, 0x5, 0x2, 0xFF, 0x0, 0x0, 0x0, 0xFF, 0x89, 0x12, 0x0, 0x0, 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0xAF>>,
+            handle: 0x15,
+            opcode: 0x52
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1532,16 +2897,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 26,
-            opcode: 8,
-            starting_handle: 23,
-            uuid: 10243
+            ending_handle: 0x1A,
+            opcode: 0x8,
+            starting_handle: 0x17,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1556,21 +2921,21 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
-                characteristic_properties: 6,
-                characteristic_value_handle: 25,
-                handle: 24,
-                uuid: 5_233_100_606_242_806_050_955_395_731_368_722
+                characteristic_properties: 0x6,
+                characteristic_value_handle: 0x19,
+                handle: 0x18,
+                uuid: 0x102030405060708090A0B0C0D2B12
               }
             ],
-            opcode: 9
+            opcode: 0x9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1583,16 +2948,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 26,
-            opcode: 8,
-            starting_handle: 26,
-            uuid: 10243
+            ending_handle: 0x1A,
+            opcode: 0x8,
+            starting_handle: 0x1A,
+            uuid: 0x2803
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 16
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x10
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1605,16 +2970,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
+          cid: 0x4,
           data: %BlueHeron.ATT.ErrorResponse{
             error: :attribute_not_found,
-            handle: 26,
-            opcode: 1,
-            request_opcode: 8
+            handle: 0x1A,
+            opcode: 0x1,
+            request_opcode: 0x8
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 0x0, pb: 0x0},
+        handle: 0x210
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
