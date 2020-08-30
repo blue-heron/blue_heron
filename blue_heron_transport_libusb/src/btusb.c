@@ -3,16 +3,17 @@
 
 #include <string.h>
 
-#define USB_QUEUED_TRANSFERS_PER_ENDPOINT 4
+#define USB_TRANSFERS_PER_ENDPOINT 4
 
-#define HCI_ACL_BUFFER_SIZE 255
+// This looks like it's bigger than necessary, but I'm having trouble
+// nailing down the max size in the spec.
+#define HCI_MAX_BUFFER_SIZE 256
 
 struct usb_endpoint {
     int address;
     size_t buffer_size;
     uint8_t *buffer_memory;
-    struct libusb_transfer *transfers[USB_QUEUED_TRANSFERS_PER_ENDPOINT];
-    uint8_t *buffers[USB_QUEUED_TRANSFERS_PER_ENDPOINT];
+    struct libusb_transfer *transfers[USB_TRANSFERS_PER_ENDPOINT];
     struct libusb_transfer *free_list;
 };
 
@@ -232,11 +233,11 @@ static void initialize_endpoint(struct usb_endpoint *endpoint,
 {
     endpoint->address = address;
     endpoint->buffer_size = buffer_size;
-    endpoint->buffer_memory = malloc(buffer_size * USB_QUEUED_TRANSFERS_PER_ENDPOINT);
+    endpoint->buffer_memory = malloc(buffer_size * USB_TRANSFERS_PER_ENDPOINT);
     endpoint->free_list = NULL;
 
     uint8_t *buffer = endpoint->buffer_memory;
-    for (int i = 0; i < USB_QUEUED_TRANSFERS_PER_ENDPOINT; i++) {
+    for (int i = 0; i < USB_TRANSFERS_PER_ENDPOINT; i++) {
         struct libusb_transfer *transfer = libusb_alloc_transfer(0);
         if (transfer == NULL)
             fatal("libusb_alloc_transfer failed");
@@ -251,7 +252,6 @@ static void initialize_endpoint(struct usb_endpoint *endpoint,
         endpoint->free_list = transfer;
         transfer->callback = callback;
 
-        endpoint->buffers[i] = buffer;
         buffer += buffer_size;
     }
 }
@@ -298,18 +298,18 @@ int btusb_open(uint16_t vid, uint16_t pid)
     prepare_device(handle);
 
     // Control endpoint
-    initialize_endpoint(&cmd_endpoint, 0x00, 256 + LIBUSB_CONTROL_SETUP_SIZE, LIBUSB_TRANSFER_TYPE_CONTROL, command_out_callback);
+    initialize_endpoint(&cmd_endpoint, 0x00, HCI_MAX_BUFFER_SIZE + LIBUSB_CONTROL_SETUP_SIZE, LIBUSB_TRANSFER_TYPE_CONTROL, command_out_callback);
 
     // EP1, IN interrupt
-    initialize_endpoint(&event_endpoint, 0x81, HCI_ACL_BUFFER_SIZE, LIBUSB_TRANSFER_TYPE_INTERRUPT, event_callback);
+    initialize_endpoint(&event_endpoint, 0x81, HCI_MAX_BUFFER_SIZE, LIBUSB_TRANSFER_TYPE_INTERRUPT, event_callback);
     submit_free_list(&event_endpoint);
 
     // EP2, IN bulk
-    initialize_endpoint(&acl_in_endpoint, 0x82, HCI_ACL_BUFFER_SIZE, LIBUSB_TRANSFER_TYPE_BULK, acl_in_callback);
+    initialize_endpoint(&acl_in_endpoint, 0x82, HCI_MAX_BUFFER_SIZE, LIBUSB_TRANSFER_TYPE_BULK, acl_in_callback);
     submit_free_list(&acl_in_endpoint);
 
     // EP2, OUT bulk
-    initialize_endpoint(&acl_out_endpoint, 0x02, HCI_ACL_BUFFER_SIZE, LIBUSB_TRANSFER_TYPE_BULK, acl_out_callback);
+    initialize_endpoint(&acl_out_endpoint, 0x02, HCI_MAX_BUFFER_SIZE, LIBUSB_TRANSFER_TYPE_BULK, acl_out_callback);
 
     return 0;
 }
@@ -329,6 +329,12 @@ void btusb_exit()
 int btusb_send_cmd_packet(const uint8_t *packet, size_t size)
 {
     debug("btusb_send_cmd_packet enter, size %lu", size);
+
+    if (LIBUSB_CONTROL_SETUP_SIZE + size > cmd_endpoint.buffer_size) {
+        warn("cmd packet too large (%d > %d)", size, cmd_endpoint.buffer_size - LIBUSB_CONTROL_SETUP_SIZE);
+        return -1;
+    }
+
     struct libusb_transfer *transfer = pop_free_list(&cmd_endpoint);
     if (transfer == NULL) {
         warn("Out of cmd transfer buffers. Dropping.");
@@ -354,8 +360,8 @@ int btusb_send_acl_packet(const uint8_t *packet, size_t size)
 {
     debug("btusb_send_acl_packet enter, size %lu", size);
 
-    if (size > HCI_ACL_BUFFER_SIZE) {
-        warn("ACL packet too large (%d > %d)", size, HCI_ACL_BUFFER_SIZE);
+    if (size > acl_out_endpoint.buffer_size) {
+        warn("ACL packet too large (%d > %d)", size, acl_out_endpoint.buffer_size);
         return -1;
     }
 
