@@ -1,5 +1,8 @@
 # BlueHeronTransportLibusb
 
+[![Hex version](https://img.shields.io/hexpm/v/blue_heron_transport_libusb.svg "Hex version")](https://hex.pm/packages/blue_heron_transport_libusb)
+[![API docs](https://img.shields.io/hexpm/v/blue_heron_transport_libusb.svg?label=hexdocs "API docs")](https://hexdocs.pm/blue_heron_transport_libusb/BlueHeronTransportLibUSB.html)
+
 **TODO: Add description**
 
 ## Installation

@@ -1,5 +1,7 @@
 # BlueHeron
 
+[![CircleCI](https://circleci.com/gh/smartrent/blue_heron.svg?style=svg)](https://circleci.com/gh/smartrent/blue_heron)
+
 BlueHeron is a new Elixir Bluetooth LE Library that communicates directly with
 Bluetooth modules via HCI. It is VERY much under construction, and we expect the
 user API to change as we're able to simplify and improve it.
