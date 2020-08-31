@@ -23,6 +23,11 @@ $ sudo chmod +s ./_build/dev/lib/blue_heron_transport_libusb/priv/hci_transport
 
 # Run Elixir interactively
 $ iex -S mix
+
+# I'm using a Realtek combo BT/WiFi USB module with the specified VID/PID.
+# Other BT modules are supposed to be similar, but we know that some do
+# not (ones by Intel, for example). It is likely some missing device-specific
+# initialization. Specify `vid: 0, pid: 0` to auto-detect.
 iex> {:ok, pid} = GoveeBulb.start_link(:usb, vid: 0x0bda, pid: 0xb82c)
 iex> GoveeBulb.set_color(pid, 0xFFFF40)
 ```

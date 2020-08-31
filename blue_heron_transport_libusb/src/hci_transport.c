@@ -106,20 +106,55 @@ static void hci_transport_init()
     num_pollfds = 1;
 }
 
+struct acceptance_criteria {
+    uint16_t vid;
+    uint16_t pid;
+    uint8_t bus_number;
+    uint8_t device_number;
+};
+
+static bool accept_by_vid_pid(struct libusb_device *dev, const struct libusb_device_descriptor *desc, void *cookie)
+{
+    const struct acceptance_criteria *c = (const struct acceptance_criteria *) cookie;
+
+    return c->vid == desc->idVendor && c->pid == desc->idProduct;
+}
+
+static bool accept_by_location(struct libusb_device *dev, const struct libusb_device_descriptor *desc, void *cookie)
+{
+    const struct acceptance_criteria *c = (const struct acceptance_criteria *) cookie;
+
+    return c->bus_number == libusb_get_bus_number(dev) && c->device_number == libusb_get_device_address(dev);
+}
+
+static bool accept_first(struct libusb_device *dev, const struct libusb_device_descriptor *desc, void *cookie)
+{
+    return true;
+}
+
 int main(int argc, char const *argv[])
 {
     hci_transport_init();
 
-    if (argc != 4 && strcmp(argv[1], "open") == 0)
-        fatal("Expecting 'open <vid> <pid>'");
+    acceptable_device_cb acceptable_device;
+    struct acceptance_criteria ac;
 
-    uint16_t vid = (uint16_t) strtoul(argv[2], 0, 0);
-    uint16_t pid = (uint16_t) strtoul(argv[3], 0, 0);
+    if (argc == 4 && strcmp(argv[1], "open_by_vid_pid") == 0) {
+        ac.vid = (uint16_t) strtoul(argv[2], 0, 0);
+        ac.pid = (uint16_t) strtoul(argv[3], 0, 0);
+        acceptable_device = accept_by_vid_pid;
+    } else if (argc == 4 && strcmp(argv[1], "open_by_bus") == 0) {
+        ac.bus_number = (uint8_t) strtoul(argv[2], 0, 0);
+        ac.device_number = (uint8_t) strtoul(argv[3], 0, 0);
+        acceptable_device = accept_by_location;
+    } else {
+        acceptable_device = accept_first;
+    }
 
     btusb_init(pollfd_added, pollfd_removed, NULL);
 
-    if (btusb_open(vid, pid))
-        fatal("error opening USB device 0x%04x:0x%04x", vid, pid);
+    if (btusb_open(acceptable_device, &ac))
+        fatal("btusb_open failed");
 
     for (;;) {
         for (int i = 0; i < num_pollfds; i++)

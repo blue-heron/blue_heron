@@ -152,79 +152,6 @@ void btusb_process()
         fatal("libusb_handle_events_timeout_completed returned %d", rc);
 }
 
-static int prepare_device(libusb_device_handle *aHandle)
-{
-    int rc;
-    int kernel_driver_detached = 0;
-
-    // Detach OS driver (not possible for OS X, FreeBSD, and WIN32)
-#if !defined(__APPLE__) && !defined(_WIN32) && !defined(__FreeBSD__)
-    rc = libusb_kernel_driver_active(aHandle, 0);
-    if (rc < 0) {
-        warn("libusb_kernel_driver_active error %d", rc);
-        libusb_close(aHandle);
-        return rc;
-    }
-
-    if (rc == 1) {
-        rc = libusb_detach_kernel_driver(aHandle, 0);
-        if (rc < 0) {
-            warn("libusb_detach_kernel_driver error %d", rc);
-            libusb_close(aHandle);
-            return rc;
-        }
-        kernel_driver_detached = 1;
-    }
-    debug("libusb_detach_kernel_driver");
-#endif
-
-    const int configuration = 1;
-    debug("setting configuration %d...", configuration);
-    rc = libusb_set_configuration(aHandle, configuration);
-    if (rc < 0) {
-        debug("Error libusb_set_configuration: %d", rc);
-        if (kernel_driver_detached) {
-            libusb_attach_kernel_driver(aHandle, 0);
-        }
-        libusb_close(aHandle);
-        return rc;
-    }
-
-    // reserve access to device
-    debug("claiming interface 0...");
-    rc = libusb_claim_interface(aHandle, 0);
-    if (rc < 0) {
-        warn("Error %d claiming interface 0", rc);
-        if (kernel_driver_detached) {
-            libusb_attach_kernel_driver(aHandle, 0);
-        }
-        libusb_close(aHandle);
-        return rc;
-    }
-    return 0;
-}
-
-static libusb_device_handle *try_open_device(uint16_t vid, uint16_t pid)
-{
-    libusb_device_handle *dev_handle = libusb_open_device_with_vid_pid(NULL, vid, pid);
-    if (!dev_handle) {
-        warn("libusb_open failed!");
-        dev_handle = NULL;
-        return NULL;
-    }
-
-    debug("libusb open handle %p", dev_handle);
-
-    // reset device (Not currently possible under FreeBSD 11.x/12.x due to usb framework)
-    int rc = libusb_reset_device(dev_handle);
-    if (rc < 0) {
-        warn("libusb_reset_device failed!");
-        libusb_close(dev_handle);
-        return NULL;
-    }
-    return dev_handle;
-}
-
 static void initialize_endpoint(struct usb_endpoint *endpoint,
                                 unsigned char address,
                                 size_t buffer_size,
@@ -287,15 +214,36 @@ void btusb_init(libusb_pollfd_added_cb added_cb, libusb_pollfd_removed_cb remove
         fatal("Platform missing timerfd support. Need to implement timer handling...");
 }
 
-int btusb_open(uint16_t vid, uint16_t pid)
+int btusb_open(acceptable_device_cb acceptable_device, void *cookie)
 {
-    handle = try_open_device(vid, pid);
-    if (!handle) {
-        debug("Failed to open device at 0x%04x:0x%04x", vid, pid);
+    libusb_device *device;
+    int interface;
+    if (btusb_find_bt_device(&device, &interface, acceptable_device, cookie) < 0) {
+        warn("No acceptable Bluetooth modules found");
         return -1;
     }
 
-    prepare_device(handle);
+    int rc = libusb_open(device, &handle);
+    if (rc != LIBUSB_SUCCESS) {
+        warn("libusb_open failed %d", rc);
+        return -1;
+    }
+
+    rc = libusb_kernel_driver_active(handle, interface);
+    if (rc == 1) {
+    	// Kernel driver attached.  Disconnect it.
+    	libusb_detach_kernel_driver(handle, interface);
+    }
+
+    rc = libusb_reset_device(handle);
+    if (rc < 0)
+        warn("libusb_reset_device failed. Ignoring");
+
+    rc = libusb_claim_interface(handle, interface);
+    if (rc != LIBUSB_SUCCESS) {
+        warn("libusb_claim_interface failed %d", rc);
+        return -1;
+    }
 
     // Control endpoint
     initialize_endpoint(&cmd_endpoint, 0x00, HCI_MAX_BUFFER_SIZE + LIBUSB_CONTROL_SETUP_SIZE, LIBUSB_TRANSFER_TYPE_CONTROL, command_out_callback);

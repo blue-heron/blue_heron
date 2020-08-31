@@ -12,8 +12,8 @@ defmodule BlueHeronTransportLibUSB do
   @hci_acl_packet 0x02
   @log_message_packet 0xFC
 
-  defstruct vid: 0x0BDA,
-            pid: 0xB82C,
+  defstruct vid: 0,
+            pid: 0,
             init_commands: []
 
   @impl BlueHeron.HCI.Transport
@@ -40,7 +40,7 @@ defmodule BlueHeronTransportLibUSB do
   def init({%__MODULE__{} = config, recv}) do
     port =
       Port.open({:spawn_executable, port_executable()}, [
-        {:args, ["open", "#{config.vid}", "#{config.pid}"]},
+        {:args, open_args(config)},
         :binary,
         :exit_status,
         {:packet, 2}
@@ -48,6 +48,12 @@ defmodule BlueHeronTransportLibUSB do
 
     {:ok, %{port: port, recv: recv}}
   end
+
+  defp open_args(%__MODULE__{vid: vid, pid: pid}) when vid > 0 and pid > 0 do
+    ["open_by_vid_pid", to_string(vid), to_string(pid)]
+  end
+
+  defp open_args(_other), do: ["open_first"]
 
   @impl true
   def handle_info(
