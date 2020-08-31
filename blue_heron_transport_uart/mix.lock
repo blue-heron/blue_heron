@@ -1,4 +1,5 @@
 %{
+  "blue_heron": {:hex, :blue_heron, "0.1.0", "eba980dc10030f5c66e1ec92e693524d9aa92a0c7b3acec7baa19278efa1676d", [:mix], [{:ex_bin, "~> 0.4", [hex: :ex_bin, repo: "hexpm", optional: false]}], "hexpm", "b2600081d8e05d3d56748401e53c06eab888591b4289f47a36f746efed9e6b2b"},
   "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm", "7af5c7e09fe1d40f76c8e4f9dd2be7cebd83909f31fee7cd0e9eadc567da8353"},
   "circuits_uart": {:hex, :circuits_uart, "1.4.2", "520817daced77620bc036c168eb42b55ba4b4c141c2de47a199895a35a86e690", [:mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "d3da86c9ef9ef196150797c7de1c7a7d367ebcd0de44f325c36def8654976c06"},
   "credo": {:hex, :credo, "1.4.0", "92339d4cbadd1e88b5ee43d427b639b68a11071b6f73854e33638e30a0ea11f5", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "1fd3b70dce216574ce3c18bdf510b57e7c4c85c2ec9cad4bff854abaf7e58658"},
