@@ -22,7 +22,7 @@ defmodule BlueHeronExampleGovee.MixProject do
   defp deps do
     [
       {:blue_heron, path: "../../blue_heron"},
-      {:blue_heron_transport_libusb, path: "../../blue_heron_transport_libusb"},
+      {:blue_heron_transport_usb, path: "../../blue_heron_transport_usb"},
       {:blue_heron_transport_uart, path: "../../blue_heron_transport_uart"}
     ]
   end

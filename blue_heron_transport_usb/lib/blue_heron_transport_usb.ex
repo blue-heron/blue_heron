@@ -1,4 +1,4 @@
-defmodule BlueHeronTransportLibUSB do
+defmodule BlueHeronTransportUSB do
   @moduledoc """
   Partially implements Volume 4 Part C of the Bluetooth Spec
   """
@@ -60,7 +60,7 @@ defmodule BlueHeronTransportLibUSB do
         {port, {:data, <<@log_message_packet, level_num, message::binary>>}},
         %{port: port} = state
       ) do
-    Logger.log(level(level_num), ["hci_transport_libusb: ", message])
+    Logger.log(level(level_num), ["BlueHeron(USB): ", message])
     {:noreply, state}
   end
 
@@ -79,7 +79,7 @@ defmodule BlueHeronTransportLibUSB do
   end
 
   defp port_executable() do
-    Application.app_dir(:blue_heron_transport_libusb, ["priv", "hci_transport"])
+    Application.app_dir(:blue_heron_transport_usb, ["priv", "hci_transport"])
   end
 
   # See hci_transport.h for levels

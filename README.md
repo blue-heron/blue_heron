@@ -12,7 +12,7 @@ directories:
 * [blue_heron](blue_heron) - The main BlueHeron library
 * [blue_heron_transport_uart](blue_heron_transport_uart) - Transport for
   Bluetooth modules connected via a UART
-* [blue_heron_transport_libusb](blue_heron_transport_libusb) - Transport for
+* [blue_heron_transport_usb](blue_heron_transport_usb) - Transport for
   USB Bluetooth modules
 * [examples](examples) - Look here for example code
 

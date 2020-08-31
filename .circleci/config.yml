@@ -91,7 +91,7 @@ jobs:
       - run_lib:
          lib: "blue_heron"
       - run_lib:
-         lib: "blue_heron_transport_libusb"
+         lib: "blue_heron_transport_usb"
       - run_lib:
          lib: "blue_heron_transport_uart"
 
@@ -110,7 +110,7 @@ jobs:
       - run_lib:
          lib: "blue_heron"
       - run_lib:
-         lib: "blue_heron_transport_libusb"
+         lib: "blue_heron_transport_usb"
       - run_lib:
          lib: "blue_heron_transport_uart"
 
@@ -129,7 +129,7 @@ jobs:
       - run_lib:
          lib: "blue_heron"
       - run_lib:
-         lib: "blue_heron_transport_libusb"
+         lib: "blue_heron_transport_usb"
       - run_lib:
          lib: "blue_heron_transport_uart"
 

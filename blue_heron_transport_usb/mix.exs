@@ -1,12 +1,12 @@
-defmodule BlueHeronTransportLibUSB.MixProject do
+defmodule BlueHeronTransportUSB.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/smartrent/blue_heron/tree/main/blue_heron_transport_libusb"
+  @source_url "https://github.com/smartrent/blue_heron/tree/main/blue_heron_transport_usb"
 
   def project do
     [
-      app: :blue_heron_transport_libusb,
+      app: :blue_heron_transport_usb,
       version: @version,
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,

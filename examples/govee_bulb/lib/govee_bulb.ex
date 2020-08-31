@@ -23,7 +23,7 @@ defmodule GoveeBulb do
   # Sets the name of the BLE device
   @write_local_name %WriteLocalName{name: "Govee Controller"}
 
-  @usb_config %BlueHeronTransportLibUSB{
+  @usb_config %BlueHeronTransportUSB{
     vid: 0x0BDA,
     pid: 0xB82C,
     init_commands: [@write_local_name]

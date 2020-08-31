@@ -18,8 +18,8 @@ $ mix compile
 # port is to setuid root it. This needs to be done on every recompile, so
 # if you suddenly find that you don't have access, try running the following
 # again.
-$ sudo chown root:root ./_build/dev/lib/blue_heron_transport_libusb/priv/hci_transport
-$ sudo chmod +s ./_build/dev/lib/blue_heron_transport_libusb/priv/hci_transport
+$ sudo chown root:root ./_build/dev/lib/blue_heron_transport_usb/priv/hci_transport
+$ sudo chmod +s ./_build/dev/lib/blue_heron_transport_usb/priv/hci_transport
 
 # Run Elixir interactively
 $ iex -S mix
