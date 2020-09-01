@@ -32,9 +32,10 @@ following:
 * BLE peripheral and GATT server support
 
 The current focus is on filling out the central role. The API is quite unstable
-at the moment and is intended to look more like high level BLE APIs from other
-languages. Currently, the raw API is helping us learn and iron out quirks
-quickly.
+at the moment, but we're aiming for a high level API so that most users don't
+need to become Bluetooth experts. Currently, the raw API is helping us learn and
+iron out quirks quickly. See [Rationale](#Rationale) for more about why we're
+doing building this library.
 
 If you are interested in adding support for the other roles, please let us know
 either here or on Slack. While we're very interested in part of this library for
@@ -87,6 +88,45 @@ iex>
 ## Helpful docs
 
 * [Bluetooth Core Specification v5.2](https://www.bluetooth.org/docman/handlers/downloaddoc.ashx?doc_id=478726)
+
+## Rationale
+
+This library will likely feel like a whole lot of reinvention of the wheel for
+anyone familiar with Bluetooth stacks in embedded Linux. It took around three
+years for one of us to get to this point of starting a new library, so it's
+worth sketching out why.
+
+The obvious approach is to use Linux's `bluez` stack. It certainly worked, but
+was complicated for most people to set up when using Nerves. Consequently, it
+was hard to debug and a thankless task for anyone attempting to support Nerves
+users. It was far easier to use `bluez` on a batteries-included OS distribution
+like Raspbian.
+
+The next approach was to use a smart Bluetooth module like an Adafruit Bluefruit
+module or a Roving Networks (now Microchip) Bluetooth module. These have an `AT`
+style command set for doing common Bluetooth things (for example,
+see
+[here](https://learn.adafruit.com/introducing-adafruit-ble-bluetooth-low-energy-friend/command-mode)),
+and are fairly easy to use once you got used to the interface. Not everyone
+wanted to use these for various reasons (cost being a big one).
+
+A good alternative was to use a C Bluetooth stack that talks directly to a
+Bluetooth module via UART or USB using the HCI protocol. These are
+typically marketed towards microcontroller users, but can be made to work on
+minimal Linux configurations too. Some of the options have good documentation
+and are commercially supported.
+
+Integrating the C stack still required work, and since our needs were so simple,
+we simultaneously looked at an Elixir implementation. Elixir has a way of making
+dull work surprisingly enjoyable, and it's especially suited to communication
+protocols. When the proof-of-concept started working in not much time, we
+decided that we'd much rather spend our time in Elixir than anywhere else.
+
+Will this library have more features than `bluez`? Not even close. Will it do
+what we need? Yes. Will it have fewer bugs, be more robust, etc.? Don't know,
+but its small size and few parts is easier to get our heads around and debug
+when issues come up. Is it fun to work on? Yes, so we got permission to
+open-source it, so we could use it for hobby projects too.
 
 ## License
 
