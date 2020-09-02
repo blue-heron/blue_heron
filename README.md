@@ -23,7 +23,9 @@ first and then checking out the examples.
 
 We provide best-effort support via the [Elixir Forum](https://elixirforum.com/)
 and the [#nerves-bluetooth channel on the Elixir
-Slack](https://elixir-slackin.herokuapp.com/).
+Slack](https://elixir-slackin.herokuapp.com/). If you need more immediate
+support or feature additions, commercial support is provided by [Binary
+Noggin](https://binarynoggin.com).
 
 ## Licensing
 
