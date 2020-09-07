@@ -31,6 +31,10 @@ static bool possible_bt_device(const struct libusb_device_descriptor *desc)
         desc->bDeviceProtocol == 1 /* Interface Association */)
         return true;
 
+    // Vendor-specific. Maybe??
+    if (desc->bDeviceClass == 255 /* Vendor-specific */)
+        return true;
+
     return false;
 }
 
@@ -74,6 +78,9 @@ static int find_bt_interface(struct libusb_device *dev)
                 idesc->bInterfaceSubClass == 1 &&
                 idesc->bInterfaceProtocol == 1 &&
                 has_expected_endpoints(idesc)) {
+                return j;
+            } else if (idesc->bInterfaceClass == 255 &&
+                       has_expected_endpoints(idesc)) {
                 return j;
             }
         }
