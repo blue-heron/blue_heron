@@ -42,6 +42,17 @@ either here or on Slack. While we're very interested in part of this library for
 work, we're also having fun with BLE and figure that we might as well see if we
 can hit some Nerves use cases too.
 
+## Hardware compatibility
+
+We have only tested BlueHeron with a limited number of Bluetooth adapters.
+Here's what's known:
+
+| Bluetooth module or chipset            | Connection | Works? | Firmware               | Notes
+| -------------------------------------- | ---------- | ------ | ---------------------- | -----
+| Realtek WiFi/BT combo (EDUP EP-AC1681) | USB        | Yes    | rtl_bt/rtl8822b_fw.bin | BlueHeron doesn't need to load the firmware for this one to work.
+| Cypress CYW43438 (RPi0W and RPi 3B)    | UART       | Yes    | ?                      | BlueHeron doesn't need to load the firmware for this one to work.
+| Cypress CYW43455 (RPi 3A+ and 3B+)     | UART       | No     | ?                      | Retry when #21 is fixed
+
 ## Getting started
 
 See the examples for the time being.
