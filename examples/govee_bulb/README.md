@@ -2,6 +2,9 @@
 
 This is a sample ATT application that can control a [Govee LED Light
 Bulb](https://www.amazon.com/MINGER-Dimmable-Changing-Equivalent-Multi-Color/dp/B07CL2RMR7/).
+See
+[github.com/Freemanium/govee_btled](https://github.com/Freemanium/govee_btled)
+for details on the protocol used to control the bulb.
 
 ## USB
 
