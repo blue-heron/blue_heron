@@ -23,15 +23,15 @@ defmodule GoveeBulb do
   # Sets the name of the BLE device
   @write_local_name %WriteLocalName{name: "Govee Controller"}
 
-  @usb_config %BlueHeronTransportUSB{
-    vid: 0x0BDA,
-    pid: 0xB82C,
+  @default_uart_config %{
+    device: "ttyACM0",
+    uart_opts: [speed: 115_200],
     init_commands: [@write_local_name]
   }
 
-  @uart_config %BlueHeronTransportUART{
-    device: "ttyACM0",
-    uart_opts: [speed: 115_200],
+  @default_usb_config %{
+    vid: 0x0BDA,
+    pid: 0xB82C,
     init_commands: [@write_local_name]
   }
 
@@ -51,11 +51,13 @@ defmodule GoveeBulb do
   def start_link(transport_type, config \\ %{})
 
   def start_link(:uart, config) do
-    GenServer.start_link(__MODULE__, struct(@uart_config, config), [])
+    config = struct(BlueHeronTransportUART, Map.merge(@default_uart_config, config))
+    GenServer.start_link(__MODULE__, config, [])
   end
 
   def start_link(:usb, config) do
-    GenServer.start_link(__MODULE__, struct(@usb_config, config), [])
+    config = struct(BlueHeronTransportUSB, Map.merge(@default_usb_config, config))
+    GenServer.start_link(__MODULE__, config, [])
   end
 
   @doc """
