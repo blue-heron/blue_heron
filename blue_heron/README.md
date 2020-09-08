@@ -44,7 +44,7 @@ can hit some Nerves use cases too.
 
 ## Getting started
 
-See the examples for the time being.
+See the [examples](../examples) for the time being.
 
 ## Transports
 
