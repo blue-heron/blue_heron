@@ -55,7 +55,7 @@ Here's what's known:
 
 ## Getting started
 
-See the examples for the time being.
+See the [examples](../examples) for the time being.
 
 ## Transports
 
