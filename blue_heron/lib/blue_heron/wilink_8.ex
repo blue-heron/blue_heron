@@ -14,7 +14,8 @@ defmodule BlueHeron.Wilink8 do
 
     :ok =
       Circuits.UART.open(pid, "ttyS3",
-        speed: 3_000_000,
+        # speed: 3_000_000,
+        speed: 115_200,
         framing: BlueHeronTransportUART.Framing,
         active: false,
         flow_control: :hardware
@@ -49,8 +50,7 @@ defmodule BlueHeron.Wilink8 do
             inspect(wait_data, limit: :infinity, base: :hex)
           }"
         )
-
-        {:error, bad}
+        upload(rest, state)
 
       error ->
         error
@@ -59,11 +59,25 @@ defmodule BlueHeron.Wilink8 do
 
   def upload([%{type: :action_serial, data: %{baud: baud, flow: flow}} | rest], state) do
     Logger.info("not sure what to do with action_serial: #{baud} #{flow}")
+    # :ok = Circuits.UART.close(state.pid)
+
+    :ok =
+      Circuits.UART.configure(state.pid,
+        speed: 3_000_000,
+        framing: BlueHeronTransportUART.Framing,
+        active: false,
+        flow_control: :hardware
+      )
+
     upload(rest, state)
   end
 
   def upload([], state) do
-    Circuits.UART.close(state.pid)
-    :ok
+    BlueHeron.transport(%BlueHeronTransportUART{device: "ttyS3", uart_pid: state.pid, uart_opts: [
+      speed: 3_000_000,
+      framing: BlueHeronTransportUART.Framing,
+      active: true,
+      flow_control: :hardware
+    ]})
   end
 end

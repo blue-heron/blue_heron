@@ -45,7 +45,8 @@ defmodule NervesExample.MixProject do
       {:toolshed, "~> 0.2"},
       {:circuits_gpio, "~> 0.4.5", targets: :bbb},
       {:blue_heron, path: "../../blue_heron", override: true},
-      {:blue_heron_transport_uart, path: "../../blue_heron_transport_uart", targets: @all_targets},
+      {:blue_heron_transport_uart,
+       path: "../../blue_heron_transport_uart", targets: @all_targets},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.6", targets: @all_targets},
@@ -59,7 +60,7 @@ defmodule NervesExample.MixProject do
       {:nerves_system_rpi3a, "~> 1.12", runtime: false, targets: :rpi3a},
       {:nerves_system_rpi4, "~> 1.12", runtime: false, targets: :rpi4},
       {:nerves_system_bbb, "~> 2.7", runtime: false, targets: :bbb},
-      {:nerves_system_x86_64, "~> 1.12", runtime: false, targets: :x86_64},
+      {:nerves_system_x86_64, "~> 1.12", runtime: false, targets: :x86_64}
     ]
   end
 
