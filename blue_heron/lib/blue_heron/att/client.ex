@@ -20,8 +20,8 @@ defmodule BlueHeron.ATT.Client do
   @behaviour :gen_statem
 
   alias BlueHeron.HCI.Command.{
-    LEController.CreateConnection,
-    LEController.CreateConnectionCancel,
+    LinkControl.Disconnect,
+    LEController.CreateConnection
   }
 
   alias BlueHeron.HCI.Event.{
@@ -57,8 +57,6 @@ defmodule BlueHeron.ATT.Client do
     supervision_timeout: 0x0048
   }
 
-  @create_connection_cancel %CreateConnectionCancel{}
-
   @type client :: GenServer.server()
   @type handle ::
           %ReadByGroupTypeResponse.AttributeData{}
@@ -86,8 +84,8 @@ defmodule BlueHeron.ATT.Client do
     :gen_statem.call(pid, struct(@create_connection, args))
   end
 
-  def create_connection_cancel(pid) do
-    :gen_statem.call(pid, @create_connection_cancel)
+  def disconnect(pid, reason) do
+    :gen_statem.call(pid, %Disconnect{reason: reason})
   end
 
   @doc """
@@ -131,7 +129,8 @@ defmodule BlueHeron.ATT.Client do
             create_connection: nil,
             ctx: nil,
             server_mtu: nil,
-            starting_handle: 0x0001
+            starting_handle: 0x0001,
+            connection_timer: nil
 
   @impl :gen_statem
   @doc false
@@ -147,7 +146,8 @@ defmodule BlueHeron.ATT.Client do
       create_connection: nil,
       ctx: ctx,
       server_mtu: nil,
-      starting_handle: 0x0001
+      starting_handle: 0x0001,
+      connection_timer: nil
     }
 
     {:ok, :wait_working, data, []}
@@ -180,29 +180,56 @@ defmodule BlueHeron.ATT.Client do
 
   @doc false
   def connecting(:internal, :create_connection, data) do
-    Logger.info("Opening connection")
+    Logger.info("Opening connection: #{inspect(data.create_connection)}")
 
     case BlueHeron.hci_command(data.ctx, data.create_connection) do
       {:ok, _} ->
-        {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, :ok)}
+        Logger.info("open connection success: #{inspect(data.caller)}")
+        timer = Process.send_after(self(), :create_connection_timeout, 5000)
+
+        {:keep_state, %{data | caller: nil, connection_timer: timer},
+         maybe_reply(data.caller, :ok)}
 
       error ->
+        Logger.info("open connection error: #{inspect(error)}")
         {:keep_state, %{data | caller: nil}, maybe_reply(data.caller, error)}
     end
   end
 
   def connecting({:call, _from}, _call, _data), do: {:keep_state_and_data, [:postpone]}
 
-  def connecting(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = connection}, data) do
+  def connecting(
+        :info,
+        {:HCI_EVENT_PACKET, %ConnectionComplete{peer_address: addr} = connection},
+        %{create_connection: %CreateConnection{peer_address: addr}} = data
+      ) do
     Logger.info("Connection established")
     send(data.controlling_process, {__MODULE__, self(), connection})
     actions = [{:next_event, :internal, :exchange_mtu}]
-    {:next_state, :connected, %{data | connection: connection}, actions}
+    if data.connection_timer, do: Process.cancel_timer(data.connection_timer)
+    {:next_state, :connected, %{data | connection: connection, connection_timer: nil}, actions}
+  end
+
+  def connecting(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = connection}, data) do
+    Logger.warn(
+      "Connection complete for different connection: #{
+        inspect(connection.peer_address, base: :hex)
+      } command: #{inspect(data.create_connection.peer_address, base: :hex)}"
+    )
+
+    :keep_state_and_data
   end
 
   def connecting(:info, {:HCI_EVENT_PACKET, %CommandStatus{status: 18} = error}, data) do
     Logger.error("Could not establish connection")
-    {:stop, error, data}
+    if data.connection_timer, do: Process.cancel_timer(data.connection_timer)
+    {:stop, error, %{data | connection_timer: nil}}
+  end
+
+  def connecting(:info, :create_connection_timeout, data) do
+    Logger.warn("Timeout establishing connection")
+    actions = [{:next_event, :internal, :create_connection}]
+    {:next_state, :connecting, %{data | connection_timer: nil}, actions}
   end
 
   # ignore all other HCI packets in connecting state
@@ -227,7 +254,25 @@ defmodule BlueHeron.ATT.Client do
 
   def connected({:call, from}, %CreateConnection{}, data) do
     Logger.warn("Create connection called, but already connected!")
+    send(data.controlling_process, {__MODULE__, self(), data.connection})
     {:keep_state, %{data | caller: nil}, maybe_reply(from, :ok)}
+  end
+
+  def connected({:call, from}, %Disconnect{} = cmd, data) do
+    Logger.info("Disconnecting from handle: #{data.connection.connection_handle}")
+
+    case BlueHeron.hci_command(data.ctx, %{
+           cmd
+           | connection_handle: data.connection.connection_handle
+         }) do
+      {:ok, _} ->
+        Logger.info("Disconnect success")
+        {:next_state, :ready, %{data | caller: nil}, maybe_reply(from, :ok)}
+
+      error ->
+        Logger.info("Disconnect failed: #{inspect(error)}")
+        {:keep_state, %{data | caller: nil}, maybe_reply(from, error)}
+    end
   end
 
   def connected(:internal, :exchange_mtu, data) do
@@ -272,7 +317,13 @@ defmodule BlueHeron.ATT.Client do
   # end
 
   # Reply to a caller if it exists, reconnect
-  def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{} = disconnect}, data) do
+  def connected(
+        :info,
+        {:HCI_EVENT_PACKET, %DisconnectionComplete{connection_handle: handle} = disconnect},
+        %{connection: %{connection_handle: handle}} = data
+      ) do
+    Logger.warn("Disconnected from #{inspect(handle, base: :hex)}")
+
     actions =
       [
         {:next_event, :internal, :create_connection}
