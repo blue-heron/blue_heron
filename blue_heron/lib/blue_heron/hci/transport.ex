@@ -49,7 +49,7 @@ defmodule BlueHeron.HCI.Transport do
             monitor: nil,
             config: nil,
             init_commands: @default_init_commands,
-            caller: nil,
+            calls: %{},
             handlers: [],
             max_error_count: @default_max_error_count
 
@@ -65,6 +65,7 @@ defmodule BlueHeron.HCI.Transport do
   alias BlueHeron.HCI.Event.{
     CommandComplete,
     CommandStatus
+    # DisconnectionComplete
   }
 
   import BlueHeron.HCI.Deserializable, only: [deserialize: 1]
@@ -83,11 +84,11 @@ defmodule BlueHeron.HCI.Transport do
   """
   @spec command(GenServer.server(), map() | binary()) :: {:ok, map()} | {:error, binary()}
   def command(pid, packet) do
-    :gen_statem.call(pid, {:send_command, packet})
+    :gen_statem.call(pid, {:send_command, packet}, 5000)
   end
 
   def acl(pid, packet) do
-    :gen_statem.call(pid, {:send_acl, packet})
+    :gen_statem.call(pid, {:send_acl, packet}, 5000)
   end
 
   @doc """
@@ -206,7 +207,7 @@ defmodule BlueHeron.HCI.Transport do
     case module.send_command(pid, bin) do
       true ->
         Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, bin)
-        {:keep_state, %{data | caller: {from, opcode}}}
+        {:keep_state, add_call(data, {from, opcode})}
 
       false ->
         goto_unopened(data)
@@ -244,12 +245,12 @@ defmodule BlueHeron.HCI.Transport do
 
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
-        actions = maybe_reply(data, reply)
-        {:keep_state, %{data | caller: nil}, actions}
+        {actions, data} = maybe_reply(data, reply)
+        {:keep_state, data, actions}
 
       {:ok, %CommandStatus{} = reply, data} ->
-        actions = maybe_reply(data, reply)
-        {:keep_state, %{data | caller: nil}, actions}
+        {actions, data} = maybe_reply(data, reply)
+        {:keep_state, data, actions}
 
       {:ok, _parsed, data} ->
         {:keep_state, data, []}
@@ -277,26 +278,39 @@ defmodule BlueHeron.HCI.Transport do
     end
   end
 
-  defp maybe_reply(%{caller: {caller, opcode}}, %{opcode: opcode} = reply),
-    do: [{:reply, caller, {:ok, reply}}]
+  # defp maybe_reply(%{caller: {caller, opcode}}, %{opcode: opcode} = reply), do: [{:reply, caller, {:ok, reply}}]
 
-  defp maybe_reply(%{caller: _}, _), do: []
+  defp maybe_reply(%{calls: calls} = data, %{opcode: opcode} = reply) do
+    if caller = calls[opcode] do
+      {[{:reply, caller, {:ok, reply}}], %{data | calls: Map.delete(calls, opcode)}}
+    else
+      {[], data}
+    end
+  end
+
+  # defp maybe_reply(%{caller: {caller, _opcode}}, %DisconnectionComplete{} = reply), do: [{:reply, caller, {:ok, reply}}]
+
+  defp maybe_reply(%{calls: _} = data, _), do: {[], data}
+
+  defp add_call(%{calls: calls} = data, {caller, opcode}) do
+    %{data | calls: Map.put(calls, opcode, caller)}
+  end
 
   # state change funs
 
   defp goto_unopened(%{errors: error_count, max_error_count: error_count} = data) do
     case maybe_reply(data, {:error, :unopened}) do
-      [] ->
+      {[], data} ->
         {:stop, :reached_max_error, data}
 
-      replies ->
+      {replies, data} ->
         {:stop_and_reply, :reached_max_error, data, replies}
     end
   end
 
   defp goto_unopened(data) do
-    actions =
-      maybe_reply(data, {:error, :unopened}) ++ [{:next_event, :internal, :open_transport}]
+    {actions, data} = maybe_reply(data, {:error, :unopened})
+    actions = actions ++ [{:next_event, :internal, :open_transport}]
 
     {:next_state, :unopened, %{data | pid: nil, monitor: nil, errors: data.errors + 1}, actions}
   end

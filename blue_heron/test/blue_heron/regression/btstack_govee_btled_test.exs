@@ -775,7 +775,7 @@ defmodule BlueHeronRegressionTest do
         connection_interval: 24,
         connection_latency: 4,
         master_clock_accuracy: 0,
-        peer_address: 190_346_998_366_628,
+        peer_address: 181_149_785_464_493,
         peer_address_type: 0,
         role: 0,
         status: 0,
