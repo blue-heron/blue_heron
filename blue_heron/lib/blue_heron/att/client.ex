@@ -20,7 +20,8 @@ defmodule BlueHeron.ATT.Client do
   @behaviour :gen_statem
 
   alias BlueHeron.HCI.Command.{
-    LEController.CreateConnection
+    LEController.CreateConnection,
+    LEController.CreateConnectionCancel,
   }
 
   alias BlueHeron.HCI.Event.{
@@ -56,6 +57,8 @@ defmodule BlueHeron.ATT.Client do
     supervision_timeout: 0x0048
   }
 
+  @create_connection_cancel %CreateConnectionCancel{}
+
   @type client :: GenServer.server()
   @type handle ::
           %ReadByGroupTypeResponse.AttributeData{}
@@ -81,6 +84,10 @@ defmodule BlueHeron.ATT.Client do
   @spec create_connection(client(), Keyword.t()) :: :ok | {:error, any()}
   def create_connection(pid, args) do
     :gen_statem.call(pid, struct(@create_connection, args))
+  end
+
+  def create_connection_cancel(pid) do
+    :gen_statem.call(pid, @create_connection_cancel)
   end
 
   @doc """
