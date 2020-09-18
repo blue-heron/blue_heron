@@ -21,7 +21,7 @@ defmodule BlueHeronExampleGovee.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:blue_heron, path: "../../blue_heron"},
+      {:blue_heron, path: "../../blue_heron", override: true},
       {:blue_heron_transport_usb, path: "../../blue_heron_transport_usb"},
       {:blue_heron_transport_uart, path: "../../blue_heron_transport_uart"}
     ]
