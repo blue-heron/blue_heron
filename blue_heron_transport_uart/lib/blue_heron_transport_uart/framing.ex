@@ -10,7 +10,7 @@ defmodule BlueHeronTransportUART.Framing do
   defmodule State do
     @moduledoc false
 
-    defstruct frame: <<>>, remaining_bytes: nil
+    defstruct frame: <<>>, remaining_bytes: nil, type: nil
   end
 
   @behaviour Framing
@@ -32,135 +32,38 @@ defmodule BlueHeronTransportUART.Framing do
   def frame_timeout(state), do: {:ok, [state], <<>>}
 
   @impl Framing
-  def remove_framing(new_data, state), do: process_data(new_data, state)
-
-  @doc """
-  Returns a tuple like `{remaining_desired_length, part_of_bin, rest_of_bin}`.
-
-      iex> binary_split(<<1, 2, 3, 4>>, 0)
-      {0, <<>>, <<1, 2, 3, 4>>}
-
-      iex> binary_split(<<1, 2, 3, 4>>, 2)
-      {0, <<1, 2>>, <<3, 4>>}
-
-      iex> binary_split(<<1, 2, 3, 4>>, 4)
-      {0, <<1, 2, 3, 4>>, <<>>}
-
-      iex> binary_split(<<1, 2, 3, 4>>, 6)
-      {2, <<1, 2, 3, 4>>, <<>>}
-  """
-  def binary_split(bin, desired_length) do
-    bin_length = byte_size(bin)
-
-    if bin_length < desired_length do
-      {desired_length - bin_length, bin, <<>>}
-    else
-      {0, binary_part(bin, 0, desired_length),
-       binary_part(bin, bin_length, desired_length - bin_length)}
-    end
+  def remove_framing(new_data, state) do
+    process(state.frame <> new_data, %{state | frame: <<>>})
   end
 
-  # `process_data/3` attempts to determine the type and length of a packet and will be called as
-  # data is received
-  defp process_data(data, state, messages \\ [])
-
-  # recursion base case
-  defp process_data(<<>>, state, messages) do
-    {process_status(state), Enum.reverse(messages), state}
+  def process(<<0x2, rest::binary>>, %{type: nil} = state) do
+    process(rest, %{state | type: 0x2})
   end
 
-  # HCI ACL Data Packet
-  defp process_data(
-         <<2, handle::little-12, flags::4, length::little-16>> <> data,
-         %State{frame: <<>>} = state,
-         messages
-       ) do
-    # i have absolutely no idea why i need two 0x2s here..
-    process_data(
-      data,
-      length,
-      %{state | frame: <<2, 2, handle::little-12, flags::4, length::little-16>>},
-      messages
-    )
+  def process(<<0x4, rest::binary>>, %{type: nil} = state) do
+    process(rest, %{state | type: 0x4})
   end
 
-  # HCI Synchronous Data Packet
-  defp process_data(
-         <<3, _::size(16), length::size(8)>> <> data,
-         %State{frame: <<>>} = state,
-         messages
-       ) do
-    process_data(data, length, state, messages)
+  def process(
+        <<handle::little-12, flags::4, length::little-16, data::binary-size(length),
+          rest::binary>>,
+        %{type: 0x2} = state
+      ) do
+    {:ok, [<<0x2, handle::little-12, flags::4, length::little-16, data::binary-size(length)>>],
+     %{state | type: nil, frame: rest}}
   end
 
-  # HCI Event Packet
-  defp process_data(
-         <<4, event_code::size(8), parameter_total_length::size(8), event_parameters::bits>>,
-         %State{frame: <<>>} = state,
-         messages
-       ) do
-    process_data(
-      event_parameters,
-      parameter_total_length,
-      %{state | frame: <<4, event_code, parameter_total_length>>},
-      messages
-    )
+  def process(
+        <<event_code::size(8), parameter_total_length::size(8),
+          event_parameters::binary-size(parameter_total_length), rest::binary>>,
+        %{type: 0x4} = state
+      ) do
+    {:ok,
+     [
+       <<0x4, event_code::size(8), parameter_total_length::size(8),
+         event_parameters::binary-size(parameter_total_length)>>
+     ], %{state | type: nil, frame: rest}}
   end
 
-  # bad packet type
-  defp process_data(
-         <<indicator, _::bits>> = data,
-         %State{frame: <<>>} = state,
-         messages
-       )
-       when indicator not in 2..4 do
-    process_data(<<>>, state, [{:error, {:bad_packet_type, data}} | messages])
-  end
-
-  # pull data off the binary - already in a packet, however that does not mean the packet type and
-  # length have been resolved yet
-  defp process_data(data, state, messages) do
-    process_data(data, state.remaining_bytes, state, messages)
-  end
-
-  # `process_data/4` appends data to the frame until it has satisfied the remaining bytes
-  defp process_data(data, remaining_bytes, state, messages)
-
-  # no data, we don't know how many bytes we want yet
-  defp process_data(<<>> = data, nil, state, messages) do
-    process_data(data, state, messages)
-  end
-
-  # there is data, we don't know how many bytes we want yet, and the frame is empty, move the data
-  # in-frame
-  defp process_data(data, nil, %State{frame: <<>>} = state, messages) do
-    process_data(<<>>, %{state | frame: data}, messages)
-  end
-
-  # there is data, we don't know how many bytes we want yet, and the frame is not empty, append
-  # the data to the frame
-  defp process_data(data, nil, state, messages) do
-    process_data(state.frame <> data, %{state | frame: <<>>}, messages)
-  end
-
-  # there is data, we know how many bytes we want, append to the frame
-  defp process_data(data, remaining_bytes, state, messages) do
-    case binary_split(data, remaining_bytes) do
-      # the current remaining_bytes has been satisfied
-      {0, message, remaining_data} ->
-        process_data(remaining_data, %State{}, [state.frame <> message | messages])
-
-      # the current remaining_bytes has not been satisfied
-      {remaining_bytes, frame, <<>> = remaining_data} ->
-        process_data(
-          remaining_data,
-          %{state | remaining_bytes: remaining_bytes, frame: state.frame <> frame},
-          messages
-        )
-    end
-  end
-
-  defp process_status(%State{frame: <<>>, remaining_bytes: nil}), do: :ok
-
-  defp process_status(_state), do: :in_frame
+  def process(data, state), do: {:in_frame, [], %{state | frame: data}}
 end
