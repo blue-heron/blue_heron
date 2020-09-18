@@ -1,6 +1,6 @@
-defmodule GoveeBulb do
+defmodule GoveeLEDStrip do
   @moduledoc """
-  Sample ATT application that can control the Govee LED Light Bulb
+  Sample ATT application that can control the Govee H6125 LED Strip
 
   They can be found [here](https://www.amazon.com/MINGER-Dimmable-Changing-Equivalent-Multi-Color/dp/B07CL2RMR7/)
   """
@@ -96,6 +96,7 @@ defmodule GoveeBulb do
   def handle_info({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING}, state) do
     # Enable BLE Scanning. This will deliver messages to the process mailbox
     # when other devices broadcast
+    Logger.info("Scanning for devices")
     BlueHeron.hci_command(state.ctx, %SetScanEnable{le_scan_enable: true})
     {:noreply, state}
   end
@@ -103,10 +104,11 @@ defmodule GoveeBulb do
   # Match for the Bulb.
   def handle_info(
         {:HCI_EVENT_PACKET,
-         %AdvertisingReport{devices: [%Device{address: addr, data: ["\tMinger" <> _]}]}},
+         %AdvertisingReport{devices: [%Device{address: addr, data: ["\tihoment_H6125" <> _]}]}} =
+          _arp,
         state
       ) do
-    Logger.info("Trying to connect to Govee LED #{inspect(addr, base: :hex)}")
+    Logger.info("Trying to connect to GoveeLEDStrip #{inspect(addr, base: :hex)}")
     # Attempt to create a connection with it.
     :ok = BlueHeron.ATT.Client.create_connection(state.conn, peer_address: addr)
     {:noreply, state}
@@ -120,13 +122,13 @@ defmodule GoveeBulb do
 
   # Sent when create_connection/2 is complete
   def handle_info({BlueHeron.ATT.Client, conn, %ConnectionComplete{}}, %{conn: conn} = state) do
-    Logger.info("Govee LED connection established")
+    Logger.info("GoveeLEDStrip connection established")
     {:noreply, %{state | connected?: true}}
   end
 
   # Sent if a connection is dropped
   def handle_info({BlueHeron.ATT.Client, _, %DisconnectionComplete{reason_name: reason}}, state) do
-    Logger.warn("Govee LED connection dropped: #{reason}")
+    Logger.warn("GoveeLEDStrip connection dropped: #{reason}")
     {:noreply, %{state | connected?: false}}
   end
 
@@ -144,16 +146,20 @@ defmodule GoveeBulb do
   end
 
   def handle_call({:set_color, rgb}, _from, state) do
-    value = <<0x33, 0x5, 0x2, rgb::24, 0, rgb::24, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
-    checksum = calculate_xor(value, 0)
+    # color
+    payload =
+      <<0x33, 0x5, 0xB, rgb::24, 0xFF, 0x7F, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+        0x0>>
 
-    case BlueHeron.ATT.Client.write(state.conn, 0x0015, <<value::binary-19, checksum::8>>) do
+    checksum = calculate_xor(payload, 0)
+
+    case BlueHeron.ATT.Client.write(state.conn, 0x0015, <<payload::binary-19, checksum::8>>) do
       :ok ->
-        Logger.info("Setting Govee LED Color: ##{inspect(rgb, base: :hex)}")
+        Logger.info("Setting GoveeLEDStrip Color: ##{inspect(rgb, base: :hex)}")
         {:reply, :ok, state}
 
       error ->
-        Logger.info("Failed to set Govee LED color")
+        Logger.info("Failed to set GoveeLEDStrip color")
         {:reply, error, state}
     end
   end
