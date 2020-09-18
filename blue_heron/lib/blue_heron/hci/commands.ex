@@ -17,6 +17,8 @@ defmodule BlueHeron.HCI.Commands do
 
   import BlueHeron.HCI.Helpers
 
+  defstruct name: nil, packet: <<>>, return_parameters_decoder: nil
+
   @doc """
   Helper to create Command opcode from OCF and OGF values
   """
@@ -28,11 +30,11 @@ defmodule BlueHeron.HCI.Commands do
     opcode
   end
 
-  @spec decode(binary()) :: command_map()
-  def decode(command_map)
+  # @spec decode(binary()) :: command_map()
+  # def decode(command_map)
 
-  @spec encode(command_map()) :: binary()
-  def encode(command_map)
+  # @spec encode(command_map()) :: binary()
+  # def encode(command_map)
 
   ##
   # Controller & Baseband Commands
@@ -41,27 +43,32 @@ defmodule BlueHeron.HCI.Commands do
   @doc """
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.12
   """
-  @spec read_local_name() :: command_map()
+  @spec read_local_name() :: %__MODULE__{}
   def read_local_name() do
-    %{type: __MODULE__.ResetLocalName, ocf: 0x0014}
+    # %{type: __MODULE__.ResetLocalName, ocf: 0x0014}
+    %__MODULE__{
+      name: :HCI_Read_Local_Name,
+      packet: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>,
+      return_parameters_decoder: &decode_read_local_name_return_parameters/1
+    }
   end
 
-  def encode(%{type: __MODULE__.ResetLocalName}) do
-    <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>
-  end
+  # def encode(%{type: __MODULE__.ResetLocalName}) do
+  #   <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>
+  # end
 
-  def encode_return_parameters(%{opcode: op(@controller_and_baseband, 0x0014)} = rp) do
-    rem = 248 - byte_size(rp.local_name)
-    <<rp.opcode::little-16, rp.status::8, rp.local_name::binary, 0::rem*8>>
-  end
+  # def encode_return_parameters(%{opcode: op(@controller_and_baseband, 0x0014)} = rp) do
+  #   rem = 248 - byte_size(rp.local_name)
+  #   <<rp.opcode::little-16, rp.status::8, rp.local_name::binary, 0::rem*8>>
+  # end
 
-  def decode(<<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>) do
-    read_local_name()
-  end
+  # def decode(<<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>) do
+  #   read_local_name()
+  # end
 
-  def decode_return_parameters(
-        <<op(@controller_and_baseband, 0x0014)::little-16, status::8, local_name::binary>>
-      ) do
+  defp decode_read_local_name_return_parameters(
+         <<op(@controller_and_baseband, 0x0014)::little-16, status::8, local_name::binary>>
+       ) do
     # The local name field will fill any remainder of the
     # 248 bytes with null bytes. So just trim those.
     decode_status!(status)
@@ -83,17 +90,17 @@ defmodule BlueHeron.HCI.Commands do
     %{events: events, type: __MODULE__.SetEventMask, ocf: 0x0001}
   end
 
-  def encode(%{events: events, type: __MODULE__.SetEventMask}) do
-    event_mask = SetEventMask.mask_events(events)
-    mask_size = byte_size(event_mask)
-    <<op(@controller_and_baseband, 0x0001)::little-16, mask_size::8, event_mask::binary>>
-  end
+  # def encode(%{events: events, type: __MODULE__.SetEventMask}) do
+  #   event_mask = SetEventMask.mask_events(events)
+  #   mask_size = byte_size(event_mask)
+  #   <<op(@controller_and_baseband, 0x0001)::little-16, mask_size::8, event_mask::binary>>
+  # end
 
-  def decode(
-        <<op(@controller_and_baseband, 0x0001)::little-16, esize, event_mask::binary-size(esize)>>
-      ) do
-    set_event_mask(SetEventMask.unmask_events(event_mask))
-  end
+  # def decode(
+  #       <<op(@controller_and_baseband, 0x0001)::little-16, esize, event_mask::binary-size(esize)>>
+  #     ) do
+  #   set_event_mask(SetEventMask.unmask_events(event_mask))
+  # end
 
   # @doc """
   # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.26
@@ -165,13 +172,13 @@ defmodule BlueHeron.HCI.Commands do
     %{type: __MODULE__.ReadLocalVersionInformation}
   end
 
-  def encode(%{type: __MODULE__.ReadLocalVersionInformation}) do
-    <<op(@informational_parameters, 0x0001)::little-16, 0, 0>>
-  end
+  # def encode(%{type: __MODULE__.ReadLocalVersionInformation}) do
+  #   <<op(@informational_parameters, 0x0001)::little-16, 0, 0>>
+  # end
 
-  def decode(<<op(@informational_parameters, 0x0001)::little-16, 0, 0>>) do
-    read_local_version_information()
-  end
+  # def decode(<<op(@informational_parameters, 0x0001)::little-16, 0, 0>>) do
+  #   read_local_version_information()
+  # end
 
   ##
   # LE Controller
@@ -203,46 +210,46 @@ defmodule BlueHeron.HCI.Commands do
     |> Map.put(:type, __MODULE__.CreateConnection)
   end
 
-  def encode(%{type: __MODULE__.CreateConnection} = cmd) do
-    fields = <<
-      cmd.le_scan_interval::16-little,
-      cmd.le_scan_window::16-little,
-      cmd.initiator_filter_policy::8,
-      cmd.peer_address_type::8,
-      cmd.peer_address::little-48,
-      cmd.own_address_type::8,
-      cmd.connection_interval_min::16-little,
-      cmd.connection_interval_max::16-little,
-      cmd.connection_latency::16-little,
-      cmd.supervision_timeout::16-little,
-      cmd.min_ce_length::16-little,
-      cmd.max_ce_length::16-little
-    >>
+  # def encode(%{type: __MODULE__.CreateConnection} = cmd) do
+  #   fields = <<
+  #     cmd.le_scan_interval::16-little,
+  #     cmd.le_scan_window::16-little,
+  #     cmd.initiator_filter_policy::8,
+  #     cmd.peer_address_type::8,
+  #     cmd.peer_address::little-48,
+  #     cmd.own_address_type::8,
+  #     cmd.connection_interval_min::16-little,
+  #     cmd.connection_interval_max::16-little,
+  #     cmd.connection_latency::16-little,
+  #     cmd.supervision_timeout::16-little,
+  #     cmd.min_ce_length::16-little,
+  #     cmd.max_ce_length::16-little
+  #   >>
 
-    fields_size = byte_size(fields)
-    <<op(@le_controller, 0x000D)::little-16, fields_size::8, fields::binary>>
-  end
+  #   fields_size = byte_size(fields)
+  #   <<op(@le_controller, 0x000D)::little-16, fields_size::8, fields::binary>>
+  # end
 
-  def decode(
-        <<op(@le_controller, 0x000D)::little-16, _size, le_scan_interval::16-little,
-          le_scan_window::16-little, initiator_filter_policy::8, peer_address_type::8,
-          peer_address::little-48, own_address_type::8, connection_interval_min::16-little,
-          connection_interval_max::16-little, connection_latency::16-little,
-          supervision_timeout::16-little, min_ce_length::16-little, max_ce_length::16-little>>
-      ) do
-    create_connection(%{
-      le_scan_interval: le_scan_interval,
-      le_scan_window: le_scan_window,
-      initiator_filter_policy: initiator_filter_policy,
-      peer_address_type: peer_address_type,
-      peer_address: peer_address,
-      own_address_type: own_address_type,
-      connection_interval_min: connection_interval_min,
-      connection_interval_max: connection_interval_max,
-      connection_latency: connection_latency,
-      supervision_timeout: supervision_timeout,
-      min_ce_length: min_ce_length,
-      max_ce_length: max_ce_length
-    })
-  end
+  # def decode(
+  #       <<op(@le_controller, 0x000D)::little-16, _size, le_scan_interval::16-little,
+  #         le_scan_window::16-little, initiator_filter_policy::8, peer_address_type::8,
+  #         peer_address::little-48, own_address_type::8, connection_interval_min::16-little,
+  #         connection_interval_max::16-little, connection_latency::16-little,
+  #         supervision_timeout::16-little, min_ce_length::16-little, max_ce_length::16-little>>
+  #     ) do
+  #   create_connection(%{
+  #     le_scan_interval: le_scan_interval,
+  #     le_scan_window: le_scan_window,
+  #     initiator_filter_policy: initiator_filter_policy,
+  #     peer_address_type: peer_address_type,
+  #     peer_address: peer_address,
+  #     own_address_type: own_address_type,
+  #     connection_interval_min: connection_interval_min,
+  #     connection_interval_max: connection_interval_max,
+  #     connection_latency: connection_latency,
+  #     supervision_timeout: supervision_timeout,
+  #     min_ce_length: min_ce_length,
+  #     max_ce_length: max_ce_length
+  #   })
+  # end
 end
