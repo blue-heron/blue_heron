@@ -12,7 +12,7 @@ defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 0, "">>) do
+  def deserialize(<<@opcode::binary, 0>>) do
     %__MODULE__{}
   end
 
