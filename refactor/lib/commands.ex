@@ -1,34 +1,13 @@
 defmodule BlueHeron.HCI.Commands do
-  @type ogf :: 1..64
-  @type ocf :: 1..1024
-
-  @type command_map :: %{
-          required(:type) => atom(),
-          required(:ocf) => ocf(),
-          optional(atom()) => any()
-        }
-
   # OpCode Group Fields
   @controller_and_baseband 0x03
   @informational_parameters 0x04
   @le_controller 0x08
 
-  alias BlueHeron.HCI.Commands.SetEventMask
-
   import BlueHeron.HCI.Helpers
 
-  defstruct name: nil, packet: <<>>, return_parameters_decoder: nil
-
-  @doc """
-  Helper to create Command opcode from OCF and OGF values
-  """
-  @spec op(ogf(), ocf()) :: non_neg_integer()
-  defmacro op(ogf, ocf) do
-    ogf = Macro.expand(ogf, __CALLER__)
-    ocf = Macro.expand(ocf, __CALLER__)
-    <<opcode::16>> = <<ogf::6, ocf::10>>
-    opcode
-  end
+  alias BlueHeron.HCI.Commands.SetEventMask
+  alias BlueHeron.HCI.{Command, RawMessage, ReturnParameters}
 
   # @spec decode(binary()) :: command_map()
   # def decode(command_map)
@@ -43,36 +22,35 @@ defmodule BlueHeron.HCI.Commands do
   @doc """
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.12
   """
-  @spec read_local_name() :: %__MODULE__{}
-  def read_local_name() do
-    # %{type: __MODULE__.ResetLocalName, ocf: 0x0014}
-    %__MODULE__{
-      name: :HCI_Read_Local_Name,
-      packet: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>,
-      return_parameters_decoder: &decode_read_local_name_return_parameters/1
+  @spec encode(Command.t()) :: RawMessage.t()
+  def encode(%Command{type: :read_local_name} = command) do
+    %RawMessage{
+      data: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>,
+      decode_response: &decode_read_local_name_return_parameters/1,
+      meta: command.meta
     }
   end
 
-  # def encode(%{type: __MODULE__.ResetLocalName}) do
-  #   <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>
-  # end
-
-  # def encode_return_parameters(%{opcode: op(@controller_and_baseband, 0x0014)} = rp) do
-  #   rem = 248 - byte_size(rp.local_name)
-  #   <<rp.opcode::little-16, rp.status::8, rp.local_name::binary, 0::rem*8>>
-  # end
-
-  # def decode(<<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>) do
-  #   read_local_name()
-  # end
+  # This is an example decoder. I don't think it's implemented unless we want
+  # to make some sort of raw packet analysis library.
+  @spec decode(RawMessage.t()) :: Command.t()
+  def decode(%RawMessage{data: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>} = m) do
+    %Command{type: :read_local_name, args: %{}, meta: m.meta}
+  end
 
   defp decode_read_local_name_return_parameters(
-         <<op(@controller_and_baseband, 0x0014)::little-16, status::8, local_name::binary>>
+         %RawMessage{
+           data:
+             <<op(@controller_and_baseband, 0x0014)::little-16, status::8, local_name::binary>>
+         } = message
        ) do
-    # The local name field will fill any remainder of the
-    # 248 bytes with null bytes. So just trim those.
-    decode_status!(status)
-    |> Map.put(:local_name, String.trim(local_name, <<0>>))
+    {:ok,
+     %ReturnParameters{
+       status: status,
+       type: :read_local_name,
+       args: %{local_name: trim_zero(local_name)},
+       meta: message.meta
+     }}
   end
 
   # @doc """
@@ -85,7 +63,8 @@ defmodule BlueHeron.HCI.Commands do
   @doc """
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.1
   """
-  @spec set_event_mask(keyword() | map()) :: command_map()
+  # TODO
+  @spec set_event_mask(keyword() | map()) :: any()
   def set_event_mask(events \\ SetEventMask.default()) do
     %{events: events, type: __MODULE__.SetEventMask, ocf: 0x0001}
   end

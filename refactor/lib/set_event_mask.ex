@@ -74,7 +74,7 @@ defmodule BlueHeron.HCI.Commands.SetEventMask do
   def mask_events(events) when is_map(events) do
     for bit_pos <- 0..63, into: <<>> do
       key = @events_map[bit_pos]
-      bit = as_uint8(Map.get(events, key, 1))
+      bit = boolean_to_uint8(Map.get(events, key, 1))
       <<bit::1>>
     end
   end
