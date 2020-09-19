@@ -9,12 +9,6 @@ defmodule BlueHeron.HCI.Commands do
   alias BlueHeron.HCI.Commands.SetEventMask
   alias BlueHeron.HCI.{Command, RawMessage, ReturnParameters}
 
-  # @spec decode(binary()) :: command_map()
-  # def decode(command_map)
-
-  # @spec encode(command_map()) :: binary()
-  # def encode(command_map)
-
   ##
   # Controller & Baseband Commands
   ##
