@@ -4,12 +4,12 @@ defmodule BlueHeron.HCI.Command.LEController.CreateConnectionCancel do
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode}) do
-      <<opcode::binary, 0::8, "">>
+      <<opcode::binary, 0::8>>
     end
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 0::8, "">>) do
+  def deserialize(<<@opcode::binary, 0::8>>) do
     # This is a pretty useless function because there aren't
     # any parameters to actually parse out of this, but we
     # can at least assert its correct with matching
