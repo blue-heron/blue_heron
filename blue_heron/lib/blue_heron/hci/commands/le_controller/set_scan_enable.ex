@@ -21,7 +21,7 @@ defmodule BlueHeron.HCI.Command.LEController.SetScanEnable do
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, _fields_size, le_scan_enable::8, filter_duplicates::8>>) do
+  def deserialize(<<@opcode::binary, _fields_size, le_scan_enable, filter_duplicates>>) do
     {:ok,
      %__MODULE__{
        le_scan_enable: as_boolean(le_scan_enable),
@@ -30,13 +30,13 @@ defmodule BlueHeron.HCI.Command.LEController.SetScanEnable do
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize_return_parameters(<<status::8>>) do
+  def deserialize_return_parameters(<<status>>) do
     %{status: BlueHeron.ErrorCode.name!(status)}
   end
 
   @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status}) do
-    <<BlueHeron.ErrorCode.error_code!(status)::8>>
+    <<BlueHeron.ErrorCode.error_code!(status)>>
   end
 
   defp as_boolean(val) when val in [1, "1", true, <<1>>], do: true

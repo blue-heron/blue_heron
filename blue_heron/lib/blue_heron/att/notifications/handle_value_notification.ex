@@ -10,6 +10,6 @@ defmodule BlueHeron.ATT.HandleValueNotification do
   end
 
   def serialize(%{handle: handle, data: data}) do
-    <<0x1B::8, handle::little-16, data::binary>>
+    <<0x1B, handle::little-16, data::binary>>
   end
 end

@@ -22,7 +22,7 @@ defmodule BlueHeron.ATT.ReadByGroupTypeResponse do
     end
   end
 
-  def deserialize(<<0x11, length::8, attribute_data::binary>>) do
+  def deserialize(<<0x11, length, attribute_data::binary>>) do
     %__MODULE__{
       opcode: 0x11,
       attribute_data: deserialize_attribute_data(length, attribute_data, [])
@@ -32,7 +32,7 @@ defmodule BlueHeron.ATT.ReadByGroupTypeResponse do
   def serialize(%{attribute_data: attribute_data}) do
     [single | _] = attribute_data = for attr <- attribute_data, do: AttributeData.serialize(attr)
     length = byte_size(single)
-    <<0x11, length::8>> <> Enum.join(attribute_data)
+    <<0x11, length>> <> Enum.join(attribute_data)
   end
 
   defp deserialize_attribute_data(_, <<>>, attribute_data), do: Enum.reverse(attribute_data)

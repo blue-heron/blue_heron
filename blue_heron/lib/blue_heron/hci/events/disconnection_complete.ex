@@ -30,9 +30,9 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
   defimpl BlueHeron.HCI.Serializable do
     def serialize(dc) do
       bin = <<
-        dc.status::8,
+        dc.status,
         dc.connection_handle::little-16,
-        dc.reason::8
+        dc.reason
       >>
 
       size = byte_size(bin)
@@ -42,7 +42,7 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
   end
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, status::8, connection_handle::little-16, reason::8>>) do
+  def deserialize(<<@code, _size, status, connection_handle::little-16, reason>>) do
     %__MODULE__{
       connection_handle: connection_handle,
       reason: reason,

@@ -43,7 +43,7 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
     def serialize(cc) do
       bin = <<
         cc.subevent_code,
-        cc.status::8,
+        cc.status,
         cc.connection_handle::little-16,
         cc.role,
         cc.peer_address_type,

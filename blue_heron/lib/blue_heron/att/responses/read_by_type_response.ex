@@ -2,9 +2,7 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
   defmodule AttributeData do
     defstruct [:handle, :characteristic_properties, :characteristic_value_handle, :uuid]
 
-    def deserialize(
-          <<handle::little-16, properties::8, value_handle::little-16, uuid::little-16>>
-        ) do
+    def deserialize(<<handle::little-16, properties, value_handle::little-16, uuid::little-16>>) do
       %__MODULE__{
         handle: handle,
         characteristic_properties: properties,
@@ -13,9 +11,7 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
       }
     end
 
-    def deserialize(
-          <<handle::little-16, properties::8, value_handle::little-16, uuid::little-128>>
-        ) do
+    def deserialize(<<handle::little-16, properties, value_handle::little-16, uuid::little-128>>) do
       %__MODULE__{
         handle: handle,
         characteristic_properties: properties,
@@ -31,7 +27,7 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
           uuid: uuid
         })
         when uuid < 0xFFFF do
-      <<handle::little-16, characteristic_properties::8, characteristic_value_handle::little-16,
+      <<handle::little-16, characteristic_properties, characteristic_value_handle::little-16,
         uuid::little-16>>
     end
 
@@ -42,7 +38,7 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
           uuid: uuid
         })
         when uuid > 0xFFFF do
-      <<handle::little-16, characteristic_properties::8, characteristic_value_handle::little-16,
+      <<handle::little-16, characteristic_properties, characteristic_value_handle::little-16,
         uuid::little-128>>
     end
   end
@@ -52,10 +48,10 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
   def serialize(%{attribute_data: attribute_data}) do
     [single | _] = attribute_data = for attr <- attribute_data, do: AttributeData.serialize(attr)
     length = byte_size(single)
-    <<0x9, length::8>> <> Enum.join(attribute_data)
+    <<0x9, length>> <> Enum.join(attribute_data)
   end
 
-  def deserialize(<<0x9, attribute_data_length::8, attribute_data::binary>>) do
+  def deserialize(<<0x9, attribute_data_length, attribute_data::binary>>) do
     %__MODULE__{
       opcode: 0x9,
       attribute_data: deserialize_attribute_data(attribute_data_length, attribute_data, [])

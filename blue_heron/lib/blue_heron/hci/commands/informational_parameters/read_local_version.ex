@@ -17,7 +17,7 @@ defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize_return_parameters(<<status::8, bin::binary>>) do
+  def deserialize_return_parameters(<<status, bin::binary>>) do
     <<
       hci_version,
       hci_revision::little-16,
@@ -39,7 +39,7 @@ defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
 
   @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status} = params) do
-    <<status::8, params.hci_version::8, params.hci_revision::little-16, params.lmp_pal_version::8,
+    <<status, params.hci_version, params.hci_revision::little-16, params.lmp_pal_version,
       params.manufacturer_name::little-16, params.lmp_pal_subversion::little-16>>
   end
 end

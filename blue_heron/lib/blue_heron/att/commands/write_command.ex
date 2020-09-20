@@ -10,6 +10,6 @@ defmodule BlueHeron.ATT.WriteCommand do
   end
 
   def serialize(%{handle: handle, data: data}) do
-    <<0x52::8, handle::little-16, data::binary>>
+    <<0x52, handle::little-16, data::binary>>
   end
 end

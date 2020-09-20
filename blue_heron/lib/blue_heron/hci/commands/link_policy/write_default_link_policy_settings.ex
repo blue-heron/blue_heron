@@ -49,6 +49,6 @@ defmodule BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
 
   @impl true
   def serialize_return_parameters(%{status: status}) do
-    <<status::8>>
+    <<status>>
   end
 end

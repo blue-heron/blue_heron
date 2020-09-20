@@ -21,12 +21,12 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode}) do
-      <<opcode::binary, 0::8>>
+      <<opcode::binary, 0>>
     end
   end
 
   @impl true
-  def deserialize(<<@opcode::binary, 0::8>>) do
+  def deserialize(<<@opcode::binary, 0>>) do
     # This is a pretty useless function because there aren't
     # any parameters to actually parse out of this, but we
     # can at least assert its correct with matching
@@ -34,7 +34,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
   end
 
   @impl true
-  def deserialize_return_parameters(<<status::8, local_name::binary>>) do
+  def deserialize_return_parameters(<<status, local_name::binary>>) do
     %{
       status: BlueHeron.ErrorCode.name!(status),
       # The local name field will fill any remainder of the
@@ -48,7 +48,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
     name_length = byte_size(local_name)
     padding = 248 - name_length
 
-    <<BlueHeron.ErrorCode.error_code!(status)::8, local_name::binary-size(name_length),
+    <<BlueHeron.ErrorCode.error_code!(status), local_name::binary-size(name_length),
       0::size(padding)-unit(8)>>
   end
 end
