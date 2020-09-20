@@ -6,102 +6,114 @@ defmodule BlueHeron.ErrorCode do
   > are used to indicate the reason for the error. Error codes have a size of one octet.
 
   Reference: Version 5.0, Vol 2, Part D, 1
-
-  ## Non-standard Names
-  For error codes `0x2B`, `0x31`, and `0x33`, their respective names are suffixed like ` (0x2B)`
-  as to differentiate between the three when serializing.
   """
 
   # Reference: Version 5.2, Vol 1, Part F, 1.3
-  @error_codes %{
-    0x00 => "Success",
-    0x01 => "Unknown HCI Command",
-    0x02 => "Unknown Connection Identifier",
-    0x03 => "Hardware Failure",
-    0x04 => "Page Timeout",
-    0x05 => "Authentication Failure",
-    0x06 => "PIN or Key Missing",
-    0x07 => "Memory Capacity Exceeded",
-    0x08 => "Connection Timeout",
-    0x09 => "Connection Limit Exceeded",
-    0x0A => "Synchronous Connection Limit To A Device Exceeded",
-    0x0B => "Connection Already Exists",
-    0x0C => "Command Disallowed",
-    0x0D => "Connection Rejected due to Limited Resources",
-    0x0E => "Connection Rejected Due To Security Reasons",
-    0x0F => "Connection Rejected due to Unacceptable BD_ADDR",
-    0x10 => "Connection Accept Timeout Exceeded",
-    0x11 => "Unsupported Feature or Parameter Value",
-    0x12 => "Invalid HCI Command Parameters",
-    0x13 => "Remote User Terminated Connection",
-    0x14 => "Remote Device Terminated Connection due to Low Resources",
-    0x15 => "Remote Device Terminated Connection due to Power Off",
-    0x16 => "Connection Terminated By Local Host",
-    0x17 => "Repeated Attempts",
-    0x18 => "Pairing Not Allowed",
-    0x19 => "Unknown LMP PDU",
-    0x1A => "Unsupported Remote Feature / Unsupported LMP Feature",
-    0x1B => "SCO Offset Rejected",
-    0x1C => "SCO Interval Rejected",
-    0x1D => "SCO Air Mode Rejected",
-    0x1E => "Invalid LMP Parameters / Invalid LL Parameters",
-    0x1F => "Unspecified Error",
-    0x20 => "Unsupported LMP Parameter Value / Unsupported LL Parameter Value",
-    0x21 => "Role Change Not Allowed",
-    0x22 => "LMP Response Timeout / LL Response Timeout",
-    0x23 => "LMP Error Transaction Collision / LL Procedure Collision",
-    0x24 => "LMP PDU Not Allowed",
-    0x25 => "Encryption Mode Not Acceptable",
-    0x26 => "Link Key cannot be Changed",
-    0x27 => "Requested QoS Not Supported",
-    0x28 => "Instant Passed",
-    0x29 => "Pairing With Unit Key Not Supported",
-    0x2A => "Different Transaction Collision",
-    0x2B => "Reserved for Future Use (0x2B)",
-    0x2C => "QoS Unacceptable Parameter",
-    0x2D => "QoS Rejected",
-    0x2E => "Channel Classification Not Supported",
-    0x2F => "Insufficient Security",
-    0x30 => "Parameter Out Of Mandatory Range",
-    0x31 => "Reserved for Future Use (0x31)",
-    0x32 => "Role Switch Pending",
-    0x33 => "Reserved for Future Use (0x33)",
-    0x34 => "Reserved Slot Violation",
-    0x35 => "Role Switch Failed",
-    0x36 => "Extended Inquiry Response Too Large",
-    0x37 => "Secure Simple Pairing Not Supported By Host",
-    0x38 => "Host Busy - Pairing",
-    0x39 => "Connection Rejected due to No Suitable Channel Found",
-    0x3A => "Controller Busy",
-    0x3B => "Unacceptable Connection Parameters",
-    0x3C => "Advertising Timeout",
-    0x3D => "Connection Terminated due to MIC Failure",
-    0x3E => "Connection Failed to be Established",
-    0x3F => "MAC Connection Failed",
-    0x40 => "Coarse Clock Adjustment Rejected but Will Try to Adjust Using Clock Dragging",
-    0x41 => "Type0 Submap Not Defined",
-    0x42 => "Unknown Advertising Identifier",
-    0x43 => "Limit Reached",
-    0x44 => "Operation Cancelled by Host"
-  }
+  @error_codes [
+    {0x00, :ok, "Success"},
+    {0x01, :unknown_hci_command, "Unknown HCI Command"},
+    {0x02, :unknown_connection_id, "Unknown Connection Identifier"},
+    {0x03, :hardware_failure, "Hardware Failure"},
+    {0x04, :page_timeout, "Page Timeout"},
+    {0x05, :auth_failure, "Authentication Failure"},
+    {0x06, :pin_or_key_missing, "PIN or Key Missing"},
+    {0x07, :memory_capacity_exceeded, "Memory Capacity Exceeded"},
+    {0x08, :connection_timeout, "Connection Timeout"},
+    {0x09, :connection_limit_exceeded, "Connection Limit Exceeded"},
+    {0x0A, :synchronous_connection_limit_to_a_device_exceeded,
+     "Synchronous Connection Limit To A Device Exceeded"},
+    {0x0B, :connection_already_exists, "Connection Already Exists"},
+    {0x0C, :command_disallowed, "Command Disallowed"},
+    {0x0D, :connection_rejected_due_to_limited_resources,
+     "Connection Rejected due to Limited Resources"},
+    {0x0E, :connection_rejected_due_to_security_reasons,
+     "Connection Rejected Due To Security Reasons"},
+    {0x0F, :connection_rejected_due_to_unacceptable_bd_addr,
+     "Connection Rejected due to Unacceptable BD_ADDR"},
+    {0x10, :connection_accept_timeout_exceeded, "Connection Accept Timeout Exceeded"},
+    {0x11, :unsupported_feature_or_parameter_value, "Unsupported Feature or Parameter Value"},
+    {0x12, :invalid_hci_command_parameters, "Invalid HCI Command Parameters"},
+    {0x13, :remote_user_terminated_connection, "Remote User Terminated Connection"},
+    {0x14, :remote_device_terminated_connection_due_to_low_resources,
+     "Remote Device Terminated Connection due to Low Resources"},
+    {0x15, :remote_device_terminated_connection_due_to_power_off,
+     "Remote Device Terminated Connection due to Power Off"},
+    {0x16, :connection_terminated_by_local_host, "Connection Terminated By Local Host"},
+    {0x17, :repeated_attempts, "Repeated Attempts"},
+    {0x18, :pairing_not_allowed, "Pairing Not Allowed"},
+    {0x19, :unknown_lmp_pdu, "Unknown LMP PDU"},
+    {0x1A, :unsupported_remote_feature, "Unsupported Remote Feature / Unsupported LMP Feature"},
+    {0x1B, :sco_offset_rejected, "SCO Offset Rejected"},
+    {0x1C, :sco_interval_rejected, "SCO Interval Rejected"},
+    {0x1D, :sco_air_mode_rejected, "SCO Air Mode Rejected"},
+    {0x1E, :invalid_lmp_parameters, "Invalid LMP Parameters / Invalid LL Parameters"},
+    {0x1F, :unspecified_error, "Unspecified Error"},
+    {0x20, :unsupported_lmp_parameter_value,
+     "Unsupported LMP Parameter Value / Unsupported LL Parameter Value"},
+    {0x21, :role_change_not_allowed, "Role Change Not Allowed"},
+    {0x22, :lmp_response_timeout, "LMP Response Timeout / LL Response Timeout"},
+    {0x23, :lmp_error_transaction_collision,
+     "LMP Error Transaction Collision / LL Procedure Collision"},
+    {0x24, :lmp_pdu_not_allowed, "LMP PDU Not Allowed"},
+    {0x25, :encryption_mode_not_acceptable, "Encryption Mode Not Acceptable"},
+    {0x26, :link_key_cannot_be_changed, "Link Key cannot be Changed"},
+    {0x27, :requested_qos_not_supported, "Requested QoS Not Supported"},
+    {0x28, :instant_passed, "Instant Passed"},
+    {0x29, :pairing_with_unit_key_not_supported, "Pairing With Unit Key Not Supported"},
+    {0x2A, :different_transaction_collision, "Different Transaction Collision"},
+    {0x2B, :reserved, "Reserved for Future Use (0x2B)"},
+    {0x2C, :qos_unacceptable_parameter, "QoS Unacceptable Parameter"},
+    {0x2D, :qos_rejected, "QoS Rejected"},
+    {0x2E, :channel_classification_not_supported, "Channel Classification Not Supported"},
+    {0x2F, :insufficient_security, "Insufficient Security"},
+    {0x30, :parameter_out_of_mandatory_range, "Parameter Out Of Mandatory Range"},
+    {0x31, :reserved, "Reserved for Future Use (0x31)"},
+    {0x32, :role_switch_pending, "Role Switch Pending"},
+    {0x33, :reserved, "Reserved for Future Use (0x33)"},
+    {0x34, :reserved_slot_violation, "Reserved Slot Violation"},
+    {0x35, :role_switch_failed, "Role Switch Failed"},
+    {0x36, :extended_inquiry_response_too_large, "Extended Inquiry Response Too Large"},
+    {0x37, :secure_simple_pairing_not_supported, "Secure Simple Pairing Not Supported By Host"},
+    {0x38, :host_busy_pairing, "Host Busy - Pairing"},
+    {0x39, :connection_rejected_no_suitable_channel,
+     "Connection Rejected due to No Suitable Channel Found"},
+    {0x3A, :controller_busy, "Controller Busy"},
+    {0x3B, :unacceptable_connection_parameters, "Unacceptable Connection Parameters"},
+    {0x3C, :advertising_timeout, "Advertising Timeout"},
+    {0x3D, :connection_terminated_due_to_mic_failure, "Connection Terminated due to MIC Failure"},
+    {0x3E, :connection_failed_to_be_established, "Connection Failed to be Established"},
+    {0x3F, :mac_connection_failed, "MAC Connection Failed"},
+    {0x40, :course_clock_adjustment_rejected,
+     "Coarse Clock Adjustment Rejected but Will Try to Adjust Using Clock Dragging"},
+    {0x41, :type0_submap_not_defined, "Type0 Submap Not Defined"},
+    {0x42, :unknown_advertising_identifier, "Unknown Advertising Identifier"},
+    {0x43, :limit_reached, "Limit Reached"},
+    {0x44, :operation_cancelled_by_host, "Operation Cancelled by Host"},
+    {0x45, :packet_too_long, "Packet Too Long"}
+  ]
 
-  Enum.each(@error_codes, fn
-    {error_code, name} ->
-      def name(unquote(error_code)), do: {:ok, unquote(name)}
-      def name!(unquote(error_code)), do: unquote(name)
-      def error_code(unquote(name)), do: {:ok, unquote(error_code)}
-      def error_code!(unquote(name)), do: unquote(error_code)
-  end)
+  @spec to_atom(non_neg_integer()) :: atom()
+  def to_atom(code) when is_integer(code) do
+    List.keyfind(@error_codes, code, 0, :unknown)
+  end
 
-  def name(_), do: :error
+  @spec to_code(non_neg_integer() | atom()) :: non_neg_integer() | :error
+  def to_code(status) when is_atom(status) do
+    List.keyfind(@error_codes, status, 1, :error)
+  end
 
-  def name!(error_code),
-    do: raise("[#{inspect(__MODULE__)}] Unable to get name for #{inspect(error_code)}")
+  def to_code(status) when is_integer(status), do: status
 
-  def error_code(_), do: :error
+  @spec to_code!(non_neg_integer() | atom()) :: non_neg_integer()
+  def to_code!(status) do
+    case to_code(status) do
+      :error -> raise "[#{inspect(__MODULE__)}] No code for #{inspect(status)}"
+      code -> code
+    end
+  end
 
-  def error_code!(name),
-    do: raise("[#{inspect(__MODULE__)}] Unable to get error_code for #{inspect(name)}")
-
-  def all, do: @error_codes
+  @spec to_string(atom()) :: String.t() | :error
+  def to_string(atom) when is_atom(atom) do
+    List.keyfind(@error_codes, atom, 2, :error)
+  end
 end

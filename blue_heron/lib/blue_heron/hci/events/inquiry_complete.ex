@@ -9,9 +9,7 @@ defmodule BlueHeron.HCI.Event.InquiryComplete do
   Reference: Version 5.2, Vol 4, Part E, 7.7.1
   """
 
-  alias BlueHeron.ErrorCode
-
-  defparameters [:status, :status_name]
+  defparameters [:status]
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(data) do
@@ -22,8 +20,7 @@ defmodule BlueHeron.HCI.Event.InquiryComplete do
   @impl BlueHeron.HCI.Event
   def deserialize(<<@code, _size, status>>) do
     %__MODULE__{
-      status: status,
-      status_name: ErrorCode.name!(status)
+      status: status
     }
   end
 

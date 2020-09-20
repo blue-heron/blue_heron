@@ -1,6 +1,5 @@
 defmodule BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
   use BlueHeron.HCI.Command.LinkPolicy, ocf: 0x000F
-  alias BlueHeron.ErrorCode, as: Status
 
   @moduledoc """
   This command writes the Default Link Policy configuration value.
@@ -44,7 +43,7 @@ defmodule BlueHeron.HCI.Command.LinkPolicy.WriteDefaultLinkPolicySettings do
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: status, status_name: Status.name!(status)}
+    %{status: status}
   end
 
   @impl true

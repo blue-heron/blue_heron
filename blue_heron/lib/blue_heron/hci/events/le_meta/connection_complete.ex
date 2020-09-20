@@ -23,11 +23,8 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
   Reference: Version 5.2, Vol 4, Part E, 7.7.65.1
   """
 
-  alias BlueHeron.ErrorCode, as: Status
-
   defparameters [
     :status,
-    :status_name,
     :connection_handle,
     :role,
     :peer_address_type,
@@ -78,7 +75,6 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
     %__MODULE__{
       subevent_code: @subevent_code,
       status: status,
-      status_name: Status.name!(status),
       connection_handle: connection_handle,
       role: role,
       peer_address_type: peer_address_type,

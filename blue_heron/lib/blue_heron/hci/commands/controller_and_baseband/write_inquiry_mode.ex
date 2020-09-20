@@ -15,7 +15,6 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteInquiryMode do
 
   ## Return Parameters
   * `:status` - see `BlueHeron.ErrorCode`
-  * `:status_name` - Friendly status name. see `BlueHeron.ErrorCode`
   """
 
   defparameters inquiry_mode: 0
@@ -33,7 +32,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteInquiryMode do
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
+    %{status: status}
   end
 
   @impl BlueHeron.HCI.Command

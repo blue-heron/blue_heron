@@ -31,7 +31,6 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteSecureConnectionsHost
 
   ## Return Parameters
   * `:status` - see `BlueHeron.ErrorCode`
-  * `:status_name` - Friendly status name. see `BlueHeron.ErrorCode`
   """
 
   defparameters enabled: false
@@ -51,7 +50,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteSecureConnectionsHost
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
+    %{status: status}
   end
 
   @impl BlueHeron.HCI.Command

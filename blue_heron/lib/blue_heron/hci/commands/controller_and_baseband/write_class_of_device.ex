@@ -32,11 +32,11 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteClassOfDevice do
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: BlueHeron.ErrorCode.name!(status)}
+    %{status: status}
   end
 
   @impl true
   def serialize_return_parameters(%{status: status}) do
-    <<BlueHeron.ErrorCode.error_code!(status)>>
+    <<BlueHeron.ErrorCode.to_code!(status)>>
   end
 end

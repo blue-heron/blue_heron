@@ -26,14 +26,11 @@ defmodule BlueHeron.HCI.Event.CommandStatus do
   Reference: Version 5.2, Vol 4, Part E, 7.7.15
   """
 
-  alias BlueHeron.ErrorCode, as: Status
-
   require Logger
 
   defparameters [
     :num_hci_command_packets,
     :opcode,
-    :status_name,
     :status
   ]
 
@@ -50,8 +47,7 @@ defmodule BlueHeron.HCI.Event.CommandStatus do
     %__MODULE__{
       num_hci_command_packets: num_hci_command_packets,
       opcode: opcode,
-      status: status,
-      status_name: Status.name!(status)
+      status: status
     }
   end
 
