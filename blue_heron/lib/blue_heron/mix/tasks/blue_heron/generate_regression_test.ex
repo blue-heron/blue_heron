@@ -34,7 +34,7 @@ defmodule Mix.Tasks.BlueHeron.GenerateRegressionTest do
           assert match?(^expected, actual)
           assert(BlueHeron.HCI.Serializable.serialize(actual) == binary,
           \"\"\"
-          Serializating failed.
+          Serialization failed.
           Got: \#{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
           Exp: \#{inspect(binary, base: :hex)}
           \"\"\")

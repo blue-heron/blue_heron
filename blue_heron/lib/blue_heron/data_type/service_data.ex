@@ -53,7 +53,7 @@ defmodule BlueHeron.DataType.ServiceData do
   def serialize(_), do: :error
 
   @doc """
-  Deserializes a service data binary.
+  Deserialize a service data binary.
 
       iex> deserialize(<<32, 1, 2, 3, 4, 5, 6>>)
       {:ok, {"Service Data - 32-bit UUID", %{data: <<5, 6>>, uuid: 67305985}}}
