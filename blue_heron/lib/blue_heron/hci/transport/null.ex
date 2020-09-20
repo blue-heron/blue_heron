@@ -58,7 +58,7 @@ defmodule BlueHeron.HCI.Transport.NULL do
 
   @impl GenServer
   def handle_info({:handle_out, command}, state) do
-    # attach a 0x04 here due to a bug in Harald's HCI deserialize funciton
+    # attach a 0x04 here due to a bug in Harald's HCI deserialize function
     case state.replies[command] do
       %{} = reply ->
         {:ok, binary} = serialize(reply)

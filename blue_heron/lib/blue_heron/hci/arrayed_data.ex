@@ -79,7 +79,7 @@ defmodule BlueHeron.HCI.ArrayedData do
   end
 
   @doc """
-  Deserializes the binary representation of a list of structs according to `schema`.
+  Deserialize the binary representation of a list of structs according to `schema`.
   """
   def deserialize(schema, length, struct_module, bin)
 
