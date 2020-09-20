@@ -11,7 +11,7 @@ defmodule BlueHeron.HCIDump do
   def encode(%PKTLOG{type: type} = pkt, direction) do
     payload_length = 13 - 4 + byte_size(pkt.payload)
     type = encode_type(type, direction)
-    <<payload_length::32, pkt.tv_sec::32, pkt.tv_us::32, type>> <> pkt.payload
+    <<payload_length::32, pkt.tv_sec::32, pkt.tv_us::32, type, pkt.payload::binary>>
   end
 
   @doc "Decode a file that contains PKTLOG packets"

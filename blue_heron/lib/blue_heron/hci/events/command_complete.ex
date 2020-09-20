@@ -17,9 +17,9 @@ defmodule BlueHeron.HCI.Event.CommandComplete do
   defimpl BlueHeron.HCI.Serializable do
     def serialize(data) do
       data = BlueHeron.HCI.CommandComplete.ReturnParameters.encode(data)
-      bin = <<data.num_hci_command_packets>> <> data.opcode <> data.return_parameters
+      bin = <<data.num_hci_command_packets, data.opcode::2-bytes, data.return_parameters::binary>>
       size = byte_size(bin)
-      <<data.code, size>> <> bin
+      <<data.code, size, bin::binary>>
     end
   end
 
