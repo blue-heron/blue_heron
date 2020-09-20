@@ -1,4 +1,4 @@
-defmodule BlueHeron.ATT.ExchageMTURequest do
+defmodule BlueHeron.ATT.ExchangeMTURequest do
   defstruct [:opcode, :client_rx_mtu]
 
   def serialize(emtu) do

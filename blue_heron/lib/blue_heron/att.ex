@@ -8,8 +8,8 @@ defmodule BlueHeron.ATT do
 
   alias BlueHeron.ATT.{
     ErrorResponse,
-    ExchageMTURequest,
-    ExchageMTUResponse,
+    ExchangeMTURequest,
+    ExchangeMTUResponse,
     ReadByTypeRequest,
     ReadByTypeResponse,
     ReadByGroupTypeRequest,
@@ -23,10 +23,10 @@ defmodule BlueHeron.ATT do
     do: %{base | data: ErrorResponse.deserialize(error_response)}
 
   def deserialize(base, <<0x02::8, _::binary>> = exchange_mtu_request),
-    do: %{base | data: ExchageMTURequest.deserialize(exchange_mtu_request)}
+    do: %{base | data: ExchangeMTURequest.deserialize(exchange_mtu_request)}
 
   def deserialize(base, <<0x03::8, _::binary>> = exchange_mtu_request),
-    do: %{base | data: ExchageMTUResponse.deserialize(exchange_mtu_request)}
+    do: %{base | data: ExchangeMTUResponse.deserialize(exchange_mtu_request)}
 
   def deserialize(base, <<0x08::8, _::binary>> = exchange_mtu_request),
     do: %{base | data: ReadByTypeRequest.deserialize(exchange_mtu_request)}
