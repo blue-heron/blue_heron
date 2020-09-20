@@ -61,11 +61,11 @@ defmodule BlueHeron.HCI.Transport.NULL do
     # attach a 0x04 here due to a bug in Harald's HCI deserialize function
     case state.replies[command] do
       %{} = reply ->
-        {:ok, binary} = serialize(reply)
-        state.recv.(<<0x04>> <> binary)
+        {:ok, data} = serialize(reply)
+        state.recv.(<<0x04, data::binary>>)
 
       reply when is_binary(reply) ->
-        state.recv.(<<0x04>> <> reply)
+        state.recv.(<<0x04, reply::binary>>)
 
       _ ->
         Logger.error("No reply for #{inspect(command, base: :hex, limit: :infinity)}")
