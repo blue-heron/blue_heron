@@ -96,12 +96,13 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask do
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: BlueHeron.ErrorCode.name!(status)}
+    %{status: status}
   end
 
   @impl true
+  @spec serialize_return_parameters(%{status: any}) :: <<_::8>>
   def serialize_return_parameters(%{status: status}) do
-    <<BlueHeron.ErrorCode.error_code!(status)>>
+    <<BlueHeron.ErrorCode.to_code!(status)>>
   end
 
   @doc false
