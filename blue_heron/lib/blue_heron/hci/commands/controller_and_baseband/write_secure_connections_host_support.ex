@@ -50,12 +50,12 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteSecureConnectionsHost
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize_return_parameters(<<status::8>>) do
+  def deserialize_return_parameters(<<status>>) do
     %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
   end
 
   @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status}) do
-    <<status::8>>
+    <<status>>
   end
 end

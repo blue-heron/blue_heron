@@ -39,18 +39,18 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteExtendedInquiryRespon
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, _size, fec_req::8, eir::binary>>) do
+  def deserialize(<<@opcode::binary, _size, fec_req, eir::binary>>) do
     val = if fec_req == 1, do: true, else: false
     %__MODULE__{fec_required?: val, extended_inquiry_response: String.trim(eir, <<0>>)}
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize_return_parameters(<<status::8>>) do
+  def deserialize_return_parameters(<<status>>) do
     %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
   end
 
   @impl true
   def serialize_return_parameters(%{status: status}) do
-    <<status::8>>
+    <<status>>
   end
 end

@@ -7,7 +7,7 @@ defmodule BlueHeron.ATT.ReadByTypeRequest do
         uuid: uuid
       })
       when uuid > 65535 do
-    <<0x8::8, starting_handle::little-16, ending_handle::little-16, uuid::little-128>>
+    <<0x8, starting_handle::little-16, ending_handle::little-16, uuid::little-128>>
   end
 
   def serialize(%{
@@ -15,12 +15,10 @@ defmodule BlueHeron.ATT.ReadByTypeRequest do
         ending_handle: ending_handle,
         uuid: uuid
       }) do
-    <<0x8::8, starting_handle::little-16, ending_handle::little-16, uuid::little-16>>
+    <<0x8, starting_handle::little-16, ending_handle::little-16, uuid::little-16>>
   end
 
-  def deserialize(
-        <<0x8::8, starting_handle::little-16, ending_handle::little-16, uuid::little-16>>
-      ) do
+  def deserialize(<<0x8, starting_handle::little-16, ending_handle::little-16, uuid::little-16>>) do
     %__MODULE__{
       opcode: 0x8,
       starting_handle: starting_handle,
@@ -29,9 +27,7 @@ defmodule BlueHeron.ATT.ReadByTypeRequest do
     }
   end
 
-  def deserialize(
-        <<0x8::8, starting_handle::little-16, ending_handle::little-16, uuid::little-128>>
-      ) do
+  def deserialize(<<0x8, starting_handle::little-16, ending_handle::little-16, uuid::little-128>>) do
     %__MODULE__{
       opcode: 0x8,
       starting_handle: starting_handle,

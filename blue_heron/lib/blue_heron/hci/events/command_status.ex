@@ -39,14 +39,14 @@ defmodule BlueHeron.HCI.Event.CommandStatus do
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(data) do
-      bin = <<data.status::8, data.num_hci_command_packets::8>> <> data.opcode
+      bin = <<data.status, data.num_hci_command_packets>> <> data.opcode
       size = byte_size(bin)
       <<data.code, size, bin::binary>>
     end
   end
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, status::8, num_hci_command_packets::8, opcode::binary-2>>) do
+  def deserialize(<<@code, _size, status, num_hci_command_packets, opcode::binary-2>>) do
     %__MODULE__{
       num_hci_command_packets: num_hci_command_packets,
       opcode: opcode,

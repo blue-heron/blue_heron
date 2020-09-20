@@ -5,14 +5,14 @@ defmodule BlueHeron.HCI.Command.LinkControl.Disconnect do
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode, connection_handle: handle}) do
-      bin = <<handle::little-16, 0x16::8>>
+      bin = <<handle::little-16, 0x16>>
       size = byte_size(bin)
       <<opcode::binary, size, bin::binary>>
     end
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 0::8>>) do
+  def deserialize(<<@opcode::binary, 0>>) do
     # This is a pretty useless function because there aren't
     # any parameters to actually parse out of this, but we
     # can at least assert its correct with matching

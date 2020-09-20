@@ -40,12 +40,12 @@ defmodule BlueHeron.BTSnoop do
   def decode_bin(<<>>, acc), do: Enum.reverse(acc)
 
   # TODO (draw the rest of the owl)
-  def decode_payload(packet, <<0x2::8, data::binary>>) do
+  def decode_payload(packet, <<0x2, data::binary>>) do
     payload = BlueHeron.ACL.deserialize(data)
     %{packet | payload: payload, type: :HCI_ACL_DATA_PACKET}
   end
 
-  def decode_payload(_packet, <<type::8, data::binary>>) do
+  def decode_payload(_packet, <<type, data::binary>>) do
     raise "unknown type: #{type} for data: #{inspect(data, base: :hex, limit: :infinity)}"
   end
 end
