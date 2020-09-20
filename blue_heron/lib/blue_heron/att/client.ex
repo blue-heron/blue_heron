@@ -33,8 +33,8 @@ defmodule BlueHeron.ATT.Client do
   alias BlueHeron.{
     ACL,
     L2Cap,
-    ATT.ExchageMTURequest,
-    ATT.ExchageMTUResponse,
+    ATT.ExchangeMTURequest,
+    ATT.ExchangeMTUResponse,
     # ATT.ReadByGroupTypeRequest,
     # ATT.ReadByGroupTypeResponse,
     ATT.WriteCommand,
@@ -279,7 +279,7 @@ defmodule BlueHeron.ATT.Client do
     acl = %ACL{
       handle: data.connection.connection_handle,
       flags: %{bc: 0, pb: 0},
-      data: %L2Cap{cid: 0x4, data: %ExchageMTURequest{client_rx_mtu: data.client_mtu}}
+      data: %L2Cap{cid: 0x4, data: %ExchangeMTURequest{client_rx_mtu: data.client_mtu}}
     }
 
     case BlueHeron.acl(data.ctx, acl) do
@@ -340,7 +340,7 @@ defmodule BlueHeron.ATT.Client do
   def connected(
         :info,
         {:HCI_ACL_DATA_PACKET,
-         %ACL{data: %L2Cap{cid: 4, data: %ExchageMTUResponse{server_rx_mtu: mtu}}}},
+         %ACL{data: %L2Cap{cid: 4, data: %ExchangeMTUResponse{server_rx_mtu: mtu}}}},
         data
       ) do
     Logger.info("Server MTU: #{mtu}")

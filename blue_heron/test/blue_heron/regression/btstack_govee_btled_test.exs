@@ -854,7 +854,7 @@ defmodule BlueHeronRegressionTest do
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
           cid: 4,
-          data: %BlueHeron.ATT.ExchageMTURequest{client_rx_mtu: 1691, opcode: 2}
+          data: %BlueHeron.ATT.ExchangeMTURequest{client_rx_mtu: 1691, opcode: 2}
         },
         flags: %{bc: 0, pb: 0},
         handle: 16
@@ -871,7 +871,7 @@ defmodule BlueHeronRegressionTest do
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
           cid: 4,
-          data: %BlueHeron.ATT.ExchageMTUResponse{opcode: 3, server_rx_mtu: 23}
+          data: %BlueHeron.ATT.ExchangeMTUResponse{opcode: 3, server_rx_mtu: 23}
         },
         flags: %{bc: 0, pb: 0},
         handle: 528
