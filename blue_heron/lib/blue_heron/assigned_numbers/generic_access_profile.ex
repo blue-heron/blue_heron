@@ -83,7 +83,7 @@ defmodule BlueHeron.AssignedNumbers.GenericAccessProfile do
   """
   defmacro id(description)
 
-  # handle a redundent GAP definition
+  # handle a redundant GAP definition
   defmacro id("Simple Pairing Hash C"), do: 0x0E
 
   Enum.each(@definitions, fn

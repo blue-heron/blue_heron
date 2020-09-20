@@ -69,7 +69,7 @@ defmodule BlueHeron.DataType.ManufacturerData do
   def serialize(ret), do: {:error, ret}
 
   @doc """
-  Deserializes a manufacturer data binary.
+  Deserialize a manufacturer data binary.
   """
   def deserialize(binary)
 

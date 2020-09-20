@@ -19,7 +19,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -42,7 +42,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -81,7 +81,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -112,7 +112,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -135,7 +135,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -158,7 +158,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -181,7 +181,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -204,7 +204,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -227,7 +227,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -250,7 +250,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -273,7 +273,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -296,7 +296,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -319,7 +319,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -342,7 +342,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -365,7 +365,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -388,7 +388,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -411,7 +411,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -434,7 +434,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -457,7 +457,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -480,7 +480,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -503,7 +503,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -526,7 +526,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -549,7 +549,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -572,7 +572,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -595,7 +595,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -618,7 +618,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -641,7 +641,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -664,7 +664,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -687,7 +687,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -710,7 +710,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -733,7 +733,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -757,7 +757,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -790,7 +790,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -814,7 +814,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """
@@ -839,7 +839,7 @@ defmodule BlueHeronRegressionTest do
       assert(
         BlueHeron.HCI.Serializable.serialize(actual) == binary,
         """
-        Serializating failed.
+        Serialization failed.
         Got: #{inspect(BlueHeron.HCI.Serializable.serialize(actual), base: :hex)}
         Exp: #{inspect(binary, base: :hex)}
         """

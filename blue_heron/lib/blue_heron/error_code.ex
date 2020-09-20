@@ -96,12 +96,12 @@ defmodule BlueHeron.ErrorCode do
   def name(_), do: :error
 
   def name!(error_code),
-    do: raise("[#{inspect(__MODULE__)}] Unabled to get name for #{inspect(error_code)}")
+    do: raise("[#{inspect(__MODULE__)}] Unable to get name for #{inspect(error_code)}")
 
   def error_code(_), do: :error
 
   def error_code!(name),
-    do: raise("[#{inspect(__MODULE__)}] Unabled to get error_code for #{inspect(name)}")
+    do: raise("[#{inspect(__MODULE__)}] Unable to get error_code for #{inspect(name)}")
 
   def all, do: @error_codes
 end
