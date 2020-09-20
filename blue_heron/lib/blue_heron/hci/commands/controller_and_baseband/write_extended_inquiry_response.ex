@@ -22,7 +22,6 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteExtendedInquiryRespon
 
   ## Return Parameters
   * `:status` - see `BlueHeron.ErrorCode`
-  * `:status_name` - Friendly status name. see `BlueHeron.ErrorCode`
   """
 
   defparameters fec_required?: false, extended_inquiry_response: <<0>>
@@ -46,7 +45,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteExtendedInquiryRespon
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: status, status_name: BlueHeron.ErrorCode.name!(status)}
+    %{status: status}
   end
 
   @impl true

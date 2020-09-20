@@ -10,7 +10,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 3,
         opcode: <<3, 12>>,
-        return_parameters: %{status: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -72,7 +72,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<20, 12>>,
-        return_parameters: %{local_name: "RTK_BT_4.1", status: "Success"}
+        return_parameters: %{local_name: "RTK_BT_4.1", status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -195,7 +195,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<1, 12>>,
-        return_parameters: %{status: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -218,7 +218,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "V\f",
-        return_parameters: %{status: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -241,7 +241,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<24, 12>>,
-        return_parameters: %{status: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -264,7 +264,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<15, 8>>,
-        return_parameters: %{status: 0, status_name: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -287,7 +287,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "$\f",
-        return_parameters: %{status: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -310,7 +310,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<19, 12>>,
-        return_parameters: %{status: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -333,7 +333,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "R\f",
-        return_parameters: %{status: 0, status_name: "Success"}
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -747,8 +747,7 @@ defmodule BlueHeronRegressionTest do
         code: 15,
         num_hci_command_packets: 2,
         opcode: "\r ",
-        status: 0,
-        status_name: "Success"
+        status: 0
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -779,7 +778,6 @@ defmodule BlueHeronRegressionTest do
         peer_address_type: 0,
         role: 0,
         status: 0,
-        status_name: "Success",
         subevent_code: 1,
         supervision_timeout: 72
       }
@@ -804,8 +802,7 @@ defmodule BlueHeronRegressionTest do
         code: 15,
         num_hci_command_packets: 2,
         opcode: <<6, 4>>,
-        status: 0,
-        status_name: "Success"
+        status: 0
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -827,10 +824,8 @@ defmodule BlueHeronRegressionTest do
       expected = %BlueHeron.HCI.Event.DisconnectionComplete{
         code: 5,
         connection_handle: 16,
-        reason: 22,
-        reason_name: "Connection Terminated By Local Host",
-        status: 0,
-        status_name: "Success"
+        reason: 0x16,
+        status: 0
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)

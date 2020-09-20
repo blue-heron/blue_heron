@@ -23,8 +23,7 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
     :connection_handle,
     :reason,
     :reason_name,
-    :status,
-    :status_name
+    :status
   ]
 
   defimpl BlueHeron.HCI.Serializable do
@@ -46,9 +45,7 @@ defmodule BlueHeron.HCI.Event.DisconnectionComplete do
     %__MODULE__{
       connection_handle: connection_handle,
       reason: reason,
-      reason_name: BlueHeron.ErrorCode.name!(reason),
-      status: status,
-      status_name: BlueHeron.ErrorCode.name!(status)
+      status: status
     }
   end
 

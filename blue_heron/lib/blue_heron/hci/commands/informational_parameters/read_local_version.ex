@@ -1,8 +1,6 @@
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0001
 
-  alias BlueHeron.ErrorCode, as: Status
-
   defparameters []
 
   defimpl BlueHeron.HCI.Serializable do
@@ -28,7 +26,6 @@ defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
 
     %{
       status: status,
-      status_name: Status.name!(status),
       hci_version: hci_version,
       hci_revision: hci_revision,
       lmp_pal_version: lmp_pal_version,

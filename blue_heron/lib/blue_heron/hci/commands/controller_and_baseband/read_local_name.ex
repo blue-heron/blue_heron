@@ -36,7 +36,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
   @impl true
   def deserialize_return_parameters(<<status, local_name::binary>>) do
     %{
-      status: BlueHeron.ErrorCode.name!(status),
+      status: status,
       # The local name field will fill any remainder of the
       # 248 bytes with null bytes. So just trim those.
       local_name: String.trim(local_name, <<0>>)
@@ -48,7 +48,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
     name_length = byte_size(local_name)
     padding = 248 - name_length
 
-    <<BlueHeron.ErrorCode.error_code!(status), local_name::binary-size(name_length),
+    <<BlueHeron.ErrorCode.to_code!(status), local_name::binary-size(name_length),
       0::size(padding)-unit(8)>>
   end
 end

@@ -31,12 +31,12 @@ defmodule BlueHeron.HCI.Command.LEController.SetScanEnable do
 
   @impl BlueHeron.HCI.Command
   def deserialize_return_parameters(<<status>>) do
-    %{status: BlueHeron.ErrorCode.name!(status)}
+    %{status: status}
   end
 
   @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status}) do
-    <<BlueHeron.ErrorCode.error_code!(status)>>
+    <<BlueHeron.ErrorCode.to_code!(status)>>
   end
 
   defp as_boolean(val) when val in [1, "1", true, <<1>>], do: true
