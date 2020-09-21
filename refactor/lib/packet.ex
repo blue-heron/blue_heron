@@ -1,4 +1,4 @@
-defmodule BlueHeron.HCI.RawMessage do
+defmodule BlueHeron.HCI.Packet do
   alias BlueHeron.HCI.{ReturnParameters}
 
   # FH: I don't know what all the options are for decoding return parameters.

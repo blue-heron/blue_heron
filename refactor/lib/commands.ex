@@ -7,7 +7,7 @@ defmodule BlueHeron.HCI.Commands do
   import BlueHeron.HCI.Helpers
 
   alias BlueHeron.HCI.Commands.SetEventMask
-  alias BlueHeron.HCI.{Command, RawMessage, ReturnParameters}
+  alias BlueHeron.HCI.{Command, Packet, ReturnParameters}
 
   ##
   # Controller & Baseband Commands
@@ -16,9 +16,9 @@ defmodule BlueHeron.HCI.Commands do
   @doc """
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.12
   """
-  @spec encode(Command.t()) :: RawMessage.t()
+  @spec encode(Command.t()) :: Packet.t()
   def encode(%Command{type: :read_local_name} = command) do
-    %RawMessage{
+    %Packet{
       data: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>,
       decode_response: &decode_read_local_name_return_parameters/1,
       meta: command.meta
@@ -28,7 +28,7 @@ defmodule BlueHeron.HCI.Commands do
   def encode(%Command{type: :set_event_mask} = command) do
     events_mask = SetEventMask.mask_events(command.args)
 
-    %RawMessage{
+    %Packet{
       data: <<op(@controller_and_baseband, 0x0001)::little-16, 8, events_mask::little-64>>,
       decode_response: &decode_set_event_mask_return_parameters/1,
       meta: command.meta
@@ -54,7 +54,7 @@ defmodule BlueHeron.HCI.Commands do
     fields_size = byte_size(fields)
 
     # no Return parameters
-    %RawMessage{
+    %Packet{
       data: <<op(@le_controller, 0x000D)::little-16, fields_size, fields::binary>>,
       decode_response: fn _ -> {:ok, nil} end,
       meta: cc.meta
@@ -63,13 +63,13 @@ defmodule BlueHeron.HCI.Commands do
 
   # This is an example decoder. I don't think it's implemented unless we want
   # to make some sort of raw packet analysis library.
-  @spec decode(RawMessage.t()) :: Command.t()
-  def decode(%RawMessage{data: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>} = m) do
+  @spec decode(Packet.t()) :: Command.t()
+  def decode(%Packet{data: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>} = m) do
     %Command{type: :read_local_name, args: %{}, meta: m.meta}
   end
 
   def decode(
-        %RawMessage{
+        %Packet{
           data: <<op(@controller_and_baseband, 0x0001)::little-16, 8, events::little-64>>
         } = p
       ) do
@@ -78,7 +78,7 @@ defmodule BlueHeron.HCI.Commands do
   end
 
   def decode(
-        %RawMessage{
+        %Packet{
           data:
             <<op(@le_controller, 0x000D)::little-16, fields_size,
               fields::binary-size(fields_size)>>
@@ -118,7 +118,7 @@ defmodule BlueHeron.HCI.Commands do
   end
 
   defp decode_read_local_name_return_parameters(
-         %RawMessage{
+         %Packet{
            data:
              <<op(@controller_and_baseband, 0x0014)::little-16, status::8, local_name::binary>>
          } = message
@@ -133,7 +133,7 @@ defmodule BlueHeron.HCI.Commands do
   end
 
   defp decode_set_event_mask_return_parameters(
-         %RawMessage{data: <<op(@controller_and_baseband, 0x0001)::little-16, status>>} = packet
+         %Packet{data: <<op(@controller_and_baseband, 0x0001)::little-16, status>>} = packet
        ) do
     {:ok, %ReturnParameters{status: status, type: :set_event_mask, args: %{}, meta: packet.meta}}
   end

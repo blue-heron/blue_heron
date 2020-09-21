@@ -1,5 +1,5 @@
 defmodule BlueHeron.HCI.Events do
-  alias BlueHeron.HCI.{Event, RawMessage}
+  alias BlueHeron.HCI.{Event, Packet}
 
   ##
   # Controller & Baseband Commands
@@ -7,9 +7,9 @@ defmodule BlueHeron.HCI.Events do
 
   @doc """
   """
-  @spec decode(RawMessage.t()) :: Event.t()
+  @spec decode(Packet.t()) :: Event.t()
   def decode(
-        %RawMessage{data: <<0x0F, _size, status, num_hci_command_packets, opcode::little-16>>} = e
+        %Packet{data: <<0x0F, _size, status, num_hci_command_packets, opcode::little-16>>} = e
       ) do
     %Event{
       type: :command_status,
@@ -19,9 +19,9 @@ defmodule BlueHeron.HCI.Events do
   end
 
   # example
-  @spec encode(Event.t()) :: RawMessage.t()
+  @spec encode(Event.t()) :: Packet.t()
   def encode(%Event{type: :command_status} = e) do
-    %RawMessage{
+    %Packet{
       data: <<0x0F, 4, e.args.status, e.args.num_hci_command_packets, e.args.opcode::little-16>>,
       meta: e.meta
     }
