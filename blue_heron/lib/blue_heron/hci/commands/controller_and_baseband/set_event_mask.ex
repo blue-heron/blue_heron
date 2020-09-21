@@ -26,71 +26,72 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask do
 
   alias __MODULE__
 
-  @events_map %{
-    0 => :inquiry_complete,
-    1 => :inquiry_result,
-    2 => :connection_complete,
-    3 => :connection_request,
-    4 => :disconnection_complete,
-    5 => :authentication_complete,
-    6 => :remote_name_request_complete,
-    7 => :encryption_change,
-    8 => :change_connection_link_key_complete,
-    9 => :master_link_key_complete,
-    10 => :read_remote_supported_features_complete,
-    11 => :read_remote_version_information_complete,
-    12 => :qos_setup_complete,
-    15 => :hardware_error,
-    16 => :flush_occurred,
-    17 => :role_change,
-    19 => :mode_change,
-    20 => :return_link_keys,
-    21 => :pin_code_request,
-    22 => :link_key_request,
-    23 => :link_key_notification,
-    24 => :loopback_command,
-    25 => :data_buffer_overflow,
-    26 => :max_slots_change,
-    27 => :read_clock_offset_complete,
-    28 => :connection_packet_type_changed,
-    29 => :qos_violation,
-    30 => :page_scan_mode_change,
-    31 => :page_scan_repetition_mode_change,
-    32 => :flow_specification_complete,
-    33 => :inquiry_resultwith_rssi,
-    34 => :read_remote_extended_features_complete,
-    43 => :synchronous_connection_complete,
-    44 => :synchronous_connection_changed,
-    45 => :sniff_subrating,
-    46 => :extended_inquiry_result,
-    47 => :encryption_key_refresh_complete,
-    48 => :io_capability_request,
-    49 => :io_capability_response,
-    50 => :user_confirmation_request,
-    51 => :user_passkey_request,
-    52 => :remote_oob_data_request,
-    53 => :simple_pairing_complete,
-    55 => :link_supervision_timeout_changed,
-    56 => :enhanced_flush_complete,
-    58 => :user_passkey_notification,
-    59 => :keypress_notification,
-    60 => :remote_host_supported_features_notification,
-    61 => :le_meta
-  }
+  import Bitwise
 
-  defparameters Enum.map(@events_map, fn {_bit_position, name} -> {name, true} end)
+  @events_map [
+    {1 <<< 0, :inquiry_complete},
+    {1 <<< 1, :inquiry_result},
+    {1 <<< 2, :connection_complete},
+    {1 <<< 3, :connection_request},
+    {1 <<< 4, :disconnection_complete},
+    {1 <<< 5, :authentication_complete},
+    {1 <<< 6, :remote_name_request_complete},
+    {1 <<< 7, :encryption_change},
+    {1 <<< 8, :change_connection_link_key_complete},
+    {1 <<< 9, :master_link_key_complete},
+    {1 <<< 10, :read_remote_supported_features_complete},
+    {1 <<< 11, :read_remote_version_information_complete},
+    {1 <<< 12, :qos_setup_complete},
+    {1 <<< 15, :hardware_error},
+    {1 <<< 16, :flush_occurred},
+    {1 <<< 17, :role_change},
+    {1 <<< 19, :mode_change},
+    {1 <<< 20, :return_link_keys},
+    {1 <<< 21, :pin_code_request},
+    {1 <<< 22, :link_key_request},
+    {1 <<< 23, :link_key_notification},
+    {1 <<< 24, :loopback_command},
+    {1 <<< 25, :data_buffer_overflow},
+    {1 <<< 26, :max_slots_change},
+    {1 <<< 27, :read_clock_offset_complete},
+    {1 <<< 28, :connection_packet_type_changed},
+    {1 <<< 29, :qos_violation},
+    {1 <<< 30, :page_scan_mode_change},
+    {1 <<< 31, :page_scan_repetition_mode_change},
+    {1 <<< 32, :flow_specification_complete},
+    {1 <<< 33, :inquiry_resultwith_rssi},
+    {1 <<< 34, :read_remote_extended_features_complete},
+    {1 <<< 43, :synchronous_connection_complete},
+    {1 <<< 44, :synchronous_connection_changed},
+    {1 <<< 45, :sniff_subrating},
+    {1 <<< 46, :extended_inquiry_result},
+    {1 <<< 47, :encryption_key_refresh_complete},
+    {1 <<< 48, :io_capability_request},
+    {1 <<< 49, :io_capability_response},
+    {1 <<< 50, :user_confirmation_request},
+    {1 <<< 51, :user_passkey_request},
+    {1 <<< 52, :remote_oob_data_request},
+    {1 <<< 53, :simple_pairing_complete},
+    {1 <<< 55, :link_supervision_timeout_changed},
+    {1 <<< 56, :enhanced_flush_complete},
+    {1 <<< 58, :user_passkey_notification},
+    {1 <<< 59, :keypress_notification},
+    {1 <<< 60, :remote_host_supported_features_notification},
+    {1 <<< 61, :le_meta}
+  ]
+
+  defparameters Enum.map(@events_map, fn {_index, name} -> {name, true} end)
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode} = sem) do
-      mask = SetEventMask.mask_events(sem)
-      size = byte_size(mask)
-      <<opcode::binary, size, mask::binary>>
+      flags = SetEventMask.mask_events(sem)
+      <<opcode::binary, 8, flags::little-64>>
     end
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, 8, mask::binary>>) do
-    new(unmask_events(mask))
+  def deserialize(<<@opcode::binary, 8, flags::little-64>>) do
+    new(unmask_events(flags))
   end
 
   @impl BlueHeron.HCI.Command
@@ -104,21 +105,22 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask do
   end
 
   @doc false
+  @spec mask_events(%__MODULE__{}) :: non_neg_integer()
   def mask_events(%__MODULE__{} = sem) do
-    for bit_pos <- 0..63, into: <<>> do
-      key = @events_map[bit_pos]
-      bit = bit_value(Map.get(sem, key))
-      <<bit::1>>
-    end
+    Enum.reduce(@events_map, 0, fn {value, key}, acc ->
+      if Map.get(sem, key) do
+        acc + value
+      else
+        acc
+      end
+    end)
   end
 
   @doc false
-  def unmask_events(mask) do
-    for {bit_pos, key} <- @events_map do
-      {key, ExBin.bit_at(mask, bit_pos)}
+  @spec unmask_events(non_neg_integer()) :: keyword()
+  def unmask_events(flags) do
+    for {value, key} <- @events_map do
+      {key, (flags &&& value) != 0}
     end
   end
-
-  defp bit_value(val) when val in [1, "1", true, <<1>>], do: 1
-  defp bit_value(_val), do: 0
 end
