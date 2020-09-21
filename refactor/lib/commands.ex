@@ -25,11 +25,96 @@ defmodule BlueHeron.HCI.Commands do
     }
   end
 
+  def encode(%Command{type: :set_event_mask} = command) do
+    events_mask = SetEventMask.mask_events(command.args)
+
+    %RawMessage{
+      data: <<op(@controller_and_baseband, 0x0001)::little-16, 8, events_mask::little-64>>,
+      decode_response: &decode_set_event_mask_return_parameters/1,
+      meta: command.meta
+    }
+  end
+
+  def encode(%Command{type: :create_connection} = cc) do
+    fields = <<
+      cc.args.le_scan_interval::little-16,
+      cc.args.le_scan_window::little-16,
+      cc.args.initiator_filter_policy,
+      cc.args.peer_address_type,
+      cc.args.peer_address::little-48,
+      cc.args.own_address_type,
+      cc.args.connection_interval_min::little-16,
+      cc.args.connection_interval_max::little-16,
+      cc.args.connection_latency::little-16,
+      cc.args.supervision_timeout::little-16,
+      cc.args.min_ce_length::little-16,
+      cc.args.max_ce_length::little-16
+    >>
+
+    fields_size = byte_size(fields)
+
+    # no Return parameters
+    %RawMessage{
+      data: <<op(@le_controller, 0x000D)::little-16, fields_size, fields::binary>>,
+      decode_response: fn _ -> {:ok, nil} end,
+      meta: cc.meta
+    }
+  end
+
   # This is an example decoder. I don't think it's implemented unless we want
   # to make some sort of raw packet analysis library.
   @spec decode(RawMessage.t()) :: Command.t()
   def decode(%RawMessage{data: <<op(@controller_and_baseband, 0x0014)::little-16, 0, 0>>} = m) do
     %Command{type: :read_local_name, args: %{}, meta: m.meta}
+  end
+
+  def decode(
+        %RawMessage{
+          data: <<op(@controller_and_baseband, 0x0001)::little-16, 8, events::little-64>>
+        } = p
+      ) do
+    SetEventMask.unmask_events(events)
+    |> set_event_mask(p.meta)
+  end
+
+  def decode(
+        %RawMessage{
+          data:
+            <<op(@le_controller, 0x000D)::little-16, fields_size,
+              fields::binary-size(fields_size)>>
+        } = packet
+      ) do
+    <<
+      le_scan_interval::16-little,
+      le_scan_window::16-little,
+      initiator_filter_policy,
+      peer_address_type,
+      peer_address::little-48,
+      own_address_type,
+      connection_interval_min::16-little,
+      connection_interval_max::16-little,
+      connection_latency::16-little,
+      supervision_timeout::16-little,
+      min_ce_length::16-little,
+      max_ce_length::16-little
+    >> = fields
+
+    args = %{
+      le_scan_interval: le_scan_interval,
+      le_scan_window: le_scan_window,
+      initiator_filter_policy: initiator_filter_policy,
+      peer_address_type: peer_address_type,
+      peer_address: peer_address,
+      own_address_type: own_address_type,
+      connection_interval_min: connection_interval_min,
+      connection_interval_max: connection_interval_max,
+      connection_latency: connection_latency,
+      supervision_timeout: supervision_timeout,
+      min_ce_length: min_ce_length,
+      max_ce_length: max_ce_length
+    }
+
+    create_connection(args, packet.meta)
   end
 
   defp decode_read_local_name_return_parameters(
@@ -47,92 +132,19 @@ defmodule BlueHeron.HCI.Commands do
      }}
   end
 
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.2
-  # """
-  # def reset() do
-  #   opcode(@controller_and_baseband, 0x0003) <> <<0::8, 0>>
-  # end
+  defp decode_set_event_mask_return_parameters(
+         %RawMessage{data: <<op(@controller_and_baseband, 0x0001)::little-16, status>>} = packet
+       ) do
+    {:ok, %ReturnParameters{status: status, type: :set_event_mask, args: %{}, meta: packet.meta}}
+  end
 
   @doc """
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.1
   """
-  # TODO
   @spec set_event_mask(keyword() | map()) :: any()
-  def set_event_mask(events \\ SetEventMask.default()) do
-    %{events: events, type: __MODULE__.SetEventMask, ocf: 0x0001}
+  def set_event_mask(events \\ SetEventMask.default(), meta \\ %{}) do
+    %Command{type: :set_event_mask, args: events, meta: meta}
   end
-
-  # def encode(%{events: events, type: __MODULE__.SetEventMask}) do
-  #   event_mask = SetEventMask.mask_events(events)
-  #   mask_size = byte_size(event_mask)
-  #   <<op(@controller_and_baseband, 0x0001)::little-16, mask_size::8, event_mask::binary>>
-  # end
-
-  # def decode(
-  #       <<op(@controller_and_baseband, 0x0001)::little-16, esize, event_mask::binary-size(esize)>>
-  #     ) do
-  #   set_event_mask(SetEventMask.unmask_events(event_mask))
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.26
-  # """
-  # @spec write_class_of_device(non_neg_integer()) :: binary()
-  # def write_class_of_device(class) do
-  #   opcode(@controller_and_baseband, 0x0024) <> <<3::8, class::24>>
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.56
-  # """
-  # def write_extended_query_response(response \\ <<0>>, fec_required? \\ false) do
-  #   rem = 240 - byte_size(response)
-
-  #   <<
-  #     opcode(@controller_and_baseband, 0x0052)::binary,
-  #     241::8,
-  #     as_uint8(fec_required?)::8,
-  #     response::binary,
-  #     0::rem*8
-  #   >>
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.50
-  # """
-  # def write_inquiry_mode(inquiry_mode \\ 0) when inquiry_mode <= 2 do
-  #   opcode(@controller_and_baseband, 0x0045) <> <<1::8, inquiry_mode::8>>
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.11
-  # """
-  # def write_local_name(name) when is_binary(name) do
-  #   rem = 248 - byte_size(name)
-  #   opcode(@controller_and_baseband, 0x0013) <> <<248::8, name::binary, 0::rem*8>>
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.16
-  # """
-  # def write_page_timeout(timeout \\ 0x20) when is_integer(timeout) do
-  #   opcode(@controller_and_baseband, 0x0018) <> <<2::8, timeout::16>>
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.92
-  # """
-  # def write_secure_connections_host_support(enabled? \\ false) do
-  #   opcode(@controller_and_baseband, 0x007A) <> <<1::8, as_uint8(enabled?)::8>>
-  # end
-
-  # @doc """
-  # Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.59
-  # """
-  # def write_simple_pairing_mode(enabled? \\ false) do
-  #   opcode(@controller_and_baseband, 0x0056) <> <<1::8, as_uint8(enabled?)::8>>
-  # end
 
   ##
   # Informational Parameters
@@ -144,14 +156,6 @@ defmodule BlueHeron.HCI.Commands do
   def read_local_version_information() do
     %{type: __MODULE__.ReadLocalVersionInformation}
   end
-
-  # def encode(%{type: __MODULE__.ReadLocalVersionInformation}) do
-  #   <<op(@informational_parameters, 0x0001)::little-16, 0, 0>>
-  # end
-
-  # def decode(<<op(@informational_parameters, 0x0001)::little-16, 0, 0>>) do
-  #   read_local_version_information()
-  # end
 
   ##
   # LE Controller
@@ -176,53 +180,9 @@ defmodule BlueHeron.HCI.Commands do
     min_ce_length: 0x0006,
     max_ce_length: 0x0054
   }
-  def create_connection(args \\ %{}) do
+  def create_connection(args \\ %{}, meta \\ %{}) do
     args = if Keyword.keyword?(args), do: Map.new(args), else: args
 
-    Map.merge(@connection_defaults, args)
-    |> Map.put(:type, __MODULE__.CreateConnection)
+    %Command{type: :create_connection, args: Map.merge(@connection_defaults, args), meta: meta}
   end
-
-  # def encode(%{type: __MODULE__.CreateConnection} = cmd) do
-  #   fields = <<
-  #     cmd.le_scan_interval::16-little,
-  #     cmd.le_scan_window::16-little,
-  #     cmd.initiator_filter_policy::8,
-  #     cmd.peer_address_type::8,
-  #     cmd.peer_address::little-48,
-  #     cmd.own_address_type::8,
-  #     cmd.connection_interval_min::16-little,
-  #     cmd.connection_interval_max::16-little,
-  #     cmd.connection_latency::16-little,
-  #     cmd.supervision_timeout::16-little,
-  #     cmd.min_ce_length::16-little,
-  #     cmd.max_ce_length::16-little
-  #   >>
-
-  #   fields_size = byte_size(fields)
-  #   <<op(@le_controller, 0x000D)::little-16, fields_size::8, fields::binary>>
-  # end
-
-  # def decode(
-  #       <<op(@le_controller, 0x000D)::little-16, _size, le_scan_interval::16-little,
-  #         le_scan_window::16-little, initiator_filter_policy::8, peer_address_type::8,
-  #         peer_address::little-48, own_address_type::8, connection_interval_min::16-little,
-  #         connection_interval_max::16-little, connection_latency::16-little,
-  #         supervision_timeout::16-little, min_ce_length::16-little, max_ce_length::16-little>>
-  #     ) do
-  #   create_connection(%{
-  #     le_scan_interval: le_scan_interval,
-  #     le_scan_window: le_scan_window,
-  #     initiator_filter_policy: initiator_filter_policy,
-  #     peer_address_type: peer_address_type,
-  #     peer_address: peer_address,
-  #     own_address_type: own_address_type,
-  #     connection_interval_min: connection_interval_min,
-  #     connection_interval_max: connection_interval_max,
-  #     connection_latency: connection_latency,
-  #     supervision_timeout: supervision_timeout,
-  #     min_ce_length: min_ce_length,
-  #     max_ce_length: max_ce_length
-  #   })
-  # end
 end
