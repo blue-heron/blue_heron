@@ -32,7 +32,6 @@ defmodule BlueHeron.MixProject do
 
   defp deps() do
     [
-      {:ex_bin, "~> 0.4"},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.2", only: :test, runtime: false}
