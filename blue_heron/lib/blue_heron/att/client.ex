@@ -362,6 +362,37 @@ defmodule BlueHeron.ATT.Client do
     :keep_state_and_data
   end
 
+  alias BlueHeron.L2Cap.Signaling.{
+    ConnectionParameterUpdateRequest,
+    ConnectionParameterUpdateResponse
+  }
+
+  def connected(
+        :info,
+        {:HCI_ACL_DATA_PACKET,
+         %ACL{data: %L2Cap{cid: cid, data: %ConnectionParameterUpdateRequest{} = request}}},
+        data
+      ) do
+    response = %ConnectionParameterUpdateResponse{
+      identifier: request.identifier,
+      reason: :rejected
+    }
+
+    acl = %ACL{
+      handle: data.connection.connection_handle,
+      flags: %{bc: 0, pb: 0},
+      data: %L2Cap{cid: cid, data: response}
+    }
+
+    BlueHeron.acl(data.ctx, acl)
+    :keep_state_and_data
+  end
+
+  def connected(:info, {:HCI_ACL_DATA_PACKET, acl}, _data) do
+    Logger.warn("Unhandled ACL data: #{inspect(acl)}")
+    :keep_state_and_data
+  end
+
   # def connected(:info, {:HCI_ACL_DATA_PACKET, %ACL{data: %L2Cap{cid: 4, data: %ReadByGroupTypeResponse{} = response}}}, data) do
   #   {pid, _} = data.caller
   #   send pid, self(), {__MODULE__, response}
