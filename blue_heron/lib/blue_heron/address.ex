@@ -26,19 +26,19 @@ defmodule BlueHeron.Address do
   Examples:
 
       iex> BlueHeron.Address.parse("A4:C1:38:A0:49:8B")
-      #Address<A4:C1:38:A0:49:8B>
+      #BlueHeron.Address<A4:C1:38:A0:49:8B>
 
       iex> BlueHeron.Address.parse(0xA4C138A0498B)
-      #Address<A4:C1:38:A0:49:8B>
+      #BlueHeron.Address<A4:C1:38:A0:49:8B>
 
       iex> BlueHeron.Address.parse(181149785672075)
-      #Address<A4:C1:38:A0:49:8B>
+      #BlueHeron.Address<A4:C1:38:A0:49:8B>
 
       iex> BlueHeron.Address.parse(<<0xA4, 0xC1, 0x38, 0xA0, 0x49, 0x8B>>)
-      #Address<A4:C1:38:A0:49:8B>
+      #BlueHeron.Address<A4:C1:38:A0:49:8B>
 
       iex> BlueHeron.Address.parse(<<164, 193, 56, 160, 73, 139>>)
-      #Address<A4:C1:38:A0:49:8B>
+      #BlueHeron.Address<A4:C1:38:A0:49:8B>
 
   """
   def parse(
