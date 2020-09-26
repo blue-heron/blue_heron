@@ -11,7 +11,7 @@ defmodule BlueHeron.Address do
 
   defimpl Inspect do
     def inspect(address, _opts) do
-      "#Address<#{address.string}>"
+      "#BlueHeron.Address<#{address.string}>"
     end
   end
 

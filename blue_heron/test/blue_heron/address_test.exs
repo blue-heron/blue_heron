@@ -39,8 +39,8 @@ defmodule BlueHeron.AddressTest do
     address_from_string = Address.parse("A4:C1:38:A0:49:8B")
     address_from_binary = Address.parse(<<0xA4, 0xC1, 0x38, 0xA0, 0x49, 0x8B>>)
 
-    inspect(to_string(address_from_integer) == "Address<A4:C1:38:A0:49:8B>")
-    inspect(to_string(address_from_string) == "Address<A4:C1:38:A0:49:8B>")
-    inspect(to_string(address_from_binary) == "Address<A4:C1:38:A0:49:8B>")
+    assert inspect(address_from_integer) == "#BlueHeron.Address<A4:C1:38:A0:49:8B>"
+    assert inspect(address_from_string) == "#BlueHeron.Address<A4:C1:38:A0:49:8B>"
+    assert inspect(address_from_binary) == "#BlueHeron.Address<A4:C1:38:A0:49:8B>"
   end
 end
