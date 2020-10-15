@@ -139,6 +139,14 @@ but its small size and few parts is easier to get our heads around and debug
 when issues come up. Is it fun to work on? Yes, so we got permission to
 open-source it, so we could use it for hobby projects too.
 
+## Support
+
+We provide best-effort support via the [Elixir Forum](https://elixirforum.com/)
+and the [#nerves-bluetooth channel on the Elixir
+Slack](https://elixir-slackin.herokuapp.com/). If you need more immediate
+support or feature additions, commercial support is provided by [Binary
+Noggin](https://binarynoggin.com).
+
 ## License
 
 The source code is released under Apache License 2.0.
