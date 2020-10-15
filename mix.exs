@@ -2,7 +2,7 @@ defmodule BlueHeron.MixProject do
   use Mix.Project
 
   @version "0.1.1"
-  @source_url "https://github.com/smartrent/blue_heron"
+  @source_url "https://github.com/blue-heron/blue_heron"
 
   def project do
     [

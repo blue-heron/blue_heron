@@ -55,16 +55,16 @@ Here's what's known:
 
 ## Getting started
 
-See the [examples](../examples) for the time being.
+See the [examples](examples) for the time being.
 
 ## Transports
 
 BlueHeron interacts with Bluetooth modules via transports. Transport
 implementations are not part of this library since they are hardware-specific.
 See
-[BlueHeronTransportUART](https://github.com/smartrent/blue_heron/tree/main/blue_heron_transport_uart)
+[BlueHeronTransportUART](https://github.com/blue-heron/blue_heron_transport_uart)
 and
-[BlueHeronTransportUSB](https://github.com/smartrent/blue_heron/tree/main/blue_heron_transport_usb)
+[BlueHeronTransportUSB](https://github.com/blue-heron/blue_heron_transport_usb)
 for examples.
 
 ## HCI Logging
