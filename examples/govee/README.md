@@ -15,6 +15,7 @@ Before you begin you need to find the vendor id (`vid`) and product id (`pid`) o
 
 <details>
   <summary>Example dmesg output</summary>
+  
   ```
   [174634.130045] usb 1-9: new full-speed USB device number 8 using xhci_hcd
   [174634.453638] usb 1-9: New USB device found, idVendor=0a5c, idProduct=21e8, bcdDevice= 1.12
