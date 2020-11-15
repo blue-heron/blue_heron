@@ -159,7 +159,7 @@ defmodule BlueHeron.ATT.Client do
   end
 
   def wait_working(:info, {:HCI_EVENT_PACKET, packet}, _data) do
-    Logger.info("Unknown packet for state CONNECT: #{inspect(packet, base: :hex, pretty: true)}")
+    # Logger.info("Unknown packet for state CONNECT: #{inspect(packet, base: :hex, pretty: true)}")
     :keep_state_and_data
   end
 
@@ -177,6 +177,9 @@ defmodule BlueHeron.ATT.Client do
 
   # ignore all HCI packets in ready state
   def ready(:info, {:HCI_EVENT_PACKET, _}, _data), do: :keep_state_and_data
+
+  # ???
+  def ready(:info, {:HCI_ACL_DATA_PACKET, _}, _data), do: :keep_state_and_data
 
   @doc false
   def connecting(:internal, :create_connection, data) do
