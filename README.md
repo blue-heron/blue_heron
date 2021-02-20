@@ -82,6 +82,8 @@ BlueHeron.HCIDump.Logger
 This will produce a file `/tmp/hcidump.pklg` that can be loaded into Wireshark.
 
 **NOTE** This project configures logger so it is always enabled by default.
+However, this can be disabled by setting `config :blue_heron, log_hci_dump_file:
+false`
 
 The `BlueHeron.HCIDump.Logger` module implements a superset of Elixir's builtin logger and
 all non-HCI data is forwarded directly to Elixir's Logger.
