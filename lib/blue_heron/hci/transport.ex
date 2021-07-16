@@ -34,7 +34,7 @@ defmodule BlueHeron.HCI.Transport do
     # ),
     %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
     %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
-    <<0x1A, 0x0C, 0x01, 0x00>>,
+    %ControllerAndBaseband.WriteScanEnable{scan_enable: 0x01},
     <<0x2F, 0x0C, 0x01, 0x01>>,
     <<0x5B, 0x0C, 0x01, 0x01>>,
     <<0x02, 0x20, 0x00>>,
