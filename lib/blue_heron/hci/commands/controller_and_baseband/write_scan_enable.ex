@@ -33,12 +33,12 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteScanEnable do
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode, scan_enable: scan_enable}) do
-      <<opcode::binary, scan_enable::little-16>>
+      <<opcode::binary, 1, scan_enable>>
     end
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize(<<@opcode::binary, scan_enable::little-16>>) do
+  def deserialize(<<@opcode::binary, 1, scan_enable>>) do
     new(scan_enable: scan_enable)
   end
 
