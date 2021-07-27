@@ -35,7 +35,7 @@ defmodule BlueHeron.HCI.Transport do
     %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
     %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
     %ControllerAndBaseband.WriteScanEnable{scan_enable: 0x01},
-    <<0x2F, 0x0C, 0x01, 0x01>>,
+    %ControllerAndBaseband.WriteSynchronousFlowControlEnable{enabled: true},
     %ControllerAndBaseband.WriteDefaultErroneousDataReporting{enabled: true},
     %LEController.ReadBufferSizeV1{},
     %ControllerAndBaseband.WriteLEHostSupport{le_supported_host_enabled: true},
