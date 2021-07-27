@@ -37,7 +37,7 @@ defmodule BlueHeron.HCI.Transport do
     %ControllerAndBaseband.WriteScanEnable{scan_enable: 0x01},
     <<0x2F, 0x0C, 0x01, 0x01>>,
     <<0x5B, 0x0C, 0x01, 0x01>>,
-    <<0x02, 0x20, 0x00>>,
+    %LEController.ReadBufferSizeV1{},
     %ControllerAndBaseband.WriteLEHostSupport{le_supported_host_enabled: true},
     %LEController.ReadWhiteListSize{},
     %LEController.SetScanParameters{
