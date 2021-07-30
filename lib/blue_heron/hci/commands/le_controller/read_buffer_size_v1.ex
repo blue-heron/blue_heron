@@ -15,19 +15,13 @@ defmodule BlueHeron.HCI.Command.LEController.ReadBufferSizeV1 do
   end
 
   @impl BlueHeron.HCI.Command
-  def deserialize_return_parameters(<<
-        status,
-        acl_data_packet_length::little-16,
-        total_num_acl_data_packets,
-        iso_data_packet_length::little-16,
-        total_num_iso_data_packets
-      >>) do
+  def deserialize_return_parameters(
+        <<status, acl_data_packet_length::little-16, total_num_acl_data_packets>>
+      ) do
     %{
       status: status,
       acl_data_packet_length: acl_data_packet_length,
-      total_num_acl_data_packets: total_num_acl_data_packets,
-      iso_data_packet_length: iso_data_packet_length,
-      total_num_iso_data_packets: total_num_iso_data_packets
+      total_num_acl_data_packets: total_num_acl_data_packets
     }
   end
 
@@ -35,16 +29,12 @@ defmodule BlueHeron.HCI.Command.LEController.ReadBufferSizeV1 do
   def serialize_return_parameters(%{
         status: status,
         acl_data_packet_length: acl_data_packet_length,
-        total_num_acl_data_packets: total_num_acl_data_packets,
-        iso_data_packet_length: iso_data_packet_length,
-        total_num_iso_data_packets: total_num_iso_data_packets
+        total_num_acl_data_packets: total_num_acl_data_packets
       }) do
     <<
       BlueHeron.ErrorCode.to_code!(status),
       acl_data_packet_length::little-16,
-      total_num_acl_data_packets,
-      iso_data_packet_length::little-16,
-      total_num_iso_data_packets
+      total_num_acl_data_packets
     >>
   end
 end
