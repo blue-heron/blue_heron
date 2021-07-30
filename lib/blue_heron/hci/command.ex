@@ -30,6 +30,7 @@ defmodule BlueHeron.HCI.Command do
     LEController.SetAdvertisingData,
     LEController.SetAdvertisingEnable,
     LEController.SetAdvertisingParameters,
+    LEController.SetScanParameters,
     LinkPolicy.WriteDefaultLinkPolicySettings
   ]
 
