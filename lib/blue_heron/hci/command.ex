@@ -27,6 +27,9 @@ defmodule BlueHeron.HCI.Command do
     LEController.ReadWhiteListSize,
     LEController.SetScanEnable,
     LEController.SetScanParameters,
+    LEController.SetAdvertisingData,
+    LEController.SetAdvertisingEnable,
+    LEController.SetAdvertisingParameters,
     LinkPolicy.WriteDefaultLinkPolicySettings
   ]
 
