@@ -16,6 +16,9 @@ defmodule BlueHeron.HCI.Command do
     ControllerAndBaseband.WriteSimplePairingMode,
     LEController.CreateConnection,
     LEController.SetScanEnable,
+    LEController.SetAdvertisingData,
+    LEController.SetAdvertisingEnable,
+    LEController.SetAdvertisingParameters,
     LinkPolicy.WriteDefaultLinkPolicySettings
   ]
 
