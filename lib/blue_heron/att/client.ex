@@ -215,9 +215,7 @@ defmodule BlueHeron.ATT.Client do
 
   def connecting(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = connection}, data) do
     Logger.warn(
-      "Connection complete for different connection: #{
-        inspect(connection.peer_address, base: :hex)
-      } command: #{inspect(data.create_connection.peer_address, base: :hex)}"
+      "Connection complete for different connection: #{inspect(connection.peer_address, base: :hex)} command: #{inspect(data.create_connection.peer_address, base: :hex)}"
     )
 
     :keep_state_and_data
