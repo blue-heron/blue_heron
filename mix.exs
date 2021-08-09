@@ -51,7 +51,12 @@ defmodule BlueHeron.MixProject do
 
   defp docs() do
     [
-      extras: ["README.md", "CHANGELOG.md"],
+      extras: [
+        "README.md",
+        "CHANGELOG.md",
+        NOTICE: [title: "Notice"],
+        LICENSE: [title: "License"]
+      ],
       main: "readme",
       source_ref: "v#{@version}",
       source_url: @source_url,
