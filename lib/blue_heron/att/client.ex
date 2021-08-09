@@ -158,7 +158,7 @@ defmodule BlueHeron.ATT.Client do
     {:next_state, :ready, data}
   end
 
-  def wait_working(:info, {:HCI_EVENT_PACKET, packet}, _data) do
+  def wait_working(:info, {:HCI_EVENT_PACKET, _packet}, _data) do
     # Logger.info("Unknown packet for state CONNECT: #{inspect(packet, base: :hex, pretty: true)}")
     :keep_state_and_data
   end
