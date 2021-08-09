@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.2.0
+
+* Potential breaking changes
+  There was quite a bit of internal adjustments and refactoring to cleanup
+  implementation, although no core functions were changed. You should see
+  no difference when updating but it was worth watching your implementation
+  after updating in case something was missed in the cleanup
+
+* Enhancements
+  * Add new Address module to simplify the different address interpretations
+  * Allow disabling logging to /tmp/hcidump.pklg file (Thanks @axelson!)
+  * Lots of HCI Commands added to better support default behavior (Thanks @trarbr!)
+
+* Fixes
+  * fix/workaround for the rpi3 (Thanks @axelson!)
+  * Fixed dmesg output display in govee example readme (Thanks @kevinansfield!)
+
 ## v0.1.1
 
 * Bugfixes
