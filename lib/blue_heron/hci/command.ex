@@ -25,11 +25,10 @@ defmodule BlueHeron.HCI.Command do
     LEController.CreateConnectionCancel,
     LEController.ReadBufferSizeV1,
     LEController.ReadWhiteListSize,
-    LEController.SetScanEnable,
-    LEController.SetScanParameters,
     LEController.SetAdvertisingData,
     LEController.SetAdvertisingEnable,
     LEController.SetAdvertisingParameters,
+    LEController.SetScanEnable,
     LEController.SetScanParameters,
     LinkPolicy.WriteDefaultLinkPolicySettings
   ]

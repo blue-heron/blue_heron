@@ -33,7 +33,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<1, 16>>,
-        return_parameters: <<0, 7, 11, 0, 7, 93, 0, 34, 136>>
+        return_parameters: %{hci_revision: 11, hci_version: 7, lmp_pal_subversion: 34850, lmp_pal_version: 7, manufacturer_name: 93, status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -356,7 +356,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "E\f",
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -379,7 +379,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "z\f",
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -402,7 +402,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<26, 12>>,
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -425,7 +425,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "/\f",
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -448,7 +448,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "[\f",
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -471,7 +471,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<2, 32>>,
-        return_parameters: <<0, 27, 0, 16>>
+        return_parameters: %{acl_data_packet_length: 27, status: 0, total_num_acl_data_packets: 16}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -494,7 +494,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "m\f",
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -517,7 +517,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<15, 32>>,
-        return_parameters: <<0, 32>>
+        return_parameters: %{status: 0, white_list_size: 32}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -540,7 +540,7 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: "\v ",
-        return_parameters: <<0>>
+        return_parameters: %{status: 0}
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
