@@ -98,7 +98,7 @@ defmodule BlueHeron.HCIDump.Logger do
   `payload` must be a binary.
   `metadata` is optional metadata to pass through to Elixir.Logger
   """
-  defmacro hci_packet(type, direction, payload, _metadata \\ [])
+  defmacro hci_packet(type, direction, payload, metadata \\ [])
            when type in [
                   :HCI_COMMAND_DATA_PACKET,
                   :HCI_ACL_DATA_PACKET,
@@ -113,21 +113,28 @@ defmodule BlueHeron.HCIDump.Logger do
       pktlog = %PKTLOG{type: unquote(type), payload: unquote(payload)}
       encoded = HCIDump.encode(%PKTLOG{pktlog | tv_sec: ts, tv_us: usec}, unquote(direction))
 
-      if Application.get_env(:blue_heron, :log_hci_dump_file, true) do
-        _ = File.write("/tmp/hcidump.pklg", encoded, [:append])
+      with true <- Application.get_env(:blue_heron, :log_hci_dump_file, true),
+           :ok <- File.write("/tmp/hcidump.pklg", encoded, [:append]) do
+        :ok
+      else
+        {:error, err} ->
+          :ok = Logger.log(:warn, "Failed to write to hcidump.pklg - #{inspect(err)}")
+
+          metadata = [
+            {:pktlog_direction, unquote(direction)},
+            {:pktlog, %PKTLOG{type: unquote(type), payload: unquote(payload)}} | unquote(metadata)
+          ]
+
+          :ok =
+            Logger.log(
+              :debug,
+              ["HCI Packet #{unquote(direction)}", " ", inspect(unquote(payload), base: :hex)],
+              metadata
+            )
+
+        _ ->
+          :ok
       end
-
-      # metadata = [
-      #   {:pktlog_direction, unquote(direction)},
-      #   {:pktlog, %PKTLOG{type: unquote(type), payload: unquote(payload)}} | unquote(metadata)
-      # ]
-
-      # :ok =
-      #   Logger.log(
-      #     :debug,
-      #     ["HCI Packet #{unquote(direction)}", " ", inspect(unquote(payload), base: :hex)],
-      #     metadata
-      #   )
     end
   end
 

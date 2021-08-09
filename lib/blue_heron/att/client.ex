@@ -209,7 +209,7 @@ defmodule BlueHeron.ATT.Client do
     Logger.info("Connection established")
     send(data.controlling_process, {__MODULE__, self(), connection})
     actions = [{:next_event, :internal, :exchange_mtu}]
-    if data.connection_timer, do: Process.cancel_timer(data.connection_timer)
+    _ = if data.connection_timer, do: Process.cancel_timer(data.connection_timer)
     {:next_state, :connected, %{data | connection: connection, connection_timer: nil}, actions}
   end
 
@@ -223,7 +223,7 @@ defmodule BlueHeron.ATT.Client do
 
   def connecting(:info, {:HCI_EVENT_PACKET, %CommandStatus{status: 18} = error}, data) do
     Logger.error("Could not establish connection")
-    if data.connection_timer, do: Process.cancel_timer(data.connection_timer)
+    _ = if data.connection_timer, do: Process.cancel_timer(data.connection_timer)
     {:stop, error, %{data | connection_timer: nil}}
   end
 
