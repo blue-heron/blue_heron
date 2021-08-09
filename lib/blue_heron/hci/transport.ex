@@ -35,12 +35,16 @@ defmodule BlueHeron.HCI.Transport do
     %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
     %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
     %ControllerAndBaseband.WriteScanEnable{scan_enable: 0x01},
-    <<0x2F, 0x0C, 0x01, 0x01>>,
-    <<0x5B, 0x0C, 0x01, 0x01>>,
-    <<0x02, 0x20, 0x00>>,
-    <<0x6D, 0x0C, 0x02, 0x01, 0x00>>,
-    <<0x0F, 0x20, 0x00>>,
-    <<0x0B, 0x20, 0x07, 0x01, 0x30, 0x00, 0x30, 0x00, 0x00, 0x00>>,
+    %ControllerAndBaseband.WriteSynchronousFlowControlEnable{enabled: true},
+    %ControllerAndBaseband.WriteDefaultErroneousDataReporting{enabled: true},
+    %LEController.ReadBufferSizeV1{},
+    %ControllerAndBaseband.WriteLEHostSupport{le_supported_host_enabled: true},
+    %LEController.ReadWhiteListSize{},
+    %LEController.SetScanParameters{
+      le_scan_type: 0x01,
+      le_scan_interval: 0x0030,
+      le_scan_window: 0x0030
+    },
     %LEController.SetScanEnable{le_scan_enable: false}
   ]
 

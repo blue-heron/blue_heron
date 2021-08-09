@@ -3,22 +3,33 @@ defmodule BlueHeron.HCI.Command do
   @callback serialize_return_parameters(map() | binary()) :: binary()
   @callback deserialize(binary()) :: term()
 
-  alias __MODULE__.{ControllerAndBaseband, LEController, LinkPolicy}
+  alias __MODULE__.{ControllerAndBaseband, LEController, InformationalParameters, LinkPolicy}
 
   @modules [
     ControllerAndBaseband.ReadLocalName,
     ControllerAndBaseband.Reset,
     ControllerAndBaseband.SetEventMask,
     ControllerAndBaseband.WriteClassOfDevice,
+    ControllerAndBaseband.WriteDefaultErroneousDataReporting,
     ControllerAndBaseband.WriteExtendedInquiryResponse,
+    ControllerAndBaseband.WriteInquiryMode,
+    ControllerAndBaseband.WriteLEHostSupport,
     ControllerAndBaseband.WriteLocalName,
     ControllerAndBaseband.WritePageTimeout,
+    ControllerAndBaseband.WriteScanEnable,
+    ControllerAndBaseband.WriteSecureConnectionsHostSupport,
     ControllerAndBaseband.WriteSimplePairingMode,
+    ControllerAndBaseband.WriteSynchronousFlowControlEnable,
+    InformationalParameters.ReadLocalVersion,
     LEController.CreateConnection,
+    LEController.CreateConnectionCancel,
+    LEController.ReadBufferSizeV1,
+    LEController.ReadWhiteListSize,
     LEController.SetScanEnable,
     LEController.SetAdvertisingData,
     LEController.SetAdvertisingEnable,
     LEController.SetAdvertisingParameters,
+    LEController.SetScanParameters,
     LinkPolicy.WriteDefaultLinkPolicySettings
   ]
 
