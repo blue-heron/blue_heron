@@ -56,7 +56,7 @@ Here's what's known:
 
 ## Getting started
 
-See the [examples](https://github.com/blue-heron/blue_heron/examples) for the time being.
+See the [examples](https://github.com/blue-heron/blue_heron/tree/main/examples) for the time being.
 
 ## Transports
 
