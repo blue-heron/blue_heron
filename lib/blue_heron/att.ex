@@ -10,12 +10,20 @@ defmodule BlueHeron.ATT do
     ErrorResponse,
     ExchangeMTURequest,
     ExchangeMTUResponse,
+    FindInformationRequest,
+    FindInformationResponse,
+    ReadBlobRequest,
+    ReadBlobResponse,
     ReadByTypeRequest,
     ReadByTypeResponse,
     ReadByGroupTypeRequest,
     ReadByGroupTypeResponse,
+    ReadRequest,
+    ReadResponse,
     HandleValueNotification,
-    WriteCommand
+    WriteCommand,
+    WriteRequest,
+    WriteResponse
   }
 
   @doc "Takes binary data and returns a struct"
@@ -28,17 +36,41 @@ defmodule BlueHeron.ATT do
   def deserialize(base, <<0x03, _::binary>> = exchange_mtu_request),
     do: %{base | data: ExchangeMTUResponse.deserialize(exchange_mtu_request)}
 
+  def deserialize(base, <<0x04, _::binary>> = find_information_request),
+    do: %{base | data: FindInformationRequest.deserialize(find_information_request)}
+
+  def deserialize(base, <<0x05, _::binary>> = find_information_response),
+    do: %{base | data: FindInformationResponse.deserialize(find_information_response)}
+
   def deserialize(base, <<0x08, _::binary>> = exchange_mtu_request),
     do: %{base | data: ReadByTypeRequest.deserialize(exchange_mtu_request)}
 
   def deserialize(base, <<0x09, _::binary>> = exchange_mtu_request),
     do: %{base | data: ReadByTypeResponse.deserialize(exchange_mtu_request)}
 
+  def deserialize(base, <<0x0A, _::binary>> = read_request),
+    do: %{base | data: ReadRequest.deserialize(read_request)}
+
+  def deserialize(base, <<0x0B, _::binary>> = read_response),
+    do: %{base | data: ReadResponse.deserialize(read_response)}
+
+  def deserialize(base, <<0x0C, _::binary>> = read_blob_request),
+    do: %{base | data: ReadBlobRequest.deserialize(read_blob_request)}
+
+  def deserialize(base, <<0x0D, _::binary>> = read_blob_response),
+    do: %{base | data: ReadBlobResponse.deserialize(read_blob_response)}
+
   def deserialize(base, <<0x10, _::binary>> = read_by_group_type_request),
     do: %{base | data: ReadByGroupTypeRequest.deserialize(read_by_group_type_request)}
 
   def deserialize(base, <<0x11, _::binary>> = read_by_group_type_request),
     do: %{base | data: ReadByGroupTypeResponse.deserialize(read_by_group_type_request)}
+
+  def deserialize(base, <<0x12, _::binary>> = write_request),
+    do: %{base | data: WriteRequest.deserialize(write_request)}
+
+  def deserialize(base, <<0x13, _::binary>> = write_response),
+    do: %{base | data: WriteResponse.deserialize(write_response)}
 
   def deserialize(base, <<0x1B, _::binary>> = read_by_group_type_request),
     do: %{base | data: HandleValueNotification.deserialize(read_by_group_type_request)}
