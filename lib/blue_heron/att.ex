@@ -16,6 +16,8 @@ defmodule BlueHeron.ATT do
     FindByTypeValueResponse,
     FindInformationRequest,
     FindInformationResponse,
+    HandleValueIndication,
+    HandleValueConfirmation,
     PrepareWriteRequest,
     PrepareWriteResponse,
     ReadBlobRequest,
@@ -98,6 +100,12 @@ defmodule BlueHeron.ATT do
 
   def deserialize(base, <<0x1B, _::binary>> = read_by_group_type_request),
     do: %{base | data: HandleValueNotification.deserialize(read_by_group_type_request)}
+
+  def deserialize(base, <<0x1D, _::binary>> = handle_value_indication),
+    do: %{base | data: HandleValueIndication.deserialize(handle_value_indication)}
+
+  def deserialize(base, <<0x1E, _::binary>> = handle_value_confirmation),
+    do: %{base | data: HandleValueConfirmation.deserialize(handle_value_confirmation)}
 
   def deserialize(base, <<0x52, _::binary>> = read_by_group_type_request),
     do: %{base | data: WriteCommand.deserialize(read_by_group_type_request)}
