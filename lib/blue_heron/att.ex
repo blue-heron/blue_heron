@@ -12,6 +12,8 @@ defmodule BlueHeron.ATT do
     ExchangeMTUResponse,
     ExecuteWriteRequest,
     ExecuteWriteResponse,
+    FindByTypeValueRequest,
+    FindByTypeValueResponse,
     FindInformationRequest,
     FindInformationResponse,
     PrepareWriteRequest,
@@ -45,6 +47,12 @@ defmodule BlueHeron.ATT do
 
   def deserialize(base, <<0x05, _::binary>> = find_information_response),
     do: %{base | data: FindInformationResponse.deserialize(find_information_response)}
+
+  def deserialize(base, <<0x06, _::binary>> = find_by_type_value_request),
+    do: %{base | data: FindByTypeValueRequest.deserialize(find_by_type_value_request)}
+
+  def deserialize(base, <<0x07, _::binary>> = find_by_type_value_response),
+    do: %{base | data: FindByTypeValueResponse.deserialize(find_by_type_value_response)}
 
   def deserialize(base, <<0x08, _::binary>> = exchange_mtu_request),
     do: %{base | data: ReadByTypeRequest.deserialize(exchange_mtu_request)}
