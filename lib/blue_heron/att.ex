@@ -10,8 +10,12 @@ defmodule BlueHeron.ATT do
     ErrorResponse,
     ExchangeMTURequest,
     ExchangeMTUResponse,
+    ExecuteWriteRequest,
+    ExecuteWriteResponse,
     FindInformationRequest,
     FindInformationResponse,
+    PrepareWriteRequest,
+    PrepareWriteResponse,
     ReadBlobRequest,
     ReadBlobResponse,
     ReadByTypeRequest,
@@ -71,6 +75,18 @@ defmodule BlueHeron.ATT do
 
   def deserialize(base, <<0x13, _::binary>> = write_response),
     do: %{base | data: WriteResponse.deserialize(write_response)}
+
+  def deserialize(base, <<0x16, _::binary>> = prepare_write_request),
+    do: %{base | data: PrepareWriteRequest.deserialize(prepare_write_request)}
+
+  def deserialize(base, <<0x17, _::binary>> = prepare_write_response),
+    do: %{base | data: PrepareWriteResponse.deserialize(prepare_write_response)}
+
+  def deserialize(base, <<0x18, _::binary>> = execute_write_request),
+    do: %{base | data: ExecuteWriteRequest.deserialize(execute_write_request)}
+
+  def deserialize(base, <<0x19, _::binary>> = execute_write_response),
+    do: %{base | data: ExecuteWriteResponse.deserialize(execute_write_response)}
 
   def deserialize(base, <<0x1B, _::binary>> = read_by_group_type_request),
     do: %{base | data: HandleValueNotification.deserialize(read_by_group_type_request)}
