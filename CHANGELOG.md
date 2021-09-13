@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.1
+
+* Enhancements
+  * Added HCI commands for GATT (Thanks @trarbr ❤️)
+
 ## v0.2.0
 
 * Potential breaking changes
