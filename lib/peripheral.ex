@@ -1,4 +1,6 @@
 defmodule BlueHeron.Peripheral do
+  require Logger
+
   alias BlueHeron.HCI.Command.LEController.{
     SetAdvertisingParameters,
     SetAdvertisingData,
@@ -113,14 +115,18 @@ defmodule BlueHeron.Peripheral do
     :keep_state_and_data
   end
 
-  def connected(:info, {:HCI_ACL_DATA_PACKET, %ACL{data: %L2Cap{data: request}}}, data) do
+  def connected(
+        :info,
+        {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0004, data: request}}},
+        %{conn_handle: handle} = data
+      ) do
     {gatt_server, response} = GATT.Server.handle(data.gatt_server, request)
 
     acl_response = %ACL{
       handle: data.conn_handle,
       flags: %{bc: 0, pb: 0},
       data: %L2Cap{
-        cid: 0x04,
+        cid: 0x0004,
         data: response
       }
     }
@@ -128,6 +134,11 @@ defmodule BlueHeron.Peripheral do
     BlueHeron.acl(data.ctx, acl_response)
 
     {:keep_state, %{data | gatt_server: gatt_server}, []}
+  end
+
+  def connected(:info, {:HCI_ACL_DATA_PACKET, acl}, _data) do
+    Logger.info("Unhandled ACL packet: #{inspect(acl)}")
+    :keep_state_and_data
   end
 
   def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{}}, data) do
