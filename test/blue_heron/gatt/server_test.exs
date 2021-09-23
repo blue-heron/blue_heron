@@ -277,6 +277,81 @@ defmodule BlueHeron.GATT.ServerTest do
            } = response
   end
 
+  test "discover characteristics by uuid" do
+    state = Server.init(TestServer)
+
+    # Request all characteristics of type 0x2A00 (device name) in the range of
+    # the :gap service
+    {state, response} =
+      Server.handle(state, %ReadByTypeRequest{
+        uuid: 0x2A00,
+        starting_handle: 0x0001,
+        ending_handle: 0x0005
+      })
+
+    assert %ReadByTypeResponse{
+             attribute_data: [
+               %ReadByTypeResponse.AttributeData{
+                 handle: 0x0002,
+                 uuid: 0x2A00,
+                 characteristic_properties: 0b00000010,
+                 characteristic_value_handle: 0x0003
+               }
+             ]
+           } = response
+
+    # Request all characteristics of type 0x2A01 (appearance) in the range of
+    # the :gap service
+    {state, response} =
+      Server.handle(state, %ReadByTypeRequest{
+        uuid: 0x2A01,
+        starting_handle: 0x0001,
+        ending_handle: 0x0005
+      })
+
+    assert %ReadByTypeResponse{
+             attribute_data: [
+               %ReadByTypeResponse.AttributeData{
+                 handle: 0x0004,
+                 uuid: 0x2A01,
+                 characteristic_properties: 0b00000010,
+                 characteristic_value_handle: 0x0005
+               }
+             ]
+           } = response
+
+    # Request all characteristics of type 0x2A00 (device name) in the range of
+    # the :test_service_1 service
+    {state, response} =
+      Server.handle(state, %ReadByTypeRequest{
+        uuid: 0x2A00,
+        starting_handle: 0x0009,
+        ending_handle: 0x000D
+      })
+
+    assert %ErrorResponse{error: :attribute_not_found} = response
+
+    # Request all characteristics of type 0xF018E00E0ECE45B09617B744833D89BA (long uuid) in the range of
+    # the :test_service_1 service
+    {state, response} =
+      Server.handle(state, %ReadByTypeRequest{
+        uuid: 0xF018E00E0ECE45B09617B744833D89BA,
+        starting_handle: 0x0009,
+        ending_handle: 0x000D
+      })
+
+    assert %ReadByTypeResponse{
+             attribute_data: [
+               %ReadByTypeResponse.AttributeData{
+                 handle: 0x000C,
+                 uuid: 0xF018E00E0ECE45B09617B744833D89BA,
+                 characteristic_properties: 0b00001010,
+                 characteristic_value_handle: 0x000D
+               }
+             ]
+           } = response
+  end
+
   test "read short characteristic value" do
     state = Server.init(TestServer)
 

@@ -1,6 +1,8 @@
 defmodule BlueHeron.GATT.Server do
   alias BlueHeron.ATT.{
     ErrorResponse,
+    ExchangeMTURequest,
+    ExchangeMTUResponse,
     FindInformationRequest,
     PrepareWriteRequest,
     PrepareWriteResponse,
@@ -44,6 +46,9 @@ defmodule BlueHeron.GATT.Server do
 
   def handle(state, request) do
     case request do
+      %ExchangeMTURequest{} ->
+        exchange_mtu(state, request)
+
       %ReadByGroupTypeRequest{uuid: @discover_all_primary_services} ->
         discover_all_primary_services(state, request)
 
@@ -52,6 +57,9 @@ defmodule BlueHeron.GATT.Server do
 
       %ReadByTypeRequest{uuid: @discover_all_characteristics} ->
         discover_all_characteristics(state, request)
+
+      %ReadByTypeRequest{} ->
+        discover_characteristics_by_uuid(state, request)
 
       %FindInformationRequest{} ->
         discover_all_characteristic_descriptors(state, request)
@@ -71,6 +79,10 @@ defmodule BlueHeron.GATT.Server do
       %ExecuteWriteRequest{} ->
         write_long_characteristic_value(state, request)
     end
+  end
+
+  def exchange_mtu(state, _request) do
+    {state, %ExchangeMTUResponse{server_rx_mtu: state.mtu}}
   end
 
   def discover_all_primary_services(state, request) do
@@ -145,6 +157,46 @@ defmodule BlueHeron.GATT.Server do
       |> Enum.flat_map(fn service -> service.characteristics end)
       |> Enum.filter(fn characteristic ->
         characteristic.handle >= request.starting_handle and
+          characteristic.handle <= request.ending_handle
+      end)
+
+    case characteristics do
+      [] ->
+        {state,
+         %ErrorResponse{
+           handle: request.starting_handle,
+           request_opcode: request.opcode,
+           error: :attribute_not_found
+         }}
+
+      characteristics_in_range ->
+        attribute_data =
+          characteristics_in_range
+          |> Enum.map(fn characteristic ->
+            %ReadByTypeResponse.AttributeData{
+              handle: characteristic.handle,
+              uuid: characteristic.type,
+              characteristic_properties: characteristic.properties,
+              characteristic_value_handle: characteristic.value_handle
+            }
+          end)
+          |> filter_by_uuid_size()
+          |> limit_attribute_count(state.mtu)
+
+        {state, %ReadByTypeResponse{attribute_data: attribute_data}}
+    end
+  end
+
+  def discover_characteristics_by_uuid(state, request) do
+    characteristics =
+      state.profile
+      |> Enum.filter(fn service ->
+        service.handle >= request.starting_handle and
+          service.handle <= request.ending_handle
+      end)
+      |> Enum.flat_map(fn service -> service.characteristics end)
+      |> Enum.filter(fn characteristic ->
+        characteristic.type == request.uuid and characteristic.handle >= request.starting_handle and
           characteristic.handle <= request.ending_handle
       end)
 
