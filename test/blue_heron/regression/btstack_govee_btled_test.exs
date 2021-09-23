@@ -835,7 +835,8 @@ defmodule BlueHeronRegressionTest do
       expected = %BlueHeron.HCI.Event.DisconnectionComplete{
         code: 5,
         connection_handle: 16,
-        reason: 0x16,
+        reason: 22,
+        reason_name: nil,
         status: 0
       }
 
@@ -879,8 +880,8 @@ defmodule BlueHeronRegressionTest do
           cid: 4,
           data: %BlueHeron.ATT.ExchangeMTUResponse{opcode: 3, server_rx_mtu: 23}
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -939,8 +940,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 17
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -989,8 +990,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 17
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1039,8 +1040,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 17
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1083,8 +1084,8 @@ defmodule BlueHeronRegressionTest do
             request_opcode: 16
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1146,8 +1147,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1209,8 +1210,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1260,8 +1261,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1304,8 +1305,8 @@ defmodule BlueHeronRegressionTest do
             request_opcode: 8
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1355,8 +1356,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1406,8 +1407,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1457,8 +1458,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1501,8 +1502,8 @@ defmodule BlueHeronRegressionTest do
             request_opcode: 8
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1575,8 +1576,8 @@ defmodule BlueHeronRegressionTest do
             opcode: 9
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1619,8 +1620,8 @@ defmodule BlueHeronRegressionTest do
             request_opcode: 8
           }
         },
-        flags: %{bc: 0, pb: 0},
-        handle: 528
+        flags: %{bc: 2, pb: 0},
+        handle: 16
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
