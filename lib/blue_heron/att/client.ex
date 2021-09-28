@@ -364,7 +364,7 @@ defmodule BlueHeron.ATT.Client do
   end
 
   def connected(:info, {:HCI_ACL_DATA_PACKET, acl}, _data) do
-    Logger.info("Unhandled ACL packet: #{inspect(acl)}")
+    Logger.info("ATT.Client: Unhandled ACL packet: #{inspect(acl)}")
     :keep_state_and_data
   end
 
