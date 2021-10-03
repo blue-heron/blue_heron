@@ -1,25 +1,44 @@
 defmodule BlueHeron.GATT.Service do
-  @type t() :: map()
+  @moduledoc """
+  Struct that represents a GATT service.
+  """
+  @opaque t() :: map()
 
   defstruct [
     :id,
-    :primary?,
     :type,
-    :included_services,
     :characteristics,
     :handle,
     :end_group_handle
   ]
 
-  # id is required, can be any term, but must be unique within the services() function
-  # primary? defaults to true, set it to false if it should only show up as an included service
-  # type is required, must be either 16 or 128 bit UUID
-  # included_services is a list of service ID's to be included in the definition of this service
-  # characteristics is a list of characteristics
+  @doc """
+  Create a service with fields taken from the map `args`.
+
+  The following fields are required:
+  - `id`: A user-defined term to identify the service. Must be unique within the device profile.
+     Can be any Erlang term.
+  - `type`: The service type UUID. Can be a 2- or 16-byte byte UUID. Integer.
+  - `characteristics`: A list of characteristics.
+
+  ## Example:
+
+      iex> BlueHeron.GATT.Service.new(%{
+      ...>   id: :gap,
+      ...>   type: 0x1800,
+      ...>   characteristics: [
+      ...>     BlueHeron.GATT.Characteristic.new(%{
+      ...>       id: {:gap, :device_name},
+      ...>       type: 0x2A00,
+      ...>       properties: 0b00000010
+      ...>     })
+      ...>   ]
+      ...> })
+      %BlueHeron.GATT.Service{id: :gap, type: 0x1800, characteristics: [%BlueHeron.GATT.Characteristic{id: {:gap, :device_name}, type: 0x2A00, properties: 2}]}
+  """
+  @spec new(args :: map()) :: t()
   def new(args) do
-    args =
-      Map.put_new(args, :primary?, true)
-      |> Map.take([:id, :primary?, :type, :included_services, :characteristics])
+    args = Map.take(args, [:id, :type, :characteristics])
 
     struct!(__MODULE__, args)
   end

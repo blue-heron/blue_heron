@@ -91,11 +91,11 @@ defmodule BlueHeron.GATT.ServerTest do
 
     @impl Server
     def read({:gap, :device_name}) do
-      {:ok, "test-device"}
+      "test-device"
     end
 
     def read({:custom_service_1, :short_uuid}) do
-      {:ok, "a-value-longer-than-22-bytes"}
+      "a-value-longer-than-22-bytes"
     end
 
     @impl Server
@@ -333,7 +333,7 @@ defmodule BlueHeron.GATT.ServerTest do
 
     # Request all characteristics of type 0xF018E00E0ECE45B09617B744833D89BA (long uuid) in the range of
     # the :test_service_1 service
-    {state, response} =
+    {_state, response} =
       Server.handle(state, %ReadByTypeRequest{
         uuid: 0xF018E00E0ECE45B09617B744833D89BA,
         starting_handle: 0x0009,
