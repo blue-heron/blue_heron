@@ -1,10 +1,30 @@
 defmodule BlueHeron.GATT.Characteristic do
+  @moduledoc """
+  Struct that represents a GATT characteristic.
+  """
+  @opaque t() :: map()
+
   defstruct [:id, :type, :properties, :handle, :value_handle]
 
-  # id is required, can be any term, but must be unique within the services() function
-  # type is required, must be either 16 or 128 bit UUID
-  # properties is required, must be an integer between 0 and 255
-  # handle and value_handle should not be specified by the user
+  @doc """
+  Create a characteristic with fields taken from the map `args`.
+
+  The following fields are required:
+  - `id`: A user-defined term to identify the characteristic. Must be unique within the device profile.
+     Can be any Erlang term.
+  - `type`: The characteristic type UUID. Can be a 2- or 16-byte byte UUID. Integer.
+  - `properties`: The characteristic property flags. Integer.
+
+  ## Example:
+
+      iex> BlueHeron.GATT.Characteristic.new(%{
+      ...>   id: :fancy_key,
+      ...>   type: 0x2e0f8e717a7d4690998377626bc6b657,
+      ...>   properties: 0b00000010
+      ...> })
+      %BlueHeron.GATT.Characteristic{id: :fancy_key, type: 0x2e0f8e717a7d4690998377626bc6b657, properties: 2}
+  """
+  @spec new(args :: map()) :: t()
   def new(args) do
     args = Map.take(args, [:id, :type, :properties])
     struct!(__MODULE__, args)

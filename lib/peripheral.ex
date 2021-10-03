@@ -16,7 +16,7 @@ defmodule BlueHeron.Peripheral do
 
   @behaviour :gen_statem
 
-  defstruct [:ctx, :controlling_process, :conn_handle, :gatt_server]
+  defstruct [:ctx, :controlling_process, :gatt_handler, :conn_handle, :gatt_server]
 
   def start_link(context, gatt_server) do
     :gen_statem.start_link(__MODULE__, [context, gatt_server, self()], [])
@@ -44,13 +44,11 @@ defmodule BlueHeron.Peripheral do
   @impl :gen_statem
   def init([ctx, gatt_handler, controlling_process]) do
     :ok = BlueHeron.add_event_handler(ctx)
-    gatt_server = GATT.Server.init(gatt_handler)
 
     data = %__MODULE__{
       controlling_process: controlling_process,
       ctx: ctx,
-      conn_handle: nil,
-      gatt_server: gatt_server
+      gatt_handler: gatt_handler
     }
 
     {:ok, :wait_working, data, []}
@@ -107,7 +105,10 @@ defmodule BlueHeron.Peripheral do
   end
 
   def advertising(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = event}, data) do
-    {:next_state, :connected, %{data | conn_handle: event.connection_handle}, []}
+    gatt_server = GATT.Server.init(data.gatt_handler)
+
+    {:next_state, :connected,
+     %{data | gatt_server: gatt_server, conn_handle: event.connection_handle}}
   end
 
   def advertising(:info, {:HCI_EVENT_PACKET, _event}, _data) do
@@ -142,6 +143,6 @@ defmodule BlueHeron.Peripheral do
   end
 
   def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{}}, data) do
-    {:next_state, :ready, data}
+    {:next_state, :ready, %{data | gatt_server: nil, conn_handle: nil}}
   end
 end
