@@ -2,7 +2,7 @@
 
 [![Hex version](https://img.shields.io/hexpm/v/blue_heron.svg "Hex version")](https://hex.pm/packages/blue_heron)
 [![API docs](https://img.shields.io/hexpm/v/blue_heron.svg?label=hexdocs "API docs")](https://hexdocs.pm/blue_heron/BlueHeron.html)
-[![CircleCI](https://circleci.com/gh/blue-heron/blue_heron/tree/main.svg?style=svg)](https://circleci.com/gh/nerves-project/nerves/tree/main)
+[![CircleCI](https://circleci.com/gh/blue-heron/blue_heron/tree/main.svg?style=svg)](https://circleci.com/gh/blue-heron/blue_heron/tree/main)
 
 BlueHeron is a new Elixir Bluetooth LE Library that communicates directly with
 Bluetooth modules via HCI. It is VERY much under construction, and we expect the
