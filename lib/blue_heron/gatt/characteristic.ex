@@ -2,7 +2,13 @@ defmodule BlueHeron.GATT.Characteristic do
   @moduledoc """
   Struct that represents a GATT characteristic.
   """
-  @opaque t() :: map()
+  @opaque t() :: %__MODULE__{
+            id: any(),
+            type: non_neg_integer(),
+            properties: non_neg_integer(),
+            handle: any(),
+            value_handle: any()
+          }
 
   defstruct [:id, :type, :properties, :handle, :value_handle]
 
