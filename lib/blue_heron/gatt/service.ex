@@ -2,7 +2,11 @@ defmodule BlueHeron.GATT.Service do
   @moduledoc """
   Struct that represents a GATT service.
   """
-  @opaque t() :: map()
+  @opaque t() :: %__MODULE__{
+            id: term(),
+            type: non_neg_integer(),
+            characteristics: integer()
+          }
 
   defstruct [
     :id,

@@ -2,7 +2,11 @@ defmodule BlueHeron.GATT.Characteristic do
   @moduledoc """
   Struct that represents a GATT characteristic.
   """
-  @opaque t() :: map()
+  @opaque t() :: %__MODULE__{
+            id: term(),
+            type: non_neg_integer(),
+            properties: integer()
+          }
 
   defstruct [:id, :type, :properties, :handle, :value_handle]
 
@@ -24,7 +28,7 @@ defmodule BlueHeron.GATT.Characteristic do
       ...> })
       %BlueHeron.GATT.Characteristic{id: :fancy_key, type: 0x2e0f8e717a7d4690998377626bc6b657, properties: 2}
   """
-  @spec new(args :: map()) :: t()
+  @spec new(args :: map()) :: BlueHeron.GATT.Characteristic.t()
   def new(args) do
     args = Map.take(args, [:id, :type, :properties])
     struct!(__MODULE__, args)
