@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0
+
+* Enhancements
+  * Added initial implementation of GATT (Thanks @trarbr ❤️)
+
 ## v0.2.1
 
 * Enhancements
