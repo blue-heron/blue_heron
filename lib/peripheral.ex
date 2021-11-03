@@ -105,6 +105,7 @@ defmodule BlueHeron.Peripheral do
   end
 
   def advertising(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = event}, data) do
+    send(data.controlling_process, {__MODULE__, :connected})
     gatt_server = GATT.Server.init(data.gatt_handler)
 
     {:next_state, :connected,
@@ -143,6 +144,7 @@ defmodule BlueHeron.Peripheral do
   end
 
   def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{}}, data) do
+    send(data.controlling_process, {__MODULE__, :disconnected})
     {:next_state, :ready, %{data | gatt_server: nil, conn_handle: nil}}
   end
 end
