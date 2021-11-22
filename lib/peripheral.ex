@@ -7,7 +7,9 @@ defmodule BlueHeron.Peripheral do
     SetAdvertisingEnable
   }
 
-  alias BlueHeron.HCI.Event.{CommandComplete, DisconnectionComplete}
+  alias BlueHeron.HCI.Command.LinkControl.Disconnect
+
+  alias BlueHeron.HCI.Event.{CommandComplete, CommandStatus, DisconnectionComplete}
   alias BlueHeron.HCI.Event.LEMeta.ConnectionComplete
 
   alias BlueHeron.{ACL, L2Cap}
@@ -36,6 +38,10 @@ defmodule BlueHeron.Peripheral do
 
   def stop_advertising(pid) do
     :gen_statem.call(pid, :stop_advertising)
+  end
+
+  def disconnect(pid) do
+    :gen_statem.call(pid, :disconnect)
   end
 
   @impl :gen_statem
@@ -117,6 +123,12 @@ defmodule BlueHeron.Peripheral do
     :keep_state_and_data
   end
 
+  def connected({:call, from}, :disconnect, data) do
+    command = Disconnect.new(connection_handle: data.conn_handle)
+    {:ok, %CommandStatus{status: 0x00}} = BlueHeron.hci_command(data.ctx, command)
+    {:keep_state_and_data, {:reply, from, :ok}}
+  end
+
   def connected(
         :info,
         {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0004, data: request}}},
@@ -146,5 +158,10 @@ defmodule BlueHeron.Peripheral do
   def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{}}, data) do
     send(data.controlling_process, {__MODULE__, :disconnected})
     {:next_state, :ready, %{data | gatt_server: nil, conn_handle: nil}}
+  end
+
+  def connected(:info, {:HCI_EVENT_PACKET, %CommandStatus{opcode: <<0x0406::little-16>>}}, _data) do
+    # Ignore the notification that is generated we execute a Disconnect HCI command
+    :keep_state_and_data
   end
 end
