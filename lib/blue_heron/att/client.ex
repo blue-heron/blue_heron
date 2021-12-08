@@ -363,6 +363,11 @@ defmodule BlueHeron.ATT.Client do
     :keep_state_and_data
   end
 
+  def connected(:info, {:HCI_ACL_DATA_PACKET, acl}, _data) do
+    Logger.info("ATT.Client: Unhandled ACL packet: #{inspect(acl)}")
+    :keep_state_and_data
+  end
+
   # def connected(:info, {:HCI_ACL_DATA_PACKET, %ACL{data: %L2Cap{cid: 4, data: %ReadByGroupTypeResponse{} = response}}}, data) do
   #   {pid, _} = data.caller
   #   send pid, self(), {__MODULE__, response}
