@@ -17,90 +17,74 @@ defmodule BlueHeronScan do
 
       iex> {:ok, pid} = BlueHeronScan.start_link(:uart, %{device: "ttyS0"})
       {:ok, #PID<0.10860.0>}
-      iex> state = :sys.get_state(pid)
-      %{
-        ctx: #BlueHeron.Context<0.10861.0>,
-        devices: %{
-          4753574963174 => %{
-            272 => <<64, 10, 1, 0>>,
-            :name => "Bose AE2 SoundLink",
-            :time => ~U[2021-09-27 14:48:25.778174Z]
-          },
-          48660401950223 => %{
-            784 => <<64, 16, 2, 48>>,
-            :name => "LE-Bose Revolve SoundLink",
-            :time => ~U[2021-09-27 14:48:25.658670Z]
-          },
-          110946934216995 => %{
-            117 => <<66, 4, 1, 128, 102, 100, 231, 216, 154, 89, 35, 102, 231, 216,
-              154, 89, 34, 1, 62, 0, 0, 0, 0, 0>>,
-            :time => ~U[2021-09-27 14:48:25.873323Z]
-          },
-          181149778439893 => %{
-            1 => <<1, 1, 4, 28, 196, 90>>,
-            :name => "GVH5102_EED5",
-            :time => ~U[2021-09-27 14:48:26.032518Z]
-          },
-          181149781445015 => %{
-            name: "ihoment_H6182_C997",
-            time: ~U[2021-09-27 14:48:26.059225Z]
-          },
-          246390811914386 => %{
-            60552 => <<0, 97, 10, 12, 22, 100, 2>>,
-            :name => "Govee_H5074_F092",
-            :time => ~U[2021-09-27 14:48:24.429195Z]
-          }
-        },
-        ignore_cids: [6, 76],
-        working: true
-      }
+      iex> {:ok, devices} = BlueHeronScan.devices(pid)
+      {:ok,
+       %{
+         9049270267450 => %{name: "SS3", time: ~U[2021-12-09 15:59:01.392458Z]},
+         48660401950223 => %{
+           784 => <<64, 16, 2, 48>>,
+           :time => ~U[2021-12-09 15:59:09.606645Z]
+         },
+         181149778439893 => %{
+           1 => <<1, 1, 3, 112, 82, 73>>,
+           :name => "GVH5102_EED5",
+           :time => ~U[2021-12-09 15:59:09.457780Z]
+         },
+         181149781445015 => %{
+           name: "ihoment_H6182_C997",
+           time: ~U[2021-12-09 15:59:09.545683Z]
+         },
+         209497230420943 => %{
+           name: "ELK-BLEDOM   ",
+           time: ~U[2021-12-09 15:59:09.631200Z]
+         },
+         246390811914386 => %{
+           60552 => <<0, 81, 2, 189, 25, 100, 2>>,
+           :name => "Govee_H5074_F092",
+           :time => ~U[2021-12-09 15:59:09.450767Z]
+         }
+       }}
       iex> BlueHeronScan.ignore_cids(pid, MapSet.new([6, 76, 117, 784]))
       {:ok, #MapSet<[6, 76, 117, 784]>}
       iex> BlueHeronScan.clear_devices(pid)
       :ok
-      iex> state = :sys.get_state(pid)
-      %{
-        ctx: #BlueHeron.Context<0.10861.0>,
-        devices: %{
-          4753574963174 => %{
-            272 => <<64, 10, 1, 0>>,
-            :name => "Bose AE2 SoundLink",
-            :time => ~U[2021-09-27 14:48:46.192324Z]
-          },
-          181149778439893 => %{
-            1 => <<1, 1, 4, 28, 196, 90>>,
-            :name => "GVH5102_EED5",
-            :time => ~U[2021-09-27 14:48:46.287562Z]
-          },
-          181149781445015 => %{
-            name: "ihoment_H6182_C997",
-            time: ~U[2021-09-27 14:48:47.139443Z]
-          },
-          246390811914386 => %{
-            60552 => <<0, 94, 10, 11, 22, 100, 2>>,
-            :name => "Govee_H5074_F092",
-            :time => ~U[2021-09-27 14:48:45.477457Z]
-          }
-        },
-        ignore_cids: #MapSet<[6, 76, 117, 784]>,
-        working: true
-      }
-      iex> BleAdMfgData.print(state.devices)
+      iex> {:ok, devices} = BlueHeronScan.devices(pid)
+      {:ok,
+       %{
+         181149778439893 => %{
+           1 => <<1, 1, 3, 108, 106, 73>>,
+           :name => "GVH5102_EED5",
+           :time => ~U[2021-12-09 16:02:01.800281Z]
+         },
+         181149781445015 => %{
+           name: "ihoment_H6182_C997",
+           time: ~U[2021-12-09 16:02:02.458660Z]
+         },
+         209497230420943 => %{
+           name: "ELK-BLEDOM   ",
+           time: ~U[2021-12-09 16:02:02.337530Z]
+         },
+         210003231250023 => %{
+           name: "ELK-BLEDOM ",
+           time: ~U[2021-12-09 16:01:50.546539Z]
+         },
+         246390811914386 => %{
+           60552 => <<0, 84, 2, 182, 25, 100, 2>>,
+           :name => "Govee_H5074_F092",
+           :time => ~U[2021-12-09 16:02:01.408051Z]
+         }
+       }}
+      iex> BleAdMfgData.print(devices)
       [
-        ["26.5˚C 56.4% RH 100%🔋", "Govee_H5074_F092"],
-        ["27.0˚C 50.8% RH 90%🔋", "GVH5102_EED5"]
+        ["6.0˚C 65.8% RH 100%🔋", "Govee_H5074_F092"],
+        ["22.4˚C 36.2% RH 73%🔋", "GVH5102_EED5"]
       ]
       iex> BlueHeronScan.disable(pid)
-      :ok
+      :scan_disable
       iex> BlueHeronScan.clear_devices(pid)
       :ok
-      iex> state = :sys.get_state(pid)
-      %{
-        ctx: #BlueHeron.Context<0.10861.0>,
-        devices: %{},
-        ignore_cids: #MapSet<[6, 76, 117, 784]>,
-        working: true
-      }
+      iex> {:ok, devices} = BlueHeronScan.devices(pid)
+      {:ok, %{}}
       iex> BlueHeronScan.enable(pid)
       :ok
   """
@@ -149,30 +133,39 @@ defmodule BlueHeronScan do
 
   def start_link(:uart, config) do
     config = struct(BlueHeronTransportUART, Map.merge(@default_uart_config, config))
-    GenServer.start_link(__MODULE__, config, [])
+    GenServer.start_link(__MODULE__, config, name: __MODULE__)
   end
 
   def start_link(:usb, config) do
     config = struct(BlueHeronTransportUSB, Map.merge(@default_usb_config, config))
-    GenServer.start_link(__MODULE__, config, [])
+    GenServer.start_link(__MODULE__, config, name: __MODULE__)
   end
 
   @doc """
-  Enable scanning.
+  Enable BLE scanning. This will deliver messages to the process mailbox
+  when other devices broadcast.
   
   Returns `:ok` or `{:error, :not_working}` if uninitialized.
   """
-  def enable(pid) when is_pid(pid) do
-    scan(:sys.get_state(pid), true)
+  def enable(pid) do
+    GenServer.call(pid, :scan_enable)
   end
 
   @doc """
-  Disable scanning.
-
-  Returns `:ok` or `{:error, :not_working}` if uninitialized.
+  Disable BLE scanning.
   """
-  def disable(pid) when is_pid(pid) do
-    scan(:sys.get_state(pid), false)
+  def disable(pid) do
+    send(pid, :scan_disable)
+  end
+
+  @doc """
+  Get devices.
+
+      iex> BlueHeronScan.devices(pid)
+      {:ok, %{}}
+  """
+  def devices(pid) do
+    GenServer.call(pid, :devices)
   end
 
   @doc """
@@ -238,6 +231,16 @@ defmodule BlueHeronScan do
     {:noreply, state}
   end
 
+  def handle_info(:scan_disable, state) do
+    scan(state, false)
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_call(:devices, _from, state) do
+    {:reply, {:ok, state.devices}, state}
+  end
+
   @impl GenServer
   def handle_call(:clear_devices, _from, state) do
     {:reply, :ok, %{state | devices: %{}}}
@@ -251,6 +254,10 @@ defmodule BlueHeronScan do
 	{:reply, {:ok, cids}, %{state | ignore_cids: cids}}
       true -> {:reply, {:error, :not_enumerable}, state}
     end
+  end
+
+  def handle_call(:scan_enable, _from, state) do
+    {:reply, scan(state, true), state}
   end
 
   defp scan(%{working: false}, _enable) do
@@ -319,7 +326,9 @@ defmodule BleAdMfgData do
 
       iex> {:ok, pid} = BlueHeronScan.start_link(:uart, %{device: "ttyS0"})
       {:ok, #PID<0.2012.0>}
-      iex> BleAdMfgData.print(:sys.get_state(pid).devices)
+      iex> {:ok, devices} = BlueHeronScan.devices(pid)
+      ...
+      iex> BleAdMfgData.print(devices)
       [
         ["26.9˚C 62.1% RH 100%🔋", "Govee_H5074_F092"],
         ["27.2˚C 57.5% RH 92%🔋", "GVH5102_EED5"]
