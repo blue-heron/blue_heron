@@ -38,10 +38,13 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(cc) do
+      <<lower_handle, upper_handle::4>> = <<cc.connection_handle::little-12>>
+      connection_handle = <<lower_handle, 0::4, upper_handle::4>>
+
       bin = <<
         cc.subevent_code,
         cc.status,
-        cc.connection_handle::little-16,
+        connection_handle::binary,
         cc.role,
         cc.peer_address_type,
         cc.peer_address::little-48,
@@ -61,8 +64,9 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
   def deserialize(<<@code, _size, @subevent_code, bin::binary>>) do
     <<
       status,
-      connection_handle::little-12,
+      lower_handle,
       _::4,
+      upper_handle::4,
       role,
       peer_address_type,
       peer_address::little-48,
@@ -71,6 +75,8 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionComplete do
       supervision_timeout::little-16,
       master_clock_accuracy
     >> = bin
+
+    <<connection_handle::little-12>> = <<lower_handle, upper_handle::4>>
 
     %__MODULE__{
       subevent_code: @subevent_code,
