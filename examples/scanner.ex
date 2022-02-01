@@ -144,7 +144,7 @@ defmodule BlueHeronScan do
   @doc """
   Enable BLE scanning. This will deliver messages to the process mailbox
   when other devices broadcast.
-  
+
   Returns `:ok` or `{:error, :not_working}` if uninitialized.
   """
   def enable(pid) do
@@ -220,7 +220,9 @@ defmodule BlueHeronScan do
   # Scan AdvertisingReport packets.
   @impl GenServer
   def handle_info(
-    {:HCI_EVENT_PACKET, %AdvertisingReport{devices: devices}}, state) do
+        {:HCI_EVENT_PACKET, %AdvertisingReport{devices: devices}},
+        state
+      ) do
     {:noreply, Enum.reduce(devices, state, &scan_device/2)}
   end
 
@@ -249,10 +251,14 @@ defmodule BlueHeronScan do
   @impl GenServer
   def handle_call({:ignore_cids, cids}, _from, state) do
     cond do
-      cids == nil -> {:reply, {:ok, state.ignore_cids}, state}
+      cids == nil ->
+        {:reply, {:ok, state.ignore_cids}, state}
+
       Enumerable.impl_for(cids) != nil ->
-	{:reply, {:ok, cids}, %{state | ignore_cids: cids}}
-      true -> {:reply, {:error, :not_enumerable}, state}
+        {:reply, {:ok, cids}, %{state | ignore_cids: cids}}
+
+      true ->
+        {:reply, {:error, :not_enumerable}, state}
     end
   end
 
@@ -273,14 +279,16 @@ defmodule BlueHeronScan do
   defp scan_device(device, state) do
     case device do
       %Device{address: addr, data: data} ->
-	Enum.reduce(data, state, fn e, acc ->
-	  cond do
-	    is_local_name?(e) -> store_local_name(acc, addr, e)
-	    is_mfg_data?(e) -> store_mfg_data(acc, addr, e)
-	    true -> acc
-	  end
-	end)
-      _ -> state
+        Enum.reduce(data, state, fn e, acc ->
+          cond do
+            is_local_name?(e) -> store_local_name(acc, addr, e)
+            is_mfg_data?(e) -> store_mfg_data(acc, addr, e)
+            true -> acc
+          end
+        end)
+
+      _ ->
+        state
     end
   end
 
@@ -301,6 +309,7 @@ defmodule BlueHeronScan do
   defp store_mfg_data(state, addr, dt) do
     {_, mfg_data} = dt
     <<cid::little-16, sdata::binary>> = mfg_data
+
     unless cid in state.ignore_cids do
       device = Map.get(state.devices, addr, %{})
       device = Map.merge(device, %{cid => sdata, time: DateTime.utc_now()})
@@ -309,7 +318,6 @@ defmodule BlueHeronScan do
       state
     end
   end
-
 end
 
 defmodule BleAdMfgData do
@@ -338,10 +346,10 @@ defmodule BleAdMfgData do
   def print(devices) do
     Enum.reduce(devices, [], fn {_, dmap}, list ->
       Enum.reduce(dmap, list, fn {k, v}, acc ->
-	case print_device(k, v) do
-	  nil -> acc
-	  s -> [[s, Map.get(dmap, :name, "")] | acc]
-	end
+        case print_device(k, v) do
+          nil -> acc
+          s -> [[s, Map.get(dmap, :name, "")] | acc]
+        end
       end)
     end)
   end
@@ -350,8 +358,8 @@ defmodule BleAdMfgData do
   # custom_components/govee_ble_hci/govee_advertisement.py
   # GVH5102
   defp print_device(0x0001, <<_::16, temhum::24, bat::8>>) do
-    tem = Float.round(temhum/10000, 1)
-    hum = rem(temhum, 1000)/10
+    tem = Float.round(temhum / 10000, 1)
+    hum = rem(temhum, 1000) / 10
     "#{tem}˚C #{hum}% RH #{bat}%🔋"
   end
 
@@ -359,16 +367,13 @@ defmodule BleAdMfgData do
   # goveebttemplogger.cpp
   # bool Govee_Temp::ReadMSG(const uint8_t * const data)
   # Govee_H5074
-  defp print_device(0xec88, <<_::8, tem::little-16, hum::little-16,
-    bat::8, _::8>>
-  ) do
-    tem = Float.round(tem/100, 1)
-    hum = Float.round(hum/100, 1)
+  defp print_device(0xEC88, <<_::8, tem::little-16, hum::little-16, bat::8, _::8>>) do
+    tem = Float.round(tem / 100, 1)
+    hum = Float.round(hum / 100, 1)
     "#{tem}˚C #{hum}% RH #{bat}%🔋"
   end
 
   defp print_device(_cid, _data) do
     nil
   end
-
 end
