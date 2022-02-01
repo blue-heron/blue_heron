@@ -182,7 +182,7 @@ defmodule BlueHeron.HCI.Transport do
         :init,
         %{pid: pid, config: %module{}, init_commands: [command | rest]} = data
       ) do
-    command = serialize(command)
+    command = if is_binary(command), do: command, else: serialize(command)
 
     case module.send_command(pid, command) do
       true ->
@@ -190,7 +190,7 @@ defmodule BlueHeron.HCI.Transport do
         {:keep_state, %{data | init_commands: rest}, []}
 
       false ->
-        Logger.error("Init command: #{inspect(command)} failed")
+        Logger.error("Init commfand: #{inspect(command)} failed")
         goto_unopened(data)
     end
   end

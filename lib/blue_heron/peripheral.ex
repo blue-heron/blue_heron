@@ -112,6 +112,7 @@ defmodule BlueHeron.Peripheral do
 
   def advertising(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = event}, data) do
     send(data.controlling_process, {__MODULE__, :connected})
+    Logger.info("Peripheral connect #{event.connection_handle}")
     gatt_server = GATT.Server.init(data.gatt_handler)
 
     {:next_state, :connected,
@@ -132,12 +133,13 @@ defmodule BlueHeron.Peripheral do
   def connected(
         :info,
         {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0004, data: request}}},
-        %{conn_handle: handle} = data
+        %{conn_handle: _handle} = data
       ) do
+    Logger.info("Peripheral service discovery request: #{handle}=> #{inspect(request)}")
     {gatt_server, response} = GATT.Server.handle(data.gatt_server, request)
 
     acl_response = %ACL{
-      handle: data.conn_handle,
+      handle: handle,
       flags: %{bc: 0, pb: 0},
       data: %L2Cap{
         cid: 0x0004,
@@ -145,18 +147,20 @@ defmodule BlueHeron.Peripheral do
       }
     }
 
+    Logger.info("Sending acl #{inspect(acl_response)}")
     BlueHeron.acl(data.ctx, acl_response)
 
     {:keep_state, %{data | gatt_server: gatt_server}, []}
   end
 
-  def connected(:info, {:HCI_ACL_DATA_PACKET, acl}, _data) do
-    Logger.info("Unhandled ACL packet: #{inspect(acl)}")
+  def connected(:info, {:HCI_ACL_DATA_PACKET, acl}, data) do
+    Logger.info("Unhandled ACL packet: #{inspect(acl)} #{inspect(data)}")
     :keep_state_and_data
   end
 
   def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{}}, data) do
     send(data.controlling_process, {__MODULE__, :disconnected})
+    Logger.warn("Peripheral Disconnect #{data.conn_handle}")
     {:next_state, :ready, %{data | gatt_server: nil, conn_handle: nil}}
   end
 
