@@ -148,6 +148,7 @@ defmodule BlueHeron.Peripheral do
     }
 
     Logger.info("Sending acl #{inspect(acl_response)}")
+    Process.sleep(100)
     BlueHeron.acl(data.ctx, acl_response)
 
     {:keep_state, %{data | gatt_server: gatt_server}, []}
