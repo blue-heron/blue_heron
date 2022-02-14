@@ -164,4 +164,9 @@ defmodule BlueHeron.Peripheral do
     # Ignore the notification that is generated we execute a Disconnect HCI command
     :keep_state_and_data
   end
+
+  def connected(:info, {:HCI_EVENT_PACKET, event}, _data) do
+    Logger.info("Unhandled event packet: #{inspect(event)}")
+    :keep_state_and_data
+  end
 end
