@@ -67,6 +67,8 @@ defmodule BlueHeron.GATT.Server do
     ExchangeMTURequest,
     ExchangeMTUResponse,
     FindInformationRequest,
+    FindInformationResponse,
+    HandleValueNotification,
     PrepareWriteRequest,
     PrepareWriteResponse,
     ExecuteWriteRequest,
@@ -83,7 +85,7 @@ defmodule BlueHeron.GATT.Server do
     WriteResponse
   }
 
-  alias BlueHeron.GATT.Service
+  alias BlueHeron.GATT.{Characteristic, Service}
 
   @doc """
   Return the list of services that make up the GATT profile of the device.
@@ -113,6 +115,15 @@ defmodule BlueHeron.GATT.Server do
   @discover_all_primary_services 0x2800
   @find_included_services 0x2802
   @discover_all_characteristics 0x2803
+  @cccd 0x2902
+
+  @opaque t() :: %__MODULE__{
+            mod: module(),
+            profile: [Service.t()],
+            mtu: non_neg_integer(),
+            read_buffer: binary(),
+            write_requests: [binary()]
+          }
 
   @doc false
   def init(mod) do
@@ -131,7 +142,10 @@ defmodule BlueHeron.GATT.Server do
   def handle(state, request) do
     case request do
       %ExchangeMTURequest{} ->
-        exchange_mtu(state, request)
+        exchange_mtu_request(state, request)
+
+      %ExchangeMTUResponse{} ->
+        exchange_mtu_response(state, request)
 
       %ReadByGroupTypeRequest{uuid: @discover_all_primary_services} ->
         discover_all_primary_services(state, request)
@@ -148,14 +162,22 @@ defmodule BlueHeron.GATT.Server do
       %FindInformationRequest{} ->
         discover_all_characteristic_descriptors(state, request)
 
-      %ReadRequest{} ->
-        read_characteristic_value(state, request)
+      %ReadRequest{handle: handle} ->
+        if descriptor = find_descriptor_by_handle(state, handle) do
+          read_descriptor_value(state, descriptor)
+        else
+          read_characteristic_value(state, request)
+        end
 
       %ReadBlobRequest{} ->
         read_long_characteristic_value(state, request)
 
-      %WriteRequest{} ->
-        write_characteristic_value(state, request)
+      %WriteRequest{handle: handle} ->
+        if find_descriptor_by_handle(state, handle) do
+          write_descriptor_value(state, handle, request.value)
+        else
+          write_characteristic_value(state, request)
+        end
 
       %PrepareWriteRequest{} ->
         write_long_characteristic_value(state, request)
@@ -165,8 +187,92 @@ defmodule BlueHeron.GATT.Server do
     end
   end
 
-  defp exchange_mtu(state, _request) do
+  @doc false
+  @spec exchange_mtu(t(), non_neg_integer()) :: {:ok, ExchangeMTURequest.t()}
+  def exchange_mtu(_state, mtu) do
+    {:ok, %ExchangeMTURequest{client_rx_mtu: mtu}}
+  end
+
+  @doc false
+  @spec handle_value_notification(t(), Service.id(), Characteristic.id(), binary()) ::
+          {:ok, HandleValueNotification.t()} | {:error, term()}
+  def handle_value_notification(state, service_id, chararistic_id, data) do
+    with {:ok, service} <- find_service(state.profile, service_id),
+         {:ok, characteristic} <- find_characteristic(service, chararistic_id),
+         :ok <- check_notification_mtu(state.mtu, data) do
+      {:ok,
+       %HandleValueNotification{
+         data: data,
+         handle: characteristic.value_handle
+       }}
+    end
+  end
+
+  def dump(state) do
+    table =
+      for service <- state.profile do
+        chars =
+          for char <- service.characteristics do
+            descriptor =
+              if char.descriptor,
+                do: [
+                  "\n     ",
+                  IO.ANSI.blue(),
+                  "0x#{Integer.to_string(char.descriptor_handle, 16)} ",
+                  IO.ANSI.green(),
+                  "Descriptor ",
+                  IO.ANSI.reset(),
+                  "[#{inspect(char.descriptor.value, base: :hex)}]"
+                ]
+
+            [
+              "\n   ",
+              IO.ANSI.blue(),
+              "0x#{Integer.to_string(char.handle, 16)} ",
+              IO.ANSI.green(),
+              "Characteristic ",
+              IO.ANSI.reset(),
+              "[#{inspect(char.id)}, ",
+              IO.ANSI.magenta(),
+              "0x#{Integer.to_string(char.type, 16)}",
+              IO.ANSI.reset(),
+              "]",
+              "\n     ",
+              IO.ANSI.blue(),
+              "0x#{Integer.to_string(char.value_handle, 16)} ",
+              IO.ANSI.green(),
+              "Value ",
+              IO.ANSI.reset(),
+              "[0b#{Integer.to_string(char.properties, 2)}]",
+              descriptor || ""
+            ]
+          end
+
+        [
+          "\n\n",
+          IO.ANSI.blue(),
+          "0x#{Integer.to_string(service.handle, 16)}",
+          IO.ANSI.green(),
+          " Service ",
+          IO.ANSI.reset(),
+          "[#{inspect(service.id)}, ",
+          IO.ANSI.magenta(),
+          "0x#{Integer.to_string(service.type, 16)}",
+          IO.ANSI.reset(),
+          "]",
+          chars
+        ]
+      end
+
+    IO.iodata_to_binary(table)
+  end
+
+  defp exchange_mtu_request(state, _request) do
     {state, %ExchangeMTUResponse{server_rx_mtu: state.mtu}}
+  end
+
+  defp exchange_mtu_response(state, response) do
+    {%{state | mtu: response.server_rx_mtu}, nil}
   end
 
   defp discover_all_primary_services(state, request) do
@@ -209,6 +315,16 @@ defmodule BlueHeron.GATT.Server do
        request_opcode: request.opcode,
        error: :attribute_not_found
      }}
+  end
+
+  defp find_descriptor_by_handle(state, handle) do
+    state.profile
+    |> Enum.flat_map(fn service -> service.characteristics end)
+    |> Enum.find_value(fn characteristic ->
+      if characteristic.descriptor_handle == handle do
+        characteristic.descriptor
+      end
+    end)
   end
 
   defp discover_all_characteristics(state, request) do
@@ -288,14 +404,70 @@ defmodule BlueHeron.GATT.Server do
   end
 
   defp discover_all_characteristic_descriptors(state, request) do
-    # TODO: Implement
-    {state,
-     %ErrorResponse{
-       handle: request.starting_handle,
-       request_opcode: request.opcode,
-       error: :attribute_not_found
-     }}
+    descriptors =
+      state.profile
+      |> Enum.flat_map(fn service -> service.characteristics end)
+      |> Enum.filter(fn
+        %{descriptor: nil} ->
+          false
+
+        characteristic ->
+          characteristic.descriptor_handle >= request.starting_handle and
+            characteristic.descriptor_handle <= request.ending_handle
+      end)
+
+    case descriptors do
+      [] ->
+        {state,
+         %ErrorResponse{
+           handle: request.starting_handle,
+           request_opcode: request.opcode,
+           error: :attribute_not_found
+         }}
+
+      descriptors_in_range ->
+        descriptor_data =
+          descriptors_in_range
+          |> Enum.map(fn characteristic ->
+            %FindInformationResponse.InformationData{
+              handle: characteristic.descriptor_handle,
+              uuid: @cccd
+            }
+          end)
+          |> filter_by_uuid_size()
+
+        format = if uuid_byte_size(hd(descriptor_data).uuid) == 2, do: 0x1, else: 0x2
+
+        {state,
+         %FindInformationResponse{
+           format: format,
+           information_data: descriptor_data
+         }}
+    end
   end
+
+  defp find_characteristic(%Service{characteristics: characteristics}, id) do
+    Enum.find_value(
+      characteristics,
+      {:error, :unknown_characteric},
+      &check_characteristic(&1, id)
+    )
+  end
+
+  defp check_characteristic(%Characteristic{id: id} = characteristic, id),
+    do: {:ok, characteristic}
+
+  defp check_characteristic(%Characteristic{}, _), do: false
+
+  defp find_service(profile, id) do
+    Enum.find_value(profile, {:error, :unknown_service}, &check_service(&1, id))
+  end
+
+  defp check_service(%Service{id: id} = service, id), do: {:ok, service}
+  defp check_service(%Service{}, _id), do: false
+
+  def check_notification_mtu(mtu, data) when byte_size(data) <= mtu - 3, do: :ok
+  def check_notification_mtu(_, _), do: {:error, :payload_too_large}
 
   defp read_characteristic_value(state, request) do
     id = find_characteristic_id(state.profile, request.handle)
@@ -313,6 +485,10 @@ defmodule BlueHeron.GATT.Server do
         state = %{state | read_buffer: nil}
         {state, %ReadResponse{value: value}}
     end
+  end
+
+  defp read_descriptor_value(state, descriptor) do
+    {state, %ReadResponse{value: descriptor.value}}
   end
 
   defp read_long_characteristic_value(state, request) do
@@ -344,6 +520,28 @@ defmodule BlueHeron.GATT.Server do
     :ok = state.mod.write(id, request.value)
 
     {state, %WriteResponse{}}
+  end
+
+  defp write_descriptor_value(state, handle, value) do
+    profile = Enum.map(state.profile, &map_service_chars(state.mod, &1, handle, value))
+    {%{state | profile: profile}, %WriteResponse{}}
+  end
+
+  defp map_service_chars(mod, service, handle, value) do
+    characteristics =
+      Enum.map(service.characteristics, fn
+        %{descriptor_handle: ^handle} = char ->
+          # TODO: probably shouldn't be doing this in the map function,
+          # but prevents having to itterate the entire service table again
+          if match?(<<0x1, 0>>, value), do: mod.subscribe(char.id)
+          if match?(<<0x0, 0>>, value), do: mod.unsubscribe(char.id)
+          %{char | descriptor: %{char.descriptor | value: value}}
+
+        char ->
+          char
+      end)
+
+    %{service | characteristics: characteristics}
   end
 
   defp write_long_characteristic_value(state, %PrepareWriteRequest{} = request) do
@@ -402,13 +600,34 @@ defmodule BlueHeron.GATT.Server do
   end
 
   defp assign_characteristic_handles(characteristics, starting_handle) do
+    initial = {starting_handle, []}
+
     {next_handle, characteristics} =
-      Enum.reduce(characteristics, {starting_handle, []}, fn characteristic, {next_handle, acc} ->
-        characteristic = %{characteristic | handle: next_handle, value_handle: next_handle + 1}
-        {next_handle + 2, [characteristic | acc]}
-      end)
+      Enum.reduce(characteristics, initial, &assign_characteristic_handle/2)
 
     {next_handle, Enum.reverse(characteristics)}
+  end
+
+  defp assign_characteristic_handle(
+         %Characteristic{descriptor: nil} = characteristic,
+         {next_handle, acc}
+       ) do
+    characteristic = %{characteristic | handle: next_handle, value_handle: next_handle + 1}
+    {next_handle + 2, [characteristic | acc]}
+  end
+
+  defp assign_characteristic_handle(
+         %Characteristic{descriptor: %{}} = characteristic,
+         {next_handle, acc}
+       ) do
+    characteristic = %{
+      characteristic
+      | handle: next_handle,
+        value_handle: next_handle + 1,
+        descriptor_handle: next_handle + 2
+    }
+
+    {next_handle + 3, [characteristic | acc]}
   end
 
   # Lists of attributes must only contain attributes whose UUID size

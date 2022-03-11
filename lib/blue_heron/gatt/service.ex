@@ -2,8 +2,10 @@ defmodule BlueHeron.GATT.Service do
   @moduledoc """
   Struct that represents a GATT service.
   """
+  @type id :: term()
+
   @opaque t() :: %__MODULE__{
-            id: any(),
+            id: id,
             type: non_neg_integer(),
             characteristics: [BlueHeron.GATT.Characteristic.t()],
             handle: any(),
