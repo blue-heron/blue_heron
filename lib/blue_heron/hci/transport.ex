@@ -187,7 +187,7 @@ defmodule BlueHeron.HCI.Transport do
     case module.send_command(pid, command) do
       true ->
         Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
-        {:keep_state, %{data | init_commands: rest}, []}
+        prepare(:internal, :init, %{data | init_commands: rest})
 
       false ->
         Logger.error("Init commfand: #{inspect(command)} failed")
