@@ -15,6 +15,7 @@ defmodule BlueHeron.Peripheral do
   alias BlueHeron.{ACL, L2Cap}
 
   alias BlueHeron.GATT
+  alias BlueHeron.GATT.{Characteristic, Service}
 
   @behaviour :gen_statem
 
@@ -42,6 +43,25 @@ defmodule BlueHeron.Peripheral do
 
   def disconnect(pid) do
     :gen_statem.call(pid, :disconnect)
+  end
+
+  @doc """
+  Send a HandleValueNotification packet
+
+  * `pid` - the peripheral pid
+  * `service_id` - the id used in the peripheral profile
+  * `chararistic_id` - the id of the characistic on the service
+  * `data` - binary data for the notification
+  """
+  @spec nofify(GenServer.server(), Service.id(), Characteristic.id(), binary()) ::
+          :ok | {:error, term()}
+  def nofify(pid, service_id, chararistic_id, data) do
+    :gen_statem.call(pid, {:send_notification, service_id, chararistic_id, data})
+  end
+
+  @spec exchange_mtu(GenServer.server(), non_neg_integer()) :: :ok
+  def exchange_mtu(pid, server_mtu) do
+    :gen_statem.call(pid, {:exchange_mtu, server_mtu})
   end
 
   @impl :gen_statem
@@ -131,6 +151,40 @@ defmodule BlueHeron.Peripheral do
   end
 
   def connected(
+        {:call, from},
+        {:send_notification, service_id, characteristic_id, notification_data},
+        data
+      ) do
+    notif =
+      GATT.Server.handle_value_notification(
+        data.gatt_server,
+        service_id,
+        characteristic_id,
+        notification_data
+      )
+
+    case notif do
+      {:ok, result} ->
+        acl = build_l2cap_acl(data.conn_handle, result)
+
+        Logger.info(%{notif_acl: acl})
+
+        r = BlueHeron.acl(data.ctx, acl)
+        {:keep_state_and_data, {:reply, from, r}}
+
+      error ->
+        {:keep_state_and_data, {:reply, from, error}}
+    end
+  end
+
+  def connected({:call, from}, {:exchange_mtu, server_mtu}, data) do
+    {:ok, request} = GATT.Server.exchange_mtu(data.gatt_server, server_mtu)
+    acl = build_l2cap_acl(data.conn_handle, request)
+    r = BlueHeron.acl(data.ctx, acl)
+    {:keep_state_and_data, {:reply, from, r}}
+  end
+
+  def connected(
         :info,
         {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0004, data: request}}},
         %{conn_handle: _handle} = data
@@ -138,18 +192,11 @@ defmodule BlueHeron.Peripheral do
     Logger.info("Peripheral service discovery request: #{handle}=> #{inspect(request)}")
     {gatt_server, response} = GATT.Server.handle(data.gatt_server, request)
 
-    acl_response = %ACL{
-      handle: handle,
-      flags: %{bc: 0, pb: 0},
-      data: %L2Cap{
-        cid: 0x0004,
-        data: response
-      }
-    }
-
-    Logger.info("Sending acl #{inspect(acl_response)}")
-    Process.sleep(100)
-    BlueHeron.acl(data.ctx, acl_response)
+    if response do
+      acl_response = build_l2cap_acl(handle, response)
+      Process.sleep(100)
+      BlueHeron.acl(data.ctx, acl_response)
+    end
 
     {:keep_state, %{data | gatt_server: gatt_server}, []}
   end
@@ -168,5 +215,16 @@ defmodule BlueHeron.Peripheral do
   def connected(:info, {:HCI_EVENT_PACKET, %CommandStatus{opcode: <<0x0406::little-16>>}}, _data) do
     # Ignore the notification that is generated we execute a Disconnect HCI command
     :keep_state_and_data
+  end
+
+  defp build_l2cap_acl(handle, payload) do
+    %ACL{
+      handle: handle,
+      flags: %{bc: 0, pb: 0},
+      data: %L2Cap{
+        cid: 0x0004,
+        data: payload
+      }
+    }
   end
 end
