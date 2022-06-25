@@ -74,7 +74,7 @@ defmodule BlueHeron.ATT.Client do
 
   @doc """
   Attempt to create a connection with a device
-  Args should be a keyword list of fields that get passed to BlueHeron.HCI.Command.LEController.CreateConnection
+  Args should be a keyword list of fields that get passed to `BlueHeron.HCI.Command.LEController.CreateConnection`
 
       iex> ATT.Client.create_connection(pid, peer_address: 0xabcdefg)
       :ok
