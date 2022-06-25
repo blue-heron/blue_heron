@@ -57,6 +57,30 @@ defmodule BlueHeron.MixProject do
         NOTICE: [title: "Notice"],
         LICENSE: [title: "License"]
       ],
+      groups_for_modules: [
+        ATT: [~r/^BlueHeron\.ATT($|\.)/],
+        # NOTE: These need to be listed out manually because otherwise they'll
+        # catch `BlueHeron.HCI.Command` and `BlueHeron.HCI.Event`
+        HCI: [
+          BlueHeron.HCI,
+          BlueHeron.HCI.ArrayedData,
+          BlueHeron.HCI.CommandComplete.ReturnParameters,
+          BlueHeron.HCI.Deserializable,
+          BlueHeron.HCI.Serializable,
+          BlueHeron.HCI.Transport,
+          BlueHeron.HCI.Transport.NULL,
+          BlueHeron.HCIDump,
+          BlueHeron.HCIDump.Logger,
+          BlueHeron.HCIDump.PKTLOG
+        ],
+        "HCI Commands": [~r/^BlueHeron\.HCI.Command($|\.)/],
+        "HCI Events": [~r/^BlueHeron\.HCI.Event($|\.)/],
+      ],
+      nest_modules_by_prefix: [
+        BlueHeron.ATT,
+        BlueHeron.HCI.Command,
+        BlueHeron.HCI.Event
+      ],
       main: "readme",
       source_ref: "v#{@version}",
       source_url: @source_url,
