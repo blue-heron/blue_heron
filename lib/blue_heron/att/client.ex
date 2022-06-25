@@ -76,8 +76,8 @@ defmodule BlueHeron.ATT.Client do
   Attempt to create a connection with a device
   Args should be a keyword list of fields that get passed to BlueHeron.HCI.Command.LEController.CreateConnection
 
-    iex> ATT.Client.create_connection(pid, peer_address: 0xabcdefg)
-    :ok
+      iex> ATT.Client.create_connection(pid, peer_address: 0xabcdefg)
+      :ok
   """
   @spec create_connection(client(), Keyword.t()) :: :ok | {:error, any()}
   def create_connection(pid, args) do
@@ -91,14 +91,14 @@ defmodule BlueHeron.ATT.Client do
   @doc """
   Write a value to a handle on a BLE device
 
-    iex> ATT.Client.write(pid, %ATT.ReadByTypeResponse.AttributeData{handle: 0x15}, <<1, 2, 3, 4>>)
-    :ok
+      iex> ATT.Client.write(pid, %ATT.ReadByTypeResponse.AttributeData{handle: 0x15}, <<1, 2, 3, 4>>)
+      :ok
 
-    iex> ATT.Client.write(pid, %ATT.ReadByGroupTypeRequest.AttributeData{handle: <<uuid::binary-128>>}, <<1, 2, 3, 4>>)
-    :ok
+      iex> ATT.Client.write(pid, %ATT.ReadByGroupTypeRequest.AttributeData{handle: <<uuid::binary-128>>}, <<1, 2, 3, 4>>)
+      :ok
 
-    iex> ATT.Client.write(pid, 0x15, <<1, 2, 3, 4>>)
-    :ok
+      iex> ATT.Client.write(pid, 0x15, <<1, 2, 3, 4>>)
+      :ok
   """
   @spec write(client, handle, binary()) :: :ok | {:error, term()}
   def write(pid, handle, value)
