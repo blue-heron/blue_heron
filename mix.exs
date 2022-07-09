@@ -74,7 +74,7 @@ defmodule BlueHeron.MixProject do
           BlueHeron.HCIDump.PKTLOG
         ],
         "HCI Commands": [~r/^BlueHeron\.HCI.Command($|\.)/],
-        "HCI Events": [~r/^BlueHeron\.HCI.Event($|\.)/],
+        "HCI Events": [~r/^BlueHeron\.HCI.Event($|\.)/]
       ],
       nest_modules_by_prefix: [
         BlueHeron.ATT,
