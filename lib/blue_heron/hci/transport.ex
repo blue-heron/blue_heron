@@ -16,8 +16,9 @@ defmodule BlueHeron.HCI.Transport do
   @default_init_commands [
     %ControllerAndBaseband.Reset{},
     %InformationalParameters.ReadLocalVersion{},
+    %InformationalParameters.ReadBRADDR{},
     %ControllerAndBaseband.ReadLocalName{},
-    # %InformationalParameters.ReadLocalSupportedCommands{},
+    %InformationalParameters.ReadLocalSupportedCommands{},
     # %InformationalParameters.ReadBdAddr{},
     # %InformationalParameters.ReadBufferSize{},
     # %InformationalParameters.ReadLocalSupportedFeatures{},
@@ -44,8 +45,9 @@ defmodule BlueHeron.HCI.Transport do
       le_scan_type: 0x01,
       le_scan_interval: 0x0030,
       le_scan_window: 0x0030
-    },
-    %LEController.SetScanEnable{le_scan_enable: false}
+    }
+    # No random address, command will respond with error code
+    # %LEController.SetScanEnable{le_scan_enable: false}
   ]
 
   defstruct errors: 0,
@@ -68,7 +70,9 @@ defmodule BlueHeron.HCI.Transport do
 
   alias BlueHeron.HCI.Event.{
     CommandComplete,
-    CommandStatus
+    CommandStatus,
+    NumberOfCompletedPackets,
+    LEMeta.LongTermKeyRequest
     # DisconnectionComplete
   }
 
@@ -152,6 +156,7 @@ defmodule BlueHeron.HCI.Transport do
 
   def prepare(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
+    require BlueHeron.HCIDump.Logger, as: Logger
 
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{}, data} ->
@@ -161,6 +166,9 @@ defmodule BlueHeron.HCI.Transport do
       {:ok, %CommandStatus{}, data} ->
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
+
+      {:ok, %NumberOfCompletedPackets{} = _reply, data} ->
+        {:keep_state, data, []}
 
       {:ok, _, data} ->
         {:keep_state, data, []}
@@ -221,6 +229,18 @@ defmodule BlueHeron.HCI.Transport do
   def ready(
         {:call, from},
         {:send_acl, acl},
+        data
+      )
+      when acl.data.data == nil do
+    require BlueHeron.HCIDump.Logger, as: Logger
+    Logger.info("Unhandled ACL frame.")
+
+    {:keep_state, data, [{:reply, from, :ok}]}
+  end
+
+  def ready(
+        {:call, from},
+        {:send_acl, acl},
         %{config: %module{}, pid: pid} = data
       ) do
     acl = BlueHeron.ACL.serialize(acl)
@@ -246,6 +266,7 @@ defmodule BlueHeron.HCI.Transport do
 
   def ready(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
+    require BlueHeron.HCIDump.Logger, as: Logger
 
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
@@ -256,10 +277,17 @@ defmodule BlueHeron.HCI.Transport do
         {actions, data} = maybe_reply(data, reply)
         {:keep_state, data, actions}
 
+      {:ok, %NumberOfCompletedPackets{} = _reply, data} ->
+        {:keep_state, data, []}
+
+      {:ok, %LongTermKeyRequest{} = _reply, data} ->
+        {:keep_state, data, []}
+
       {:ok, _parsed, data} ->
         {:keep_state, data, []}
 
-      {:error, _bin, data} ->
+      {:error, reason, data} ->
+        Logger.warn("Could not decode command response: #{inspect(reason)}")
         {:keep_state, data, []}
     end
   end
@@ -273,9 +301,34 @@ defmodule BlueHeron.HCI.Transport do
 
   defp handle_hci_packet(packet, data) do
     case deserialize(packet) do
-      %{} = reply ->
+      %{status: 0} = reply ->
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
         {:ok, reply, data}
+
+      %{return_parameters: %{status: 0}} = reply ->
+        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+        {:ok, reply, data}
+
+      %{code: 0x13} = reply ->
+        # Handle HCI.Event.NumberOfCompletedPackets
+        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+        {:ok, reply, data}
+
+      %{code: 62, subevent_code: 5} = reply ->
+        # Handle HCI.Event.LEMeta.LongTermKeyRequest
+        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+        {:ok, reply, data}
+
+      %{opcode: opcode} = reply ->
+        Logger.warn(
+          "BLE: Status return for #{Base.encode16(String.reverse(opcode))} is #{reply.return_parameters.status}"
+        )
+
+        {:error, reply, data}
+
+      %{} = reply ->
+        Logger.warn("BLE: Unknown HCI frame #{inspect(reply)}")
+        {:error, reply, data}
 
       {:error, unknown} ->
         {:error, unknown, data}

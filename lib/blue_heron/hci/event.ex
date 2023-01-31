@@ -25,12 +25,15 @@ defmodule BlueHeron.HCI.Event do
   alias BlueHeron.HCI.Event
 
   @modules [
+    Event.EncryptionChange,
     Event.CommandComplete,
     Event.CommandStatus,
+    Event.NumberOfCompletedPackets,
     Event.DisconnectionComplete,
     Event.InquiryComplete,
     Event.LEMeta.AdvertisingReport,
-    Event.LEMeta.ConnectionComplete
+    Event.LEMeta.ConnectionComplete,
+    Event.LEMeta.LongTermKeyRequest
   ]
 
   def __modules__(), do: @modules
