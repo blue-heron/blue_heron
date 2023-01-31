@@ -86,6 +86,7 @@ defmodule BlueHeron.GATT.Server do
   }
 
   alias BlueHeron.GATT.{Characteristic, Service}
+  alias BlueHeron.SMP
 
   @doc """
   Return the list of services that make up the GATT profile of the device.
@@ -230,7 +231,7 @@ defmodule BlueHeron.GATT.Server do
           write_long_characteristic_value(state, request)
         end
 
-      request ->
+      _ ->
         # Ignore unhandled requests
         {state, nil}
     end
@@ -318,13 +319,16 @@ defmodule BlueHeron.GATT.Server do
   end
 
   defp require_permission?(state, request, permission) do
-    # TODO: return false if authentication is required and established
     p_list = find_characteristic_permissions(state.profile, request.handle)
 
-    if permission in p_list do
-      true
-    else
+    if p_list == nil do
       false
+    else
+      if permission in p_list and not SMP.is_authenticated?() do
+        true
+      else
+        false
+      end
     end
   end
 

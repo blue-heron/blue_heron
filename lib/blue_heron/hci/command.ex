@@ -21,6 +21,8 @@ defmodule BlueHeron.HCI.Command do
     ControllerAndBaseband.WriteSimplePairingMode,
     ControllerAndBaseband.WriteSynchronousFlowControlEnable,
     InformationalParameters.ReadLocalVersion,
+    InformationalParameters.ReadLocalSupportedCommands,
+    InformationalParameters.ReadBRADDR,
     LEController.CreateConnection,
     LEController.CreateConnectionCancel,
     LEController.ReadBufferSizeV1,
@@ -31,6 +33,8 @@ defmodule BlueHeron.HCI.Command do
     LEController.SetRandomAddress,
     LEController.SetScanEnable,
     LEController.SetScanParameters,
+    LEController.LongTermKeyRequestReply,
+    LEController.LongTermKeyRequestNegativeReply,
     LinkPolicy.WriteDefaultLinkPolicySettings
   ]
 

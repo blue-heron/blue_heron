@@ -113,6 +113,8 @@ defmodule BlueHeron.HCIDump.Logger do
       pktlog = %PKTLOG{type: unquote(type), payload: unquote(payload)}
       encoded = HCIDump.encode(%PKTLOG{pktlog | tv_sec: ts, tv_us: usec}, unquote(direction))
 
+      # Logger.log(:debug, "pkg: #{unquote(direction)} #{unquote(type)} #{inspect(pktlog)}")
+
       with true <- Application.get_env(:blue_heron, :log_hci_dump_file, true),
            :ok <- File.write("/tmp/hcidump.pklg", encoded, [:append]) do
         :ok
