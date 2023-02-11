@@ -235,6 +235,8 @@ defmodule BlueHeron.ATT.Client do
 
   # ignore all other HCI packets in connecting state
   def connecting(:info, {:HCI_EVENT_PACKET, _}, _data), do: :keep_state_and_data
+  # ignore HCI ACL data packets in connecting state
+  def connecting(:info, {:HCI_ACL_DATA_PACKET, _}, _data), do: :keep_state_and_data
 
   @doc false
   def connected({:call, from}, {:write_value, handle, value}, data) do
@@ -341,8 +343,11 @@ defmodule BlueHeron.ATT.Client do
   def connected(
         :info,
         {:HCI_ACL_DATA_PACKET,
-         %ACL{data: %L2Cap{cid: 4, data: %ExchangeMTUResponse{server_rx_mtu: mtu}}}},
-        data
+         %ACL{
+           handle: handle,
+           data: %L2Cap{cid: 4, data: %ExchangeMTUResponse{server_rx_mtu: mtu}}
+         }},
+        %{connection: %{connection_handle: handle}} = data
       ) do
     Logger.info("Server MTU: #{mtu}")
 
@@ -356,8 +361,8 @@ defmodule BlueHeron.ATT.Client do
   def connected(
         :info,
         {:HCI_ACL_DATA_PACKET,
-         %ACL{data: %L2Cap{cid: 4, data: %HandleValueNotification{} = value}}},
-        data
+         %ACL{handle: handle, data: %L2Cap{cid: 4, data: %HandleValueNotification{} = value}}},
+        %{connection: %{connection_handle: handle}} = data
       ) do
     send(data.controlling_process, {__MODULE__, self(), value})
     :keep_state_and_data
