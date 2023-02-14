@@ -163,27 +163,76 @@ defmodule BlueHeron.GATT.Server do
         discover_all_characteristic_descriptors(state, request)
 
       %ReadRequest{handle: handle} ->
-        if descriptor = find_descriptor_by_handle(state, handle) do
-          read_descriptor_value(state, descriptor)
+        if require_permission?(state, request, :read_auth) do
+          {state,
+           %ErrorResponse{
+             handle: request.handle,
+             request_opcode: request.opcode,
+             error: :insufficient_authentication
+           }}
         else
-          read_characteristic_value(state, request)
+          if descriptor = find_descriptor_by_handle(state, handle) do
+            read_descriptor_value(state, descriptor)
+          else
+            read_characteristic_value(state, request)
+          end
         end
 
       %ReadBlobRequest{} ->
-        read_long_characteristic_value(state, request)
+        if require_permission?(state, request, :read_auth) do
+          {state,
+           %ErrorResponse{
+             handle: request.handle,
+             request_opcode: request.opcode,
+             error: :insufficient_authentication
+           }}
+        else
+          read_long_characteristic_value(state, request)
+        end
 
       %WriteRequest{handle: handle} ->
-        if find_descriptor_by_handle(state, handle) do
-          write_descriptor_value(state, handle, request.value)
+        if require_permission?(state, request, :write_auth) do
+          {state,
+           %ErrorResponse{
+             handle: request.handle,
+             request_opcode: request.opcode,
+             error: :insufficient_authentication
+           }}
         else
-          write_characteristic_value(state, request)
+          if find_descriptor_by_handle(state, handle) do
+            write_descriptor_value(state, handle, request.value)
+          else
+            write_characteristic_value(state, request)
+          end
         end
 
       %PrepareWriteRequest{} ->
-        write_long_characteristic_value(state, request)
+        if require_permission?(state, request, :write_auth) do
+          {state,
+           %ErrorResponse{
+             handle: request.handle,
+             request_opcode: request.opcode,
+             error: :insufficient_authentication
+           }}
+        else
+          write_long_characteristic_value(state, request)
+        end
 
       %ExecuteWriteRequest{} ->
-        write_long_characteristic_value(state, request)
+        if require_permission?(state, request, :write_auth) do
+          {state,
+           %ErrorResponse{
+             handle: request.handle,
+             request_opcode: request.opcode,
+             error: :insufficient_authentication
+           }}
+        else
+          write_long_characteristic_value(state, request)
+        end
+
+      request ->
+        # Ignore unhandled requests
+        {state, nil}
     end
   end
 
@@ -244,6 +293,7 @@ defmodule BlueHeron.GATT.Server do
               "Value ",
               IO.ANSI.reset(),
               "[0b#{Integer.to_string(char.properties, 2)}]",
+              " #{inspect(char.permissions)}",
               descriptor || ""
             ]
           end
@@ -265,6 +315,17 @@ defmodule BlueHeron.GATT.Server do
       end
 
     IO.iodata_to_binary(table)
+  end
+
+  defp require_permission?(state, request, permission) do
+    # TODO: return false if authentication is required and established
+    p_list = find_characteristic_permissions(state.profile, request.handle)
+
+    if permission in p_list do
+      true
+    else
+      false
+    end
   end
 
   defp exchange_mtu_request(state, _request) do
@@ -667,6 +728,15 @@ defmodule BlueHeron.GATT.Server do
     |> Enum.flat_map(fn service -> service.characteristics end)
     |> Enum.find_value(fn characteristic ->
       if characteristic.value_handle == characteristic_value_handle, do: characteristic.id
+    end)
+  end
+
+  defp find_characteristic_permissions(profile, characteristic_value_handle) do
+    profile
+    |> Enum.flat_map(fn service -> service.characteristics end)
+    |> Enum.find_value(fn characteristic ->
+      if characteristic.value_handle == characteristic_value_handle,
+        do: characteristic.permissions
     end)
   end
 
