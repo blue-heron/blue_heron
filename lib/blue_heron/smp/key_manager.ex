@@ -1,20 +1,21 @@
-defmodule BlueHeron.SMP.Keys do
+defmodule BlueHeron.SMP.KeyManager do
+  @moduledoc "Handles storage of keys for SMP"
   use GenServer
 
-  def start(path) do
-    GenServer.start(__MODULE__, path, name: __MODULE__)
+  def start_link(path) do
+    GenServer.start_link(__MODULE__, path)
   end
 
   def init(path) do
     {:ok, %{key_file: path}}
   end
 
-  def new() do
-    GenServer.call(__MODULE__, :new)
+  def new(manager) do
+    GenServer.call(manager, :new)
   end
 
-  def get(index) do
-    GenServer.call(__MODULE__, {:get, index})
+  def get(manager, index) do
+    GenServer.call(manager, {:get, index})
   end
 
   def handle_call(:new, _from, state) do
