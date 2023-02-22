@@ -111,7 +111,7 @@ defmodule BlueHeron.GATT.Server do
   """
   @callback write(id :: any(), value :: binary()) :: :ok
 
-  defstruct [:mod, :profile, :mtu, :read_buffer, :write_requests]
+  defstruct [:mod, :profile, :mtu, :read_buffer, :write_requests, :smp_server]
 
   @discover_all_primary_services 0x2800
   @find_included_services 0x2802
@@ -123,11 +123,12 @@ defmodule BlueHeron.GATT.Server do
             profile: [Service.t()],
             mtu: non_neg_integer(),
             read_buffer: binary(),
-            write_requests: [binary()]
+            write_requests: [binary()],
+            smp_server: GenServer.server() | nil
           }
 
   @doc false
-  def init(mod) do
+  def init(mod, smp_server) do
     profile = hydrate(mod.profile())
 
     %__MODULE__{
@@ -135,7 +136,8 @@ defmodule BlueHeron.GATT.Server do
       profile: profile,
       mtu: 23,
       read_buffer: <<>>,
-      write_requests: []
+      write_requests: [],
+      smp_server: smp_server
     }
   end
 
@@ -318,13 +320,18 @@ defmodule BlueHeron.GATT.Server do
     IO.iodata_to_binary(table)
   end
 
+  # Disable permission checking when SMP is not active
+  defp require_permission?(%{smp_server: nil}, _request, _permission) do
+    false
+  end
+
   defp require_permission?(state, request, permission) do
     p_list = find_characteristic_permissions(state.profile, request.handle)
 
     if p_list == nil do
       false
     else
-      if permission in p_list and not SMP.is_authenticated?() do
+      if permission in p_list and not SMP.is_authenticated?(state.smp_server) do
         true
       else
         false

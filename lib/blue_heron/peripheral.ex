@@ -8,8 +8,6 @@ defmodule BlueHeron.Peripheral do
   }
 
   alias BlueHeron.HCI.Command.LinkControl.{
-    AuthenticationRequested,
-    SetConnectionEncryption,
     Disconnect
   }
 
@@ -32,14 +30,25 @@ defmodule BlueHeron.Peripheral do
 
   @behaviour :gen_statem
 
-  defstruct [:ctx, :bd_addr, :controlling_process, :gatt_handler, :gatt_server, :connection, :smp]
+  defstruct [
+    :ctx,
+    :bd_addr,
+    :controlling_process,
+    :connection,
+    :gatt_handler,
+    :gatt_server,
+    :smp_server,
+    :smp_handler
+  ]
 
+  @doc "Start a non-secured peripheral"
   def start_link(context, gatt_server) do
-    :gen_statem.start_link(__MODULE__, [context, "/tmp/ble_keyfile", gatt_server, self()], [])
+    :gen_statem.start_link(__MODULE__, [context, gatt_server, nil, self()], [])
   end
 
-  def start_link(context, keyfile, gatt_server) do
-    :gen_statem.start_link(__MODULE__, [context, keyfile, gatt_server, self()], [])
+  @doc "Start a SMP enabled peripheral. `smp_handler` should be a module that implements the `SMP.IOHandler` behavior"
+  def start_link(context, gatt_server, smp_handler) do
+    :gen_statem.start_link(__MODULE__, [context, gatt_server, smp_handler, self()], [])
   end
 
   def set_advertising_parameters(pid, params) do
@@ -85,18 +94,27 @@ defmodule BlueHeron.Peripheral do
   def callback_mode(), do: :state_functions
 
   @impl :gen_statem
-  def init([ctx, keyfile, gatt_handler, controlling_process]) do
+  def init([ctx, gatt_handler, smp_io_handler, controlling_process]) do
     :ok = BlueHeron.add_event_handler(ctx)
-    {:ok, smp} = SMP.start_link(ctx, keyfile)
 
-    data = %__MODULE__{
+    %__MODULE__{
       controlling_process: controlling_process,
       ctx: ctx,
       gatt_handler: gatt_handler,
-      smp: smp
+      smp_handler: smp_io_handler
     }
+    |> init_for_smp()
+  end
 
-    {:ok, :wait_working, data, []}
+  defp init_for_smp(%__MODULE__{} = data) do
+    with {:ok, smp_handler} <- Map.fetch(data, :smp_handler),
+         {:ok, smp} = SMP.start_link(data.ctx, smp_handler) do
+      {:ok, :wait_working, %{data | smp_server: smp}, []}
+    else
+      # smp not enabled
+      :error -> {:ok, :wait_working, data, []}
+      {:error, reason} -> {:stop, reason, :no_state}
+    end
   end
 
   def wait_working(:info, {:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING}, data) do
@@ -136,9 +154,9 @@ defmodule BlueHeron.Peripheral do
     {:next_state, :advertising, data, [{:reply, from, :ok}]}
   end
 
+  # Response from reading BD_ADDRESS
   def ready(:info, {:HCI_EVENT_PACKET, %CommandComplete{opcode: <<9, 16>>} = event}, data) do
-    # Response from reading BD_ADDRESS
-    SMP.set_bd_address(event.return_parameters.bd_addr)
+    if smp = data.smp, do: SMP.set_bd_address(smp, event.return_parameters.bd_addr)
     {:next_state, :ready, %{data | bd_addr: event.return_parameters.bd_addr}}
   end
 
@@ -158,7 +176,7 @@ defmodule BlueHeron.Peripheral do
   def advertising(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = event}, data) do
     send(data.controlling_process, {__MODULE__, :connected})
     Logger.info("Peripheral connect #{event.connection_handle}")
-    gatt_server = GATT.Server.init(data.gatt_handler)
+    gatt_server = GATT.Server.init(data.gatt_handler, data.smp_server)
 
     connection = %{
       peer_address: event.peer_address,
@@ -166,7 +184,8 @@ defmodule BlueHeron.Peripheral do
       handle: event.connection_handle
     }
 
-    SMP.set_connection(connection)
+    if smp = data.smp_server, do: SMP.set_connection(smp, connection)
+
     {:next_state, :connected, %{data | gatt_server: gatt_server, connection: connection}}
   end
 
@@ -238,15 +257,25 @@ defmodule BlueHeron.Peripheral do
 
   def connected(
         :info,
-        {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0006, data: request}}},
-        data
+        {:HCI_ACL_DATA_PACKET, %ACL{handle: _handle, data: %L2Cap{cid: 0x0006, data: _request}}},
+        %{smp_server: nil} = data
       ) do
-    response = SMP.handle(request)
+    Logger.error("Received SMP request although SMP is not enabled")
+    {:keep_state, data, []}
+  end
+
+  def connected(
+        :info,
+        {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0006, data: request}}},
+        %{smp_server: smp} = data
+      )
+      when is_pid(smp) do
+    response = SMP.handle(smp, request)
 
     if response do
       acl_response = build_l2cap_acl(handle, 0x0006, response)
-      Process.sleep(100)
       BlueHeron.acl(data.ctx, acl_response)
+      Process.sleep(100)
     end
 
     {:keep_state, data, []}
@@ -283,18 +312,36 @@ defmodule BlueHeron.Peripheral do
     :keep_state_and_data
   end
 
-  def connected(:info, {:HCI_EVENT_PACKET, %LongTermKeyRequest{} = request}, data) do
-    command = SMP.long_term_key_request(request)
+  def connected(:info, {:HCI_EVENT_PACKET, %LongTermKeyRequest{} = _request}, %{smp_server: nil}) do
+    Logger.error("cannot handle LongTermKeyRequest when SMP is not enabled")
+    :keep_state_and_data
+  end
 
-    if command do
+  def connected(
+        :info,
+        {:HCI_EVENT_PACKET, %LongTermKeyRequest{} = request},
+        %{smp_server: smp} = data
+      )
+      when is_pid(smp) do
+    with %{} = command <- SMP.long_term_key_request(data.smp, request) do
       BlueHeron.hci_command(data.ctx, command)
     end
 
     {:keep_state, data, []}
   end
 
-  def connected(:info, {:HCI_EVENT_PACKET, %EncryptionChange{} = request}, data) do
-    SMP.encryption_change(request)
+  def connected(:info, {:HCI_EVENT_PACKET, %EncryptionChange{} = _request}, %{smp_server: nil}) do
+    Logger.error("cannot handle EncryptionChange when SMP is not enabled")
+    :keep_state_and_data
+  end
+
+  def connected(
+        :info,
+        {:HCI_EVENT_PACKET, %EncryptionChange{} = request},
+        %{smp_server: smp} = data
+      )
+      when is_pid(smp) do
+    SMP.encryption_change(smp, request)
     {:keep_state, data, []}
   end
 

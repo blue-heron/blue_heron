@@ -13,7 +13,7 @@ defmodule BlueHeron.SMP do
   }
 
   alias BlueHeron.{ACL, L2Cap}
-  alias BlueHeron.SMP.Keys
+  alias BlueHeron.SMP.KeyManager
 
   defstruct [
     :ctx,
@@ -21,31 +21,41 @@ defmodule BlueHeron.SMP do
     :bd_address,
     :connection,
     :stk_used,
-    :authenticated
+    :authenticated,
+    :io_handler,
+    :key_manager
   ]
 
   @doc false
-  def start_link(ctx, keyfile) do
-    GenServer.start_link(__MODULE__, [ctx, keyfile], name: __MODULE__)
+  def start_link(ctx, io_handler) do
+    GenServer.start_link(__MODULE__, [ctx, io_handler])
   end
 
   @doc false
   @impl GenServer
-  def init([ctx, keyfile]) do
-    Elixir.BlueHeron.SMP.Keys.start(keyfile)
-    {:ok, %__MODULE__{ctx: ctx, authenticated: false}}
+  def init([ctx, io_handler]) do
+    with {:ok, keyfile} <- io_handler.keyfile(),
+         {:ok, key_manager} <- KeyManager.start_link(keyfile) do
+      {:ok,
+       %__MODULE__{
+         key_manager: key_manager,
+         ctx: ctx,
+         authenticated: false,
+         io_handler: io_handler
+       }}
+    end
   end
 
   @doc "Set BR_ADDR."
-  def set_bd_address(addr) do
-    GenServer.cast(__MODULE__, {:set_bd_address, addr})
+  def set_bd_address(smp, addr) do
+    GenServer.cast(smp, {:set_bd_address, addr})
   end
 
   @doc """
   Returns true if the current connection is authenticated.
   """
-  def is_authenticated?() do
-    GenServer.call(__MODULE__, :is_authenticated)
+  def is_authenticated?(smp) do
+    GenServer.call(smp, :is_authenticated)
   end
 
   @doc """
@@ -53,8 +63,8 @@ defmodule BlueHeron.SMP do
 
   The information is needed for key generation.
   """
-  def set_connection(con) do
-    GenServer.cast(__MODULE__, {:set_connection, con})
+  def set_connection(smp, con) do
+    GenServer.cast(smp, {:set_connection, con})
   end
 
   @doc """
@@ -62,19 +72,19 @@ defmodule BlueHeron.SMP do
 
   This function returns a Long Term Key Request Response or nil.
   """
-  def long_term_key_request(msg) do
-    GenServer.call(__MODULE__, {:long_term_key_request, msg})
+  def long_term_key_request(smp, msg) do
+    GenServer.call(smp, {:long_term_key_request, msg})
   end
 
   @doc """
   Inform the Security Manager about changes in the encryption.
   """
-  def encryption_change(event) do
-    GenServer.call(__MODULE__, {:encryption_change, event})
+  def encryption_change(smp, event) do
+    GenServer.call(smp, {:encryption_change, event})
   end
 
-  def handle(msg) do
-    GenServer.call(__MODULE__, {:handle, msg})
+  def handle(smp, msg) do
+    GenServer.call(smp, {:handle, msg})
   end
 
   @impl GenServer
@@ -93,7 +103,7 @@ defmodule BlueHeron.SMP do
 
   def handle_call({:handle, <<0x01, data::binary>>}, _from, state) do
     # Pairing Request
-    <<_io, _obb, _auth, max_key, _idist, _rdist>> = data
+    <<_io, _obb, _auth, _max_key, _idist, _rdist>> = data
 
     # TODO: Filter requests not matching parameters
     # Check max_key = 16
@@ -105,9 +115,10 @@ defmodule BlueHeron.SMP do
       |> Integer.to_string()
       |> String.pad_leading(6, "0")
 
-    # TODO: inform caller to show passkey on display # callback(random)
-    # callback: pairing({status: :progress, passkey: message})
-    Logger.info("=================== #{message} ===================")
+    Logger.debug(%{smp_passkey: message})
+
+    _ = state.io_handler.status_update(:passkey)
+    _ = state.io_handler.passkey(message)
 
     k = <<passkey::integer-size(128)>>
     r = :crypto.strong_rand_bytes(16)
@@ -129,8 +140,7 @@ defmodule BlueHeron.SMP do
   def handle_call({:handle, <<0x02, _data::binary>>}, _from, state) do
     # Pairing Response
     Logger.warning("Ignoring Handle Pairing Response")
-    response = nil
-    {:reply, response, state}
+    {:reply, nil, state}
   end
 
   def handle_call({:handle, <<0x03, confirm::binary>>}, _from, state) do
@@ -160,13 +170,13 @@ defmodule BlueHeron.SMP do
 
     # Is confirmed?
     if pairing.confirm == response do
-      # TODO: Inform Box UI that pairing completed
-      # callback: pairing({status: :success})
+      # Inform callback that pairing completed
+      state.io_handler.status_update(:success)
       {:reply, <<0x04>> <> reverse(pairing.r), %{state | pairing: pairing}}
     else
       Logger.warning("passkey missmatch")
-      # TODO: Inform Box UI that pairing failed
-      # callback: pairing({status: :failed})
+      # Inform callback that pairing failed
+      state.io_handler.status_update(:passkey_mismatch)
 
       {:reply, <<0x05, 0x04>>, %{state | pairing: nil}}
     end
@@ -174,8 +184,8 @@ defmodule BlueHeron.SMP do
 
   def handle_call({:handle, <<0x05, reason>>}, _from, state) do
     Logger.warn("Pairing failed: #{reason}")
-    # TODO: Inform Box UI that pairing failed
-    # callback: pairing({status: :failed})
+    # Inform callback that pairing failed
+    state.io_handler.status_update(:fail)
     {:reply, nil, state}
   end
 
@@ -219,7 +229,7 @@ defmodule BlueHeron.SMP do
 
   def handle_call({:long_term_key_request, request}, _from, state) do
     # TODO: Handle unknown EDIV
-    {ediv, keys} = Keys.get(request.encrypted_diversifier)
+    {ediv, keys} = KeyManager.get(state.key_manager, request.encrypted_diversifier)
 
     command = reply_for_ltk_request(request, ediv, keys)
     {:reply, command, %{state | stk_used: false}}
@@ -236,7 +246,7 @@ defmodule BlueHeron.SMP do
        ltk::bytes-size(16),
        csrk::bytes-size(16),
        irk::bytes-size(16)
-     >>} = Keys.new()
+     >>} = KeyManager.new(state.key_manager)
 
     # generate and send LTK using "Encryption Information" ACL message
     frame = acl(event.connection_handle, <<0x06>> <> reverse(ltk))
