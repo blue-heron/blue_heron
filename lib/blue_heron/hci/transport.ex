@@ -156,7 +156,6 @@ defmodule BlueHeron.HCI.Transport do
 
   def prepare(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
-    require BlueHeron.HCIDump.Logger, as: Logger
 
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{}, data} ->
@@ -228,13 +227,10 @@ defmodule BlueHeron.HCI.Transport do
 
   def ready(
         {:call, from},
-        {:send_acl, acl},
+        {:send_acl, %{data: %{data: nil}} = _acl},
         data
-      )
-      when acl.data.data == nil do
-    require BlueHeron.HCIDump.Logger, as: Logger
+      ) do
     Logger.info("Unhandled ACL frame.")
-
     {:keep_state, data, [{:reply, from, :ok}]}
   end
 
@@ -266,7 +262,6 @@ defmodule BlueHeron.HCI.Transport do
 
   def ready(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
-    require BlueHeron.HCIDump.Logger, as: Logger
 
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
