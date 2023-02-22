@@ -121,7 +121,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover all primary services" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     # First, request primary services in the entire handle range
     {state, response} =
@@ -204,7 +204,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover all characteristics" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     # Request all characteristics in the range of the :gap service
     {state, response} =
@@ -299,7 +299,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover characteristics by uuid" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     # Request all characteristics of type 0x2A00 (device name) in the range of
     # the :gap service
@@ -374,7 +374,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "read short characteristic value" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     {_state, response} = Server.handle(state, %ReadRequest{handle: 0x0003})
 
@@ -382,7 +382,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "read long characteristic value" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
     # Overhead per response is 1 byte
     chunk_size = state.mtu - 1
     expected_value = "a-value-longer-than-22-bytes"
@@ -406,7 +406,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "write short characteristic value" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     {_state, response} =
       Server.handle(state, %WriteRequest{handle: 0x0000E, value: "short-value"})
@@ -417,7 +417,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "write long characteristic value" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
     # Overhead per request & response is 5 bytes
     chunk_size = state.mtu - 5
     expected_value = "a-value-longer-than-22-bytes"
@@ -448,7 +448,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover characteristic descriptor" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     {_state, response} =
       Server.handle(state, %FindInformationRequest{
@@ -465,7 +465,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "notifications" do
-    state = Server.init(TestServer)
+    state = Server.init(TestServer, nil)
 
     {state, response} =
       Server.handle(state, %WriteRequest{

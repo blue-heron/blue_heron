@@ -24,6 +24,6 @@ defmodule BlueHeron.HCI.Command.InformationalParameters.ReadBRADDR do
 
   @impl BlueHeron.HCI.Command
   def serialize_return_parameters(%{status: status} = params) do
-    <<status>> <> params.bd_addr.binary()
+    <<status>> <> BlueHeron.Address.serialize(params.bd_addr)
   end
 end

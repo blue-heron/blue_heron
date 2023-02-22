@@ -21,6 +21,12 @@ defmodule BlueHeron.Address do
     end
   end
 
+  def serialize(address) do
+    reverse(address.binary)
+  end
+
+  defp reverse(bin), do: bin |> :binary.decode_unsigned(:little) |> :binary.encode_unsigned(:big)
+
   @doc """
   Parses an Address from a colon delimited BLE address string
   Examples:
