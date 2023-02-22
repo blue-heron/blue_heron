@@ -107,10 +107,75 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<2, 16>>,
-        return_parameters:
-          <<0, 255, 255, 255, 3, 254, 255, 255, 255, 63, 255, 255, 159, 243, 15, 232, 254, 63,
-            247, 143, 255, 28, 0, 0, 0, 97, 247, 255, 255, 127, 0, 224, 255, 255, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>>
+        return_parameters: %{
+          status: 0,
+          supported_commands: <<
+            255,
+            255,
+            255,
+            3,
+            254,
+            255,
+            255,
+            255,
+            63,
+            255,
+            255,
+            159,
+            243,
+            15,
+            232,
+            254,
+            63,
+            247,
+            143,
+            255,
+            28,
+            0,
+            0,
+            0,
+            97,
+            247,
+            255,
+            255,
+            127,
+            0,
+            224,
+            255,
+            255,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          >>
+        }
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)
@@ -133,7 +198,10 @@ defmodule BlueHeronRegressionTest do
         code: 14,
         num_hci_command_packets: 2,
         opcode: <<9, 16>>,
-        return_parameters: <<0, 80, 164, 129, 6, 78, 232>>
+        return_parameters: %{
+          bd_addr: BlueHeron.Address.parse(<<0xE8, 0x4E, 0x6, 0x81, 0xA4, 0x50>>),
+          status: 0
+        }
       }
 
       actual = BlueHeron.HCI.Deserializable.deserialize(binary)

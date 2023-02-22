@@ -44,7 +44,7 @@ defmodule BlueHeron.GATT.Characteristic do
       ...>   properties: 0b00000010,
       ...>   permissions: [:write]
       ...> })
-      %BlueHeron.GATT.Characteristic{id: :fancy_key, type: 0x2e0f8e717a7d4690998377626bc6b657, properties: 2}
+      %BlueHeron.GATT.Characteristic{id: :fancy_key, type: 0x2e0f8e717a7d4690998377626bc6b657, properties: 2, permissions: [:write]}
   """
   @spec new(args :: map()) :: t()
   def new(args) do
