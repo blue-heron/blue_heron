@@ -115,8 +115,6 @@ defmodule BlueHeron.SMP do
       |> Integer.to_string()
       |> String.pad_leading(6, "0")
 
-    Logger.debug(%{smp_passkey: message})
-
     _ = state.io_handler.status_update(:passkey)
     _ = state.io_handler.passkey(message)
 
