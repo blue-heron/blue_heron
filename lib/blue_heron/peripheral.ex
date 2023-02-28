@@ -156,7 +156,7 @@ defmodule BlueHeron.Peripheral do
 
   # Response from reading BD_ADDRESS
   def ready(:info, {:HCI_EVENT_PACKET, %CommandComplete{opcode: <<9, 16>>} = event}, data) do
-    if smp = data.smp, do: SMP.set_bd_address(smp, event.return_parameters.bd_addr)
+    if smp = data.smp_server, do: SMP.set_bd_address(smp, event.return_parameters.bd_addr)
     {:next_state, :ready, %{data | bd_addr: event.return_parameters.bd_addr}}
   end
 
@@ -323,7 +323,7 @@ defmodule BlueHeron.Peripheral do
         %{smp_server: smp} = data
       )
       when is_pid(smp) do
-    with %{} = command <- SMP.long_term_key_request(data.smp, request) do
+    with %{} = command <- SMP.long_term_key_request(data.smp_server, request) do
       BlueHeron.hci_command(data.ctx, command)
     end
 
