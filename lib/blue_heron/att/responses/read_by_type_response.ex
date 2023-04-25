@@ -1,6 +1,6 @@
 defmodule BlueHeron.ATT.ReadByTypeResponse do
   defmodule AttributeData do
-    defstruct [:handle, :characteristic_properties, :characteristic_value_handle, :uuid]
+    defstruct [:handle, :characteristic_properties, :characteristic_value_handle, :value, :uuid]
 
     def deserialize(<<handle::little-16, properties, value_handle::little-16, uuid::little-16>>) do
       %__MODULE__{
@@ -24,7 +24,8 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
           handle: handle,
           characteristic_properties: characteristic_properties,
           characteristic_value_handle: characteristic_value_handle,
-          uuid: uuid
+          uuid: uuid,
+          value: nil
         })
         when uuid < 0xFFFF do
       <<handle::little-16, characteristic_properties, characteristic_value_handle::little-16,
@@ -35,11 +36,22 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
           handle: handle,
           characteristic_properties: characteristic_properties,
           characteristic_value_handle: characteristic_value_handle,
-          uuid: uuid
+          uuid: uuid,
+          value: nil
         })
         when uuid > 0xFFFF do
       <<handle::little-16, characteristic_properties, characteristic_value_handle::little-16,
         uuid::little-128>>
+        end
+
+    def serialize(%{
+          handle: handle,
+          characteristic_properties: _characteristic_properties,
+          characteristic_value_handle: _characteristic_value_handle,
+          uuid: _uuid,
+          value: value
+        }) do
+          <<handle::little-16, value::binary>>
     end
   end
 
