@@ -457,6 +457,18 @@ defmodule BlueHeron.GATT.Server do
            error: :attribute_not_found
          }}
 
+      [characteristic] ->
+        # TODO: Handle exceptions and long values
+        value = state.mod.read(characteristic.id)
+        attr =
+          %ReadByTypeResponse.AttributeData{
+            handle: characteristic.handle,
+            uuid: characteristic.type,
+            value: value
+          }
+
+        {state, %ReadByTypeResponse{attribute_data: [attr]}}
+
       characteristics_in_range ->
         attribute_data =
           characteristics_in_range
