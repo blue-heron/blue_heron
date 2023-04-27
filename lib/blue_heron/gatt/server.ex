@@ -62,12 +62,16 @@ defmodule BlueHeron.GATT.Server do
       end
   """
 
+  require Logger
+
   alias BlueHeron.ATT.{
     ErrorResponse,
     ExchangeMTURequest,
     ExchangeMTUResponse,
     FindInformationRequest,
     FindInformationResponse,
+    FindByTypeValueRequest,
+    FindByTypeValueResponse,
     HandleValueNotification,
     PrepareWriteRequest,
     PrepareWriteResponse,
@@ -165,6 +169,35 @@ defmodule BlueHeron.GATT.Server do
       %FindInformationRequest{} ->
         discover_all_characteristic_descriptors(state, request)
 
+      %FindByTypeValueRequest{attribute_type: @discover_all_primary_services} ->
+        # This implementation only handles type 0x2800 (Primary UUID)
+
+        <<uuid::little-16>> = request.attribute_value
+
+        handle_list =
+          state.profile
+          |> Enum.filter(fn service ->
+            service.type == uuid and service.handle >= request.starting_handle and
+              service.handle <= request.ending_handle
+          end)
+          |> Enum.map(fn s ->
+            %FindByTypeValueResponse.HandlesInformation{
+              found_attribute_handle: s.handle,
+              group_end_handle: s.end_group_handle
+            }
+          end)
+
+        if handle_list == [] do
+          {state,
+           %ErrorResponse{
+             handle: request.starting_handle,
+             request_opcode: request.opcode,
+             error: :attribute_not_found
+           }}
+        else
+          {state, %FindByTypeValueResponse{handles_information_list: handle_list}}
+        end
+
       %ReadRequest{handle: handle} ->
         if require_permission?(state, request, :read_auth) do
           {state,
@@ -233,8 +266,9 @@ defmodule BlueHeron.GATT.Server do
           write_long_characteristic_value(state, request)
         end
 
-      _ ->
-        # Ignore unhandled requests
+      requ ->
+        # Unhandled requests should be handled as errors, they stall all communication
+        Logger.error("GATT: Unhandled request: #{inspect(requ)}")
         {state, nil}
     end
   end
