@@ -248,7 +248,6 @@ defmodule BlueHeron.Peripheral do
 
     if response do
       acl_response = build_l2cap_acl(handle, 0x0004, response)
-      Process.sleep(100)
       BlueHeron.acl(data.ctx, acl_response)
     end
 
@@ -275,7 +274,6 @@ defmodule BlueHeron.Peripheral do
     if response do
       acl_response = build_l2cap_acl(handle, 0x0006, response)
       BlueHeron.acl(data.ctx, acl_response)
-      Process.sleep(100)
     end
 
     {:keep_state, data, []}

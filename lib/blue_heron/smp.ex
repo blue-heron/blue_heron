@@ -249,27 +249,22 @@ defmodule BlueHeron.SMP do
     # generate and send LTK using "Encryption Information" ACL message
     frame = acl(event.connection_handle, <<0x06>> <> reverse(ltk))
     BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
 
     # generate and send EDIV and RAND using "Central Identification" ACL message
     frame = acl(event.connection_handle, <<0x07, ediv::little-16>> <> reverse(rand))
     BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
 
     # generate and send IRK using "Identity Information" ACL message
     frame = acl(event.connection_handle, <<0x08>> <> reverse(irk))
     BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
 
     # generate and send BD_ADDRESS using "Identity Address Information" ACL message
     frame = acl(event.connection_handle, <<0x09, 0>> <> reverse(state.bd_address.binary()))
     BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
 
     # generate and send CSRK using "Signing Information" ACL message
     frame = acl(event.connection_handle, <<0x0A>> <> reverse(csrk))
     BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
 
     {:reply, nil, %{state | authenticated: true}}
   end
