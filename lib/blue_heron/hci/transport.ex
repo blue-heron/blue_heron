@@ -166,7 +166,7 @@ defmodule BlueHeron.HCI.Transport do
         {:keep_state, data, []}
 
       {:error, reason, data} ->
-        Logger.warn("Could not decode init_command response: #{inspect(reason)}")
+        Logger.warning("Could not decode init_command response: #{inspect(reason)}")
         {:keep_state, data, []}
     end
   end
