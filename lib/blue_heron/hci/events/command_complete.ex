@@ -64,7 +64,7 @@ defmodule BlueHeron.HCI.Event.CommandComplete do
     BlueHeron.HCI.CommandComplete.ReturnParameters.decode(cc)
   catch
     kind, value ->
-      Logger.warn("""
+      Logger.warning("""
       (#{inspect(kind)}, #{inspect(value)}) Unable to decode return_parameters for opcode #{inspect(cc.opcode, base: :hex)}
         return_parameters: #{inspect(cc.return_parameters)}
         #{inspect(__STACKTRACE__, limit: :infinity, pretty: true)}

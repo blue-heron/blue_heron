@@ -128,7 +128,7 @@ defmodule GoveeLEDStrip do
 
   # Sent if a connection is dropped
   def handle_info({BlueHeron.ATT.Client, _, %DisconnectionComplete{reason_name: reason}}, state) do
-    Logger.warn("GoveeLEDStrip connection dropped: #{reason}")
+    Logger.warning("GoveeLEDStrip connection dropped: #{reason}")
     {:noreply, %{state | connected?: false}}
   end
 
@@ -141,7 +141,7 @@ defmodule GoveeLEDStrip do
   # Assembles the raw RGB data into a binary that the bulb expects
   # this was found here https://github.com/Freemanium/govee_btled#analyzing-the-traffic
   def handle_call({:set_color, _rgb}, _from, %{connected?: false} = state) do
-    Logger.warn("Not currently connected to a bulb")
+    Logger.warning("Not currently connected to a bulb")
     {:reply, {:error, :disconnected}, state}
   end
 
