@@ -1,7 +1,7 @@
 version: 2.1
 
 latest: &latest
-  pattern: "^1.15.\d+-erlang-26.*$"
+  pattern: ^1.15.\d+-erlang-26.*$
 
 jobs:
   build-test:
