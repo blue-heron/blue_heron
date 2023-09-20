@@ -33,7 +33,7 @@ defmodule BlueHeron.MixProject do
   defp deps() do
     [
       {:ex_doc, "~> 0.25", only: :docs, runtime: false},
-      {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.5", only: :test, runtime: false}
     ]
   end
@@ -44,7 +44,7 @@ defmodule BlueHeron.MixProject do
 
   defp dialyzer() do
     [
-      flags: [:race_conditions, :unmatched_returns, :error_handling, :underspecs],
+      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs],
       plt_add_apps: [:mix]
     ]
   end

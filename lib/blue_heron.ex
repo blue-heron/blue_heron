@@ -10,7 +10,7 @@ defmodule BlueHeron do
   @type on_start_error :: {:error, {:already_started, pid()} | term()}
 
   @doc "Entrypoint to starting a Bluetooth Stack"
-  @spec transport(Transport.config()) :: {:ok, Context.t()} | on_start_error()
+  @spec transport(Transport.config()) :: {:ok, Context.t()} | on_start_error() | :ignore
   def transport(config) do
     case Transport.start_link(config) do
       {:ok, pid} ->
