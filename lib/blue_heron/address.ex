@@ -78,6 +78,6 @@ defmodule BlueHeron.Address do
   end
 
   defp format_iodata(iodata) do
-    to_string(:io_lib.format('~2.16.0B:~2.16.0B:~2.16.0B:~2.16.0B:~2.16.0B:~2.16.0B', iodata))
+    to_string(:io_lib.format(~c"~2.16.0B:~2.16.0B:~2.16.0B:~2.16.0B:~2.16.0B:~2.16.0B", iodata))
   end
 end
