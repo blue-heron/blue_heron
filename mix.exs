@@ -16,7 +16,7 @@ defmodule BlueHeron.MixProject do
       docs: docs(),
       package: package(),
       preferred_cli_env: [
-        credo: :test,
+        credo: :dev,
         docs: :docs,
         "hex.build": :docs,
         "hex.publish": :docs
@@ -33,8 +33,8 @@ defmodule BlueHeron.MixProject do
   defp deps() do
     [
       {:ex_doc, "~> 0.25", only: :docs, runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.5", only: :test, runtime: false}
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:credo, "~> 1.5", only: :dev, runtime: false}
     ]
   end
 
