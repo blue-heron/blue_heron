@@ -1,4 +1,7 @@
 defmodule BlueHeron.Peripheral do
+  @moduledoc """
+  Handles management of advertising and GATT server
+  """
   require Logger
 
   alias BlueHeron.HCI.Command.LEController.{
@@ -19,7 +22,11 @@ defmodule BlueHeron.Peripheral do
     EncryptionChange
   }
 
-  alias BlueHeron.HCI.Event.LEMeta.{ConnectionComplete, LongTermKeyRequest}
+  alias BlueHeron.HCI.Event.LEMeta.{
+    ConnectionComplete,
+    LongTermKeyRequest,
+    ConnectionUpdateComplete
+  }
 
   alias BlueHeron.{ACL, L2Cap}
 
@@ -27,6 +34,7 @@ defmodule BlueHeron.Peripheral do
   alias BlueHeron.GATT.{Characteristic, Service}
 
   alias BlueHeron.SMP
+  alias BlueHeron.ACLBuffer
 
   @behaviour :gen_statem
 
@@ -38,7 +46,8 @@ defmodule BlueHeron.Peripheral do
     :gatt_handler,
     :gatt_server,
     :smp_server,
-    :smp_handler
+    :smp_handler,
+    :acl_buffer,
   ]
 
   @doc "Start a non-secured peripheral"
@@ -96,10 +105,12 @@ defmodule BlueHeron.Peripheral do
   @impl :gen_statem
   def init([ctx, gatt_handler, smp_io_handler, controlling_process]) do
     :ok = BlueHeron.add_event_handler(ctx)
+    {:ok, buffer} = ACLBuffer.start_link(ctx)
 
     %__MODULE__{
       controlling_process: controlling_process,
       ctx: ctx,
+      acl_buffer: buffer,
       gatt_handler: gatt_handler,
       smp_handler: smp_io_handler
     }
@@ -107,11 +118,12 @@ defmodule BlueHeron.Peripheral do
   end
 
   defp init_for_smp(%__MODULE__{} = data) do
-    with {:ok, smp_handler} <- Map.fetch(data, :smp_handler),
+    with {:ok, smp_handler} when not is_nil(smp_handler) <- Map.fetch(data, :smp_handler),
          {:ok, smp} = SMP.start_link(data.ctx, smp_handler) do
       {:ok, :wait_working, %{data | smp_server: smp}, []}
     else
       # smp not enabled
+      {:ok, nil} -> {:ok, :wait_working, data, []}
       :error -> {:ok, :wait_working, data, []}
       {:error, reason} -> {:stop, reason, :no_state}
     end
@@ -194,8 +206,25 @@ defmodule BlueHeron.Peripheral do
     :keep_state_and_data
   end
 
+  def advertising(:info, {:HCI_ACL_DATA_PACKET, _acl}, _data) do
+    :keep_state_and_data
+  end
+
   def advertising({:call, from}, :authenticate, _data) do
     {:keep_state_and_data, {:reply, from, {:error, :not_connected}}}
+  end
+
+  def advertising({:call, from}, :start_advertising, data) do
+    command = SetAdvertisingEnable.new(advertising_enable: true)
+
+    {:ok, %CommandComplete{return_parameters: %{status: 0}}} =
+      BlueHeron.hci_command(data.ctx, command)
+
+    {:next_state, :advertising, data, [{:reply, from, :ok}]}
+  end
+
+  def advertising({:call, from}, _call, _data) do
+    {:keep_state_and_data, [{:reply, from, :error}]}
   end
 
   def connected({:call, from}, :disconnect, data) do
@@ -223,7 +252,7 @@ defmodule BlueHeron.Peripheral do
 
         Logger.info(%{notif_acl: acl})
 
-        r = BlueHeron.acl(data.ctx, acl)
+        r = ACLBuffer.buffer(data.acl_buffer, acl)
         {:keep_state_and_data, {:reply, from, r}}
 
       error ->
@@ -231,10 +260,19 @@ defmodule BlueHeron.Peripheral do
     end
   end
 
+  def connected({:call, from}, :stop_advertising, data) do
+    command = SetAdvertisingEnable.new(advertising_enable: false)
+
+    {:ok, %CommandComplete{return_parameters: %{status: 0}}} =
+      BlueHeron.hci_command(data.ctx, command)
+
+    {:next_state, :ready, data, [{:reply, from, :ok}]}
+  end
+
   def connected({:call, from}, {:exchange_mtu, server_mtu}, data) do
     {:ok, request} = GATT.Server.exchange_mtu(data.gatt_server, server_mtu)
     acl = build_l2cap_acl(data.connection.handle, 0x0004, request)
-    r = BlueHeron.acl(data.ctx, acl)
+    r = ACLBuffer.buffer(data.acl_buffer, acl)
     {:keep_state_and_data, {:reply, from, r}}
   end
 
@@ -243,13 +281,15 @@ defmodule BlueHeron.Peripheral do
         {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0004, data: request}}},
         data
       ) do
-    Logger.info("Peripheral service discovery request: #{handle}=> #{inspect(request)}")
+    Logger.info(
+      "Peripheral service discovery request: #{inspect(handle, base: :hex)}=> #{inspect(request, base: :hex)}"
+    )
+
     {gatt_server, response} = GATT.Server.handle(data.gatt_server, request)
 
     if response do
       acl_response = build_l2cap_acl(handle, 0x0004, response)
-      Process.sleep(100)
-      BlueHeron.acl(data.ctx, acl_response)
+      ACLBuffer.buffer(data.acl_buffer, acl_response)
     end
 
     {:keep_state, %{data | gatt_server: gatt_server}, []}
@@ -257,10 +297,11 @@ defmodule BlueHeron.Peripheral do
 
   def connected(
         :info,
-        {:HCI_ACL_DATA_PACKET, %ACL{handle: _handle, data: %L2Cap{cid: 0x0006, data: _request}}},
+        {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0006, data: _request}}},
         %{smp_server: nil} = data
       ) do
     Logger.error("Received SMP request although SMP is not enabled")
+    _ = BlueHeron.hci_command(data.ctx, Disconnect.new(connection_handle: handle, reason: 0x05))
     {:keep_state, data, []}
   end
 
@@ -274,8 +315,7 @@ defmodule BlueHeron.Peripheral do
 
     if response do
       acl_response = build_l2cap_acl(handle, 0x0006, response)
-      BlueHeron.acl(data.ctx, acl_response)
-      Process.sleep(100)
+      ACLBuffer.buffer(data.acl_buffer, acl_response)
     end
 
     {:keep_state, data, []}
@@ -286,9 +326,9 @@ defmodule BlueHeron.Peripheral do
     :keep_state_and_data
   end
 
-  def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{} = pkg}, data) do
+  def connected(:info, {:HCI_EVENT_PACKET, %DisconnectionComplete{} = pkt}, data) do
     send(data.controlling_process, {__MODULE__, :disconnected})
-    Logger.warn("Peripheral Disconnect #{inspect(pkg.reason)}")
+    Logger.warning("Peripheral Disconnect #{inspect(pkt.reason)}")
     {:next_state, :ready, %{data | gatt_server: nil, connection: nil}}
   end
 
@@ -345,9 +385,21 @@ defmodule BlueHeron.Peripheral do
     {:keep_state, data, []}
   end
 
-  def connected(:info, pkg, _data) do
-    Logger.warn("Unhandled packet: #{inspect(pkg)}")
+  def connected(
+        :info,
+        {:HCI_EVENT_PACKET, %ConnectionUpdateComplete{}},
+        _data
+      ) do
     :keep_state_and_data
+  end
+
+  def connected(:info, pkg, _data) do
+    Logger.warning("Unhandled packet: #{inspect(pkg)}")
+    :keep_state_and_data
+  end
+
+  def connected({:call, from}, _call, _data) do
+    {:keep_state_and_data, [{:reply, from, :error}]}
   end
 
   defp build_l2cap_acl(handle, cid, payload) do
