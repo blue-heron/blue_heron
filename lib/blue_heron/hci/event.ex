@@ -33,7 +33,8 @@ defmodule BlueHeron.HCI.Event do
     Event.InquiryComplete,
     Event.LEMeta.AdvertisingReport,
     Event.LEMeta.ConnectionComplete,
-    Event.LEMeta.LongTermKeyRequest
+    Event.LEMeta.LongTermKeyRequest,
+    Event.LEMeta.ConnectionUpdateComplete
   ]
 
   def __modules__(), do: @modules
