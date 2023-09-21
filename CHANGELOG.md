@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.0
+
+* Enhancements
+  * Added initial implementation of SMP (Thanks @markushutzler ❤️)
+  * Added flow control for ACL data
+  * Added new HCI commands required for SMP
+* Bugfixes
+  * Fixed errors in GATT
+
 ## v0.3.0
 
 * Enhancements
