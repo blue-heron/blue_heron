@@ -28,6 +28,7 @@ defmodule BlueHeron.HCI.Event do
     Event.CommandComplete,
     Event.CommandStatus,
     Event.DisconnectionComplete,
+    Event.NumberOfCompletedPackets,
     Event.InquiryComplete,
     Event.LEMeta.AdvertisingReport,
     Event.LEMeta.ConnectionComplete

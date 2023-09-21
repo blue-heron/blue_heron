@@ -55,7 +55,8 @@ defmodule BlueHeron.HCI.Transport do
             init_commands: @default_init_commands,
             calls: %{},
             handlers: [],
-            max_error_count: @default_max_error_count
+            max_error_count: @default_max_error_count,
+            acl_buffer: nil
 
   require BlueHeron.HCIDump.Logger, as: Logger
 
@@ -68,7 +69,8 @@ defmodule BlueHeron.HCI.Transport do
 
   alias BlueHeron.HCI.Event.{
     CommandComplete,
-    CommandStatus
+    CommandStatus,
+    NumberOfCompletedPackets
     # DisconnectionComplete
   }
 
@@ -153,16 +155,29 @@ defmodule BlueHeron.HCI.Transport do
   def prepare(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
     Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
 
+    # This what the answer to LE_Read_Buffer_Size looks like:
+    # 15:56:43.785 [debug] [init_command_complete: %BlueHeron.HCI.Event.CommandComplete{code: 14, num_hci_command_packets: 1, opcode: <<2, 32>>, return_parameters: %{acl_data_packet_length: 251, status: 0, total_num_acl_data_packets: 8}}]
     case handle_hci_packet(hci, data) do
-      {:ok, %CommandComplete{}, data} ->
+      {:ok, %CommandComplete{} = event, data} ->
+        Logger.debug(init_command_complete: event)
+        actions = [{:next_event, :internal, :init}]
+
+        data =
+          if event.opcode == <<2, 32>> do
+            %{data | acl_buffer: event.return_parameters.total_num_acl_data_packets}
+          else
+            data
+          end
+
+        {:keep_state, data, actions}
+
+      {:ok, %CommandStatus{} = event, data} ->
+        Logger.debug(init_command_status: event)
         actions = [{:next_event, :internal, :init}]
         {:keep_state, data, actions}
 
-      {:ok, %CommandStatus{}, data} ->
-        actions = [{:next_event, :internal, :init}]
-        {:keep_state, data, actions}
-
-      {:ok, _, data} ->
+      {:ok, event, data} ->
+        Logger.debug(init_any_event: event)
         {:keep_state, data, []}
 
       {:error, reason, data} ->
@@ -227,7 +242,9 @@ defmodule BlueHeron.HCI.Transport do
 
     case module.send_acl(pid, acl) do
       true ->
-        Logger.hci_packet(:HCI_ACL_DATA_PACKET, :out, acl)
+        data = %{data | acl_buffer: data.acl_buffer - 1}
+        Logger.debug(sent_acl_buffer: data.acl_buffer)
+        # Logger.hci_packet(:HCI_ACL_DATA_PACKET, :out, acl)
         {:keep_state, data, [{:reply, from, :ok}]}
 
       false ->
@@ -249,17 +266,26 @@ defmodule BlueHeron.HCI.Transport do
 
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
+        Logger.debug(ready_command_complete: reply)
         {actions, data} = maybe_reply(data, reply)
         {:keep_state, data, actions}
 
       {:ok, %CommandStatus{} = reply, data} ->
+        Logger.debug(ready_command_status: reply)
         {actions, data} = maybe_reply(data, reply)
         {:keep_state, data, actions}
 
-      {:ok, _parsed, data} ->
+      {:ok, %NumberOfCompletedPackets{} = event, data} ->
+        data = %{data | acl_buffer: data.acl_buffer + event.number_of_completed_packets}
+        Logger.debug(received_acl_buffer: data.acl_buffer)
         {:keep_state, data, []}
 
-      {:error, _bin, data} ->
+      {:ok, event, data} ->
+        Logger.debug(ready_any_event: event)
+        {:keep_state, data, []}
+
+      {:error, bin, data} ->
+        Logger.debug(ready_error_event: bin)
         {:keep_state, data, []}
     end
   end
