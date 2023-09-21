@@ -57,7 +57,7 @@ defmodule BlueHeron.ACLBuffer do
     {:noreply, state}
   end
 
-  def handle_info({:HCI_EVENT_PACKET, %NumberOfCompletedPackets{} = event}, state) do
+  def handle_info({:HCI_EVENT_PACKET, %NumberOfCompletedPackets{} = _event}, state) do
     send(self(), :out)
     {:noreply, state}
   end

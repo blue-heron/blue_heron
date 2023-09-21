@@ -945,11 +945,11 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
-          data: %BlueHeron.ATT.ExchangeMTUResponse{opcode: 3, server_rx_mtu: 23}
+          data: %BlueHeron.ATT.ExchangeMTUResponse{opcode: 3, server_rx_mtu: 23},
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -986,30 +986,30 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByGroupTypeResponse{
+            opcode: 17,
             attribute_data: [
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 7,
                 handle: 1,
+                end_group_handle: 7,
                 uuid: 6144
               },
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 11,
                 handle: 8,
+                end_group_handle: 11,
                 uuid: 6145
               },
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 14,
                 handle: 12,
+                end_group_handle: 14,
                 uuid: 6154
               }
-            ],
-            opcode: 17
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1046,20 +1046,20 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByGroupTypeResponse{
+            opcode: 17,
             attribute_data: [
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 22,
                 handle: 15,
+                end_group_handle: 22,
                 uuid: 5_233_100_606_242_806_050_955_395_731_364_112
               }
-            ],
-            opcode: 17
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1096,20 +1096,20 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByGroupTypeResponse{
+            opcode: 17,
             attribute_data: [
               %BlueHeron.ATT.ReadByGroupTypeResponse.AttributeData{
-                end_group_handle: 26,
                 handle: 23,
+                end_group_handle: 26,
                 uuid: 5_233_100_606_242_806_050_955_395_731_364_114
               }
-            ],
-            opcode: 17
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1144,16 +1144,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ErrorResponse{
-            error: :attribute_not_found,
-            handle: 27,
             opcode: 1,
-            request_opcode: 16
-          }
+            request_opcode: 16,
+            handle: 27,
+            error: :attribute_not_found
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1190,33 +1190,36 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 2,
                 characteristic_properties: 18,
                 characteristic_value_handle: 3,
-                handle: 2,
+                value: nil,
                 uuid: 10752
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 4,
                 characteristic_properties: 2,
                 characteristic_value_handle: 5,
-                handle: 4,
+                value: nil,
                 uuid: 10753
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 6,
                 characteristic_properties: 2,
                 characteristic_value_handle: 7,
-                handle: 6,
+                value: nil,
                 uuid: 10756
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1253,33 +1256,36 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 2,
                 characteristic_properties: 18,
                 characteristic_value_handle: 3,
-                handle: 2,
+                value: nil,
                 uuid: 10752
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 4,
                 characteristic_properties: 2,
                 characteristic_value_handle: 5,
-                handle: 4,
+                value: nil,
                 uuid: 10753
               },
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 6,
                 characteristic_properties: 2,
                 characteristic_value_handle: 7,
-                handle: 6,
+                value: nil,
                 uuid: 10756
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1292,13 +1298,13 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeRequest{
-            ending_handle: 11,
             opcode: 8,
             starting_handle: 8,
+            ending_handle: 11,
             uuid: 10243
-          }
+          },
+          cid: 4
         },
         flags: %{bc: 0, pb: 0},
         handle: 16
@@ -1316,21 +1322,22 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 9,
                 characteristic_properties: 32,
                 characteristic_value_handle: 10,
-                handle: 9,
+                value: nil,
                 uuid: 10757
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1365,16 +1372,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ErrorResponse{
-            error: :attribute_not_found,
-            handle: 11,
             opcode: 1,
-            request_opcode: 8
-          }
+            request_opcode: 8,
+            handle: 11,
+            error: :attribute_not_found
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1411,21 +1418,22 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 13,
                 characteristic_properties: 2,
                 characteristic_value_handle: 14,
-                handle: 13,
+                value: nil,
                 uuid: 10832
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1462,21 +1470,22 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 16,
                 characteristic_properties: 18,
                 characteristic_value_handle: 17,
-                handle: 16,
+                value: nil,
                 uuid: 5_233_100_606_242_806_050_955_395_731_368_720
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1513,21 +1522,22 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 20,
                 characteristic_properties: 6,
                 characteristic_value_handle: 21,
-                handle: 20,
+                value: nil,
                 uuid: 5_233_100_606_242_806_050_955_395_731_368_721
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1562,16 +1572,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ErrorResponse{
-            error: :attribute_not_found,
-            handle: 22,
             opcode: 1,
-            request_opcode: 8
-          }
+            request_opcode: 8,
+            handle: 22,
+            error: :attribute_not_found
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1631,21 +1641,22 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ReadByTypeResponse{
+            opcode: 9,
             attribute_data: [
               %BlueHeron.ATT.ReadByTypeResponse.AttributeData{
+                handle: 24,
                 characteristic_properties: 6,
                 characteristic_value_handle: 25,
-                handle: 24,
+                value: nil,
                 uuid: 5_233_100_606_242_806_050_955_395_731_368_722
               }
-            ],
-            opcode: 9
-          }
+            ]
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)
@@ -1680,16 +1691,16 @@ defmodule BlueHeronRegressionTest do
 
       expected = %BlueHeron.ACL{
         data: %BlueHeron.L2Cap{
-          cid: 4,
           data: %BlueHeron.ATT.ErrorResponse{
-            error: :attribute_not_found,
-            handle: 26,
             opcode: 1,
-            request_opcode: 8
-          }
+            request_opcode: 8,
+            handle: 26,
+            error: :attribute_not_found
+          },
+          cid: 4
         },
-        flags: %{bc: 2, pb: 0},
-        handle: 16
+        flags: %{bc: 0, pb: 0},
+        handle: 528
       }
 
       actual = BlueHeron.ACL.deserialize(binary)

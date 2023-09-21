@@ -460,11 +460,14 @@ defmodule BlueHeron.GATT.Server do
       [characteristic] ->
         # TODO: Handle exceptions and long values
         value = state.mod.read(characteristic.id)
+
         attr =
           %ReadByTypeResponse.AttributeData{
             handle: characteristic.handle,
             uuid: characteristic.type,
-            value: value
+            value: value,
+            characteristic_properties: characteristic.properties,
+            characteristic_value_handle: characteristic.value_handle
           }
 
         {state, %ReadByTypeResponse{attribute_data: [attr]}}

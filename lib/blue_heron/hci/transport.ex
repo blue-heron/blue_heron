@@ -296,7 +296,7 @@ defmodule BlueHeron.HCI.Transport do
     :keep_state_and_data
   end
 
-  def ready(:info, {:transport_data, <<0x01, unknown::binary>>}, data) do
+  def ready(:info, {:transport_data, <<0x01, unknown::binary>>}, _data) do
     Logger.warning(%{unexpected_data: inspect(unknown, base: :hex)})
     :keep_state_and_data
   end
@@ -326,7 +326,7 @@ defmodule BlueHeron.HCI.Transport do
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
         {:ok, reply, data}
 
-      %{opcode: opcode} = reply ->
+      %{opcode: _opcode} = reply ->
         {:error, reply, data}
 
       %{} = reply ->

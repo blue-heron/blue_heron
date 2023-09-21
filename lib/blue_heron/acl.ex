@@ -4,8 +4,11 @@ defmodule BlueHeron.ACL do
 
   defstruct [:handle, :flags, :data]
 
-  def deserialize(<<handle::little-12, pb::2, bc::2, length::little-16,acl_data::binary-size(length)>>) do
+  def deserialize(
+        <<handle::little-12, pb::2, bc::2, length::little-16, acl_data::binary-size(length)>>
+      ) do
     data = BlueHeron.L2Cap.deserialize(acl_data)
+
     %ACL{
       handle: handle,
       flags: %{pb: pb, bc: bc},

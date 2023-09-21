@@ -13,7 +13,7 @@ defmodule BlueHeron.HCI.Event.LEMeta.EnhancedConnectionCompleteV1 do
     :connection_interval,
     :peripheral_latency,
     :supervision_timeout,
-    :central_clock_accuracy,
+    :central_clock_accuracy
   ]
 
   defimpl BlueHeron.HCI.Serializable do
@@ -72,7 +72,7 @@ defmodule BlueHeron.HCI.Event.LEMeta.EnhancedConnectionCompleteV1 do
       supervision_timeout: supervision_timeout,
       central_clock_accuracy: central_clock_accuracy,
       local_resolvable_private_address: local_resolvable_private_address,
-      peer_resolvable_private_address: peer_resolvable_private_address,
+      peer_resolvable_private_address: peer_resolvable_private_address
     }
   end
 

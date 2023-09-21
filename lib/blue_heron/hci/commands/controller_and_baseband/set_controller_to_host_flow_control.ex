@@ -1,7 +1,7 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetControllerToHostFlowControl do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0031
 
-  defparameters [flow_control_enable: 0]
+  defparameters flow_control_enable: 0
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode, flow_control_enable: flow_control_enable}) do

@@ -10,12 +10,6 @@ defmodule BlueHeron.HCI.Event.LEMeta.ConnectionUpdateComplete do
     :status
   ]
 
-  defimpl BlueHeron.HCI.Serializable do
-    def serialize(cc) do
-      raise(RuntimeError, "fixme")
-    end
-  end
-
   @impl BlueHeron.HCI.Event
   def deserialize(<<@code, _size, @subevent_code, bin::binary>>) do
     <<

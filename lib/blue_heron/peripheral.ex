@@ -47,7 +47,7 @@ defmodule BlueHeron.Peripheral do
     :gatt_server,
     :smp_server,
     :smp_handler,
-    :acl_buffer,
+    :acl_buffer
   ]
 
   @doc "Start a non-secured peripheral"

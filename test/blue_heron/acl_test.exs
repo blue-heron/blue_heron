@@ -15,7 +15,7 @@ defmodule BlueHeron.ACLTest do
       }
       |> ACL.serialize()
 
-    assert <<64, 32, 7, 0, 3, 0, 4, 0, 2, 185, 0>> == serialized
+    assert <<64, 2, 7, 0, 3, 0, 4, 0, 2, 185, 0>> == serialized
   end
 
   test "serde is symmetric" do

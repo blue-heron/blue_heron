@@ -109,8 +109,16 @@ defmodule BlueHeron.GATT.ServerTest do
       "a-value-longer-than-22-bytes"
     end
 
+    def read({:custom_service_1, :long_uuid}) do
+      "a-value-longer-than-22-bytes"
+    end
+
     def read({:gap, :service_changed}) do
       ""
+    end
+
+    def read({:gap, :appearance}) do
+      <<0x008D::little-16>>
     end
 
     @impl Server

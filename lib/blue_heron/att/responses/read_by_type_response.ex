@@ -42,7 +42,7 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
         when uuid > 0xFFFF do
       <<handle::little-16, characteristic_properties, characteristic_value_handle::little-16,
         uuid::little-128>>
-        end
+    end
 
     def serialize(%{
           handle: handle,
@@ -51,7 +51,7 @@ defmodule BlueHeron.ATT.ReadByTypeResponse do
           uuid: _uuid,
           value: value
         }) do
-          <<handle::little-16, value::binary>>
+      <<handle::little-16, value::binary>>
     end
   end
 

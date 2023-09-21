@@ -1,7 +1,7 @@
 defmodule BlueHeron.HCI.Command.LinkControl.Disconnect do
   use BlueHeron.HCI.Command.LinkControl, ocf: 0x0006
 
-  defparameters [reason: 0x16, connection_handle: 0]
+  defparameters reason: 0x16, connection_handle: 0
 
   defimpl BlueHeron.HCI.Serializable do
     def serialize(%{opcode: opcode, connection_handle: handle, reason: reason}) do
