@@ -181,7 +181,7 @@ defmodule BlueHeron.SMP do
   end
 
   def handle_call({:handle, <<0x05, reason>>}, _from, state) do
-    Logger.warn("Pairing failed: #{reason}")
+    Logger.warning("Pairing failed: #{reason}")
     # Inform callback that pairing failed
     state.io_handler.status_update(:fail)
     {:reply, nil, state}
@@ -376,7 +376,7 @@ defmodule BlueHeron.SMP do
 
   defp reply_for_ltk_request(request, _ediv, nil) do
     # EDIV does not exist, keys are "nil"
-    Logger.warn("Authentication: 'EDIV' unknown for #{request.connection_handle}")
+    Logger.warning("Authentication: 'EDIV' unknown for #{request.connection_handle}")
     LongTermKeyRequestNegativeReply.new(connection_handle: request.connection_handle)
   end
 
@@ -390,7 +390,7 @@ defmodule BlueHeron.SMP do
         ltk: reverse(ltk)
       )
     else
-      Logger.warn("Authentication: 'Rand' missmatch on handle #{request.connection_handle}")
+      Logger.warning("Authentication: 'Rand' missmatch on handle #{request.connection_handle}")
       LongTermKeyRequestNegativeReply.new(connection_handle: request.connection_handle)
     end
   end

@@ -50,8 +50,8 @@ defmodule BlueHeron.HCIDump.Logger do
     end
   end
 
-  @doc "See `Elixir.Logger.warn/2`"
-  defmacro warn(chardata_or_fun, metadata \\ []) do
+  @doc "See `Elixir.Logger.warning/2`"
+  defmacro warning(chardata_or_fun, metadata \\ []) do
     quote location: :keep do
       require Logger
 
@@ -61,7 +61,7 @@ defmodule BlueHeron.HCIDump.Logger do
         | unquote(metadata)
       ]
 
-      :ok = Logger.log(:warn, unquote(chardata_or_fun), metadata)
+      :ok = Logger.log(:warning, unquote(chardata_or_fun), metadata)
     end
   end
 

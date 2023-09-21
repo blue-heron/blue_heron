@@ -173,7 +173,7 @@ defmodule BlueHeron.HCI.Transport do
         {:keep_state, data, []}
 
       {:error, reason, data} ->
-        Logger.warn("Could not decode init_command response: #{inspect(reason)}")
+        Logger.warning("Could not decode init_command response: #{inspect(reason)}")
         {:keep_state, data, []}
     end
   end
@@ -278,12 +278,14 @@ defmodule BlueHeron.HCI.Transport do
       {:ok, %LongTermKeyRequest{} = _reply, data} ->
         {:keep_state, data, []}
 
-      {:ok, _parsed, data} ->
-        {:keep_state, data, []}
+      {:ok, reply, data} ->
+        {actions, data} = maybe_reply(data, reply)
+        {:keep_state, data, actions}
 
-      {:error, reason, data} ->
-        Logger.warn("Could not decode command response: #{inspect(reason)}")
-        {:keep_state, data, []}
+      {:error, reply, data} ->
+        Logger.warning(%{decode: reply, event: inspect(hci, limit: :infinity, base: :hex)})
+        {actions, data} = maybe_reply(data, reply)
+        {:keep_state, data, actions}
     end
   end
 
@@ -291,6 +293,11 @@ defmodule BlueHeron.HCI.Transport do
     Logger.hci_packet(:HCI_ACL_DATA_PACKET, :in, acl)
     acl = BlueHeron.ACL.deserialize(acl)
     for pid <- data.handlers, do: send(pid, {:HCI_ACL_DATA_PACKET, acl})
+    :keep_state_and_data
+  end
+
+  def ready(:info, {:transport_data, <<0x01, unknown::binary>>}, data) do
+    Logger.warning(%{unexpected_data: inspect(unknown, base: :hex)})
     :keep_state_and_data
   end
 
@@ -314,15 +321,16 @@ defmodule BlueHeron.HCI.Transport do
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
         {:ok, reply, data}
 
-      %{opcode: opcode} = reply ->
-        Logger.warn(
-          "BLE: Status return for #{Base.encode16(String.reverse(opcode))} is #{reply.return_parameters.status}"
-        )
+      %{code: 62, subevent_code: 3} = reply ->
+        # handle HCI.Event.LEMeta.ConnectionUpdateComplete
+        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+        {:ok, reply, data}
 
+      %{opcode: opcode} = reply ->
         {:error, reply, data}
 
       %{} = reply ->
-        Logger.warn("BLE: Unknown HCI frame #{inspect(reply)}")
+        Logger.warning("BLE: Unknown HCI frame #{inspect(reply)}")
         {:error, reply, data}
 
       {:error, unknown} ->

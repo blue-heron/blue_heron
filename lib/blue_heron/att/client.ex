@@ -214,7 +214,7 @@ defmodule BlueHeron.ATT.Client do
   end
 
   def connecting(:info, {:HCI_EVENT_PACKET, %ConnectionComplete{} = connection}, data) do
-    Logger.warn(
+    Logger.warning(
       "Connection complete for different connection: #{inspect(connection.peer_address, base: :hex)} command: #{inspect(data.create_connection.peer_address, base: :hex)}"
     )
 
@@ -228,7 +228,7 @@ defmodule BlueHeron.ATT.Client do
   end
 
   def connecting(:info, :create_connection_timeout, data) do
-    Logger.warn("Timeout establishing connection")
+    Logger.warning("Timeout establishing connection")
     actions = [{:next_event, :internal, :create_connection}]
     {:next_state, :connecting, %{data | connection_timer: nil}, actions}
   end
@@ -254,7 +254,7 @@ defmodule BlueHeron.ATT.Client do
   end
 
   def connected({:call, from}, %CreateConnection{}, data) do
-    Logger.warn("Create connection called, but already connected!")
+    Logger.warning("Create connection called, but already connected!")
     send(data.controlling_process, {__MODULE__, self(), data.connection})
     {:keep_state, %{data | caller: nil}, maybe_reply(from, :ok)}
   end
@@ -323,7 +323,7 @@ defmodule BlueHeron.ATT.Client do
         {:HCI_EVENT_PACKET, %DisconnectionComplete{connection_handle: handle} = disconnect},
         %{connection: %{connection_handle: handle}} = data
       ) do
-    Logger.warn("Disconnected from #{inspect(handle, base: :hex)}")
+    Logger.warning("Disconnected from #{inspect(handle, base: :hex)}")
 
     actions =
       [
