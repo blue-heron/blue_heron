@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.1
+
+* Enhancements
+  * Added `set_scan_response_data` HCI command and Peripheral function
+    * This allows for an additional 31 bytes of advertising data to be used
+
 ## v0.4.0
 
 * Enhancements
