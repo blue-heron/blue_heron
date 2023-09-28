@@ -32,6 +32,7 @@ defmodule BlueHeron.HCI.Command do
     LEController.SetAdvertisingParameters,
     LEController.SetRandomAddress,
     LEController.SetScanEnable,
+    LEController.SetScanResponseData,
     LEController.SetScanParameters,
     LEController.LongTermKeyRequestReply,
     LEController.LongTermKeyRequestNegativeReply,
