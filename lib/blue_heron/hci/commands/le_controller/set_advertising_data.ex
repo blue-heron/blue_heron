@@ -4,7 +4,8 @@ defmodule BlueHeron.HCI.Command.LEController.SetAdvertisingData do
   defparameters advertising_data: <<>>
 
   defimpl BlueHeron.HCI.Serializable do
-    def serialize(%{opcode: opcode, advertising_data: advertising_data}) do
+    def serialize(%{opcode: opcode, advertising_data: advertising_data})
+        when byte_size(advertising_data) <= 31 do
       length = byte_size(advertising_data)
       padding_size = (31 - length) * 8
 

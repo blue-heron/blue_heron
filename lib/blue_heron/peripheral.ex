@@ -1,12 +1,24 @@
 defmodule BlueHeron.Peripheral do
   @moduledoc """
   Handles management of advertising and GATT server
+
+  ## Advertisement Data and Scan Response Data
+
+  both `set_advertising_data` and `set_scan_response_data` take the same binary
+  data as an argument. The format is called `AdvertisingData` or `AD` for short in
+  the official BLE spec. The format is
+
+    <<length, param, data::binary-size(byte_size(data))>>
+
+  Where `param` can be one of many values defined in the official BLE spec suplement, and each `param`
+  has it's own data. Both params have a hard limit of 31 bytes total.
   """
   require Logger
 
   alias BlueHeron.HCI.Command.LEController.{
     SetAdvertisingParameters,
     SetAdvertisingData,
+    SetScanResponseData,
     SetAdvertisingEnable
   }
 
@@ -64,8 +76,28 @@ defmodule BlueHeron.Peripheral do
     :gen_statem.call(pid, {:set_parameters, params})
   end
 
+  @doc """
+  Sets Advertising Data for a peripheral.
+  Must be called **before** `start_advertising` or **after** `stop_advertising`.
+
+  see [Vol 3] Part C, Section 11 of the BLE core specification.
+  Additionally see: Core Specification Supplement, Part A, Data Types Specification
+  """
+  @spec set_advertising_data(GenServer.server(), binary()) :: :ok | {:error, atom()}
   def set_advertising_data(pid, data) do
     :gen_statem.call(pid, {:set_advertising_data, data})
+  end
+
+  @doc """
+  Sets Scan Response Data for a peripheral.
+  Must be called **before** `start_advertising` or **after** `stop_advertising`.
+
+  see [Vol 3] Part C, Section 11 of the BLE core specification.
+  Additionally see: Core Specification Supplement, Part A, Data Types Specification
+  """
+  @spec set_scan_response_data(GenServer.server(), binary()) :: :ok | {:error, atom()}
+  def set_scan_response_data(pid, data) do
+    :gen_statem.call(pid, {:set_scan_response_data, data})
   end
 
   def start_advertising(pid) do
@@ -150,6 +182,15 @@ defmodule BlueHeron.Peripheral do
 
   def ready({:call, from}, {:set_advertising_data, adv_data}, data) do
     command = SetAdvertisingData.new(advertising_data: adv_data)
+
+    {:ok, %CommandComplete{return_parameters: %{status: 0}}} =
+      BlueHeron.hci_command(data.ctx, command)
+
+    {:keep_state_and_data, [{:reply, from, :ok}]}
+  end
+
+  def ready({:call, from}, {:set_scan_response_data, scan_resp_data}, data) do
+    command = SetScanResponseData.new(scan_response_data: scan_resp_data)
 
     {:ok, %CommandComplete{return_parameters: %{status: 0}}} =
       BlueHeron.hci_command(data.ctx, command)
