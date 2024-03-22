@@ -326,6 +326,11 @@ defmodule BlueHeron.HCI.Transport do
         for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
         {:ok, reply, data}
 
+      %{code: 62, num_reports: _} = reply ->
+        # handle HCI.Event.LEMeta.AdvertisingReport
+        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
+        {:ok, reply, data}
+
       %{opcode: _opcode} = reply ->
         {:error, reply, data}
 
