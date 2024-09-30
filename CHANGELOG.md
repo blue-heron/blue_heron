@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.2
+
+* Bugfixes
+  * Fixed ACL messages not being delivered to parent process (Thanks @acadeau ❤️)
+
 ## v0.4.1
 
 * Enhancements
