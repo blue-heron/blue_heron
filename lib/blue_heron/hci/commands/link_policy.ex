@@ -17,6 +17,7 @@ defmodule BlueHeron.HCI.Command.LinkPolicy do
   Reference: Version 5.2, Vol 4, Part E, 7.2
   """
 
+  @doc false
   def __ogf__(), do: @ogf
 
   @doc """
