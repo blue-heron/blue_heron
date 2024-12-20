@@ -82,6 +82,12 @@ jobs:
     - name: Check Formatting
       run: mix format --check-formatted
 
+    # Step: Check that the checked in code has been linted.
+    # This step fails if something was found not matching our credo spec.
+    # Customize this step as desired.
+    - name: Check Formatting
+      run: mix credo --ignore todo refactor
+
     # Step: Execute the tests.
     - name: Run tests
       run: mix test
