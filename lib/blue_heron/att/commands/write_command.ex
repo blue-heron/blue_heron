@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.WriteCommand do
+  @moduledoc """
+  > The ATT_WRITE_CMD PDU is used to request the server to write the value of an
+  > attribute, typically into a control-point attribute.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.5.3
+  """
+
   defstruct [:opcode, :handle, :data]
 
   def deserialize(<<0x52, handle::little-16, data::binary>>) do
