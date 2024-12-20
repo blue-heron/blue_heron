@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.WriteRequest do
+  @moduledoc """
+  > The ATT_WRITE_REQ PDU is used to request the server to write the value of an
+  > attribute and acknowledge that this has been achieved in an ATT_WRITE_RSP PDU.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.5.1
+  """
+
   defstruct [:opcode, :handle, :value]
 
   def serialize(%{handle: handle, value: value}) do

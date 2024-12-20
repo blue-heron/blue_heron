@@ -1,4 +1,12 @@
 defmodule BlueHeron.ATT.ReadByGroupTypeRequest do
+  @moduledoc """
+  > The ATT_READ_BY_GROUP_TYPE_REQ PDU is used to obtain the values of
+  > attributes where the attribute type is known, the type of a grouping attribute as defined
+  > by a higher layer specification, but the handle is not known.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.4.9
+  """
+
   defstruct [:opcode, :starting_handle, :ending_handle, :uuid]
 
   def serialize(%{

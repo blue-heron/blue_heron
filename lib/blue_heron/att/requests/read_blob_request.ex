@@ -1,4 +1,12 @@
 defmodule BlueHeron.ATT.ReadBlobRequest do
+  @moduledoc """
+  > The ATT_READ_BLOB_REQ PDU is used to request the server to read part of the
+  > value of an attribute at a given offset and return a specific part of the value in an
+  > ATT_READ_BLOB_RSP PDU.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.4.5
+  """
+
   defstruct [:opcode, :handle, :offset]
 
   def serialize(%{handle: handle, offset: offset}) do
