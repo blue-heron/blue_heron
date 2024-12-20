@@ -1,6 +1,19 @@
 defmodule BlueHeron.HCI.Command.LEController.LongTermKeyRequestReply do
   use BlueHeron.HCI.Command.LEController, ocf: 0x001A
 
+  @moduledoc """
+  > The HCI_LE_Long_Term_Key_Request_Reply command is used to reply to an
+  > HCI_LE_Long_Term_Key_Request event from the Controller, and specifies the
+  > Long_Term_Key parameter that shall be used for this Connection_Handle.
+  > This command shall only be used when the local device’s role is Peripheral.
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.25
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters [
     :connection_handle,
     :ltk

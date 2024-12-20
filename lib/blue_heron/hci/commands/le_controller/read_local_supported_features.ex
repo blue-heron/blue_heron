@@ -1,6 +1,18 @@
 defmodule BlueHeron.HCI.Command.LEController.ReadLocalSupportedFeatures do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0003
 
+  @moduledoc """
+  > This command requests page 0 of the list of the supported LE features for the
+  > Controller.
+
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.3
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters []
 
   defimpl BlueHeron.HCI.Serializable do

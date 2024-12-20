@@ -1,6 +1,16 @@
 defmodule BlueHeron.HCI.Command.LEController.SetScanParameters do
   use BlueHeron.HCI.Command.LEController, ocf: 0x000B
 
+  @moduledoc """
+  > The HCI_LE_Set_Scan_Parameters command is used to set the scan parameters.
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.10
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters le_scan_type: 0x00,
                 le_scan_interval: 0x0010,
                 le_scan_window: 0x0010,

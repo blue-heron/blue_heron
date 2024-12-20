@@ -1,5 +1,19 @@
 defmodule BlueHeron.HCI.Command.LEController.CreateConnectionCancel do
   use BlueHeron.HCI.Command.LEController, ocf: 0x000E
+
+  @moduledoc """
+  > The HCI_LE_Create_Connection_Cancel command is used to cancel the
+  > HCI_LE_Create_Connection or HCI_LE_Extended_Create_Connection commands.
+  > If no HCI_LE_Create_Connection or HCI_LE_Extended_Create_Connection command
+  > is pending, then the Controller shall return the error code Command Disallowed (0x0C).
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.13
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters([])
 
   defimpl BlueHeron.HCI.Serializable do

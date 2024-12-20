@@ -1,6 +1,21 @@
 defmodule BlueHeron.HCI.Command.LEController.ReadBufferSizeV1 do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0002
 
+  @moduledoc """
+  > This command is used to read the maximum size of the data portion of ACL data
+  > packets and isochronous data packets sent from the Host to the Controller. The Host
+  > shall fragment the data transmitted to the Controller according to these values so that
+  > the HCI ACL Data packets and HCI ISO Data packets will contain data up to this size
+  > (“data” includes optional fields in the HCI ISO Data packet, such as ISO_SDU_Length).
+
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.2
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters []
 
   defimpl BlueHeron.HCI.Serializable do
