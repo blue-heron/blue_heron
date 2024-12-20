@@ -54,8 +54,8 @@ defmodule BlueHeron.SMP do
   @doc """
   Returns true if the current connection is authenticated.
   """
-  def is_authenticated?(smp) do
-    GenServer.call(smp, :is_authenticated)
+  def authenticated?(smp) do
+    GenServer.call(smp, :authenticated)
   end
 
   @doc """
@@ -97,7 +97,7 @@ defmodule BlueHeron.SMP do
   end
 
   @impl GenServer
-  def handle_call(:is_authenticated, _from, state) do
+  def handle_call(:authenticated, _from, state) do
     {:reply, state.authenticated, state}
   end
 

@@ -151,7 +151,7 @@ defmodule BlueHeron.Peripheral do
 
   defp init_for_smp(%__MODULE__{} = data) do
     with {:ok, smp_handler} when not is_nil(smp_handler) <- Map.fetch(data, :smp_handler),
-         {:ok, smp} = SMP.start_link(data.ctx, smp_handler) do
+         {:ok, smp} <- SMP.start_link(data.ctx, smp_handler) do
       {:ok, :wait_working, %{data | smp_server: smp}, []}
     else
       # smp not enabled
