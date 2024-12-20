@@ -1,4 +1,12 @@
 defmodule BlueHeron.ATT.ReadBlobResponse do
+  @moduledoc """
+  > The ATT_READ_BLOB_RSP PDU is sent in reply to a received
+  > ATT_READ_BLOB_REQ PDU and contains part of the value of the attribute that has
+  > been read
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.4.6
+  """
+
   defstruct [:opcode, :value]
 
   def serialize(%{value: value}) do

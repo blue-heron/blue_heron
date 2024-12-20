@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.ErrorResponse do
+  @moduledoc """
+  > The ATT_ERROR_RSP PDU is used to state that a given request cannot be performed,
+  > and to provide the reason.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.1.1
+  """
+
   defstruct [:opcode, :request_opcode, :handle, :error]
 
   def serialize(%{request_opcode: request_opcode, handle: handle, error: error}) do

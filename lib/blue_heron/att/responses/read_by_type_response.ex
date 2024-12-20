@@ -1,5 +1,17 @@
 defmodule BlueHeron.ATT.ReadByTypeResponse do
+  @moduledoc """
+  > The ATT_READ_BY_TYPE_RSP PDU is sent in reply to a received
+  > ATT_READ_BY_TYPE_REQ PDU and contains the handles and values of the attributes
+  > that have been read.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.4.2
+  """
+
   defmodule AttributeData do
+    @moduledoc """
+    Structure containing decoders and encoders for the Attribute Data
+    """
+
     defstruct [:handle, :characteristic_properties, :characteristic_value_handle, :value, :uuid]
 
     def deserialize(<<handle::little-16, properties, value_handle::little-16, uuid::little-16>>) do

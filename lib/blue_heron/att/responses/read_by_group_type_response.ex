@@ -1,4 +1,12 @@
 defmodule BlueHeron.ATT.ReadByGroupTypeResponse do
+  @moduledoc """
+  > The ATT_READ_BY_GROUP_TYPE_RSP PDU is sent in reply to a received
+  > ATT_READ_BY_GROUP_TYPE_REQ PDU and contains the handles and values of the
+  > attributes that have been read
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.4.10
+  """
+
   defstruct [:opcode, :attribute_data]
 
   defmodule AttributeData do
