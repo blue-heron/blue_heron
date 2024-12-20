@@ -1,6 +1,17 @@
 defmodule BlueHeron.HCI.Command.LinkControl.Disconnect do
   use BlueHeron.HCI.Command.LinkControl, ocf: 0x0006
 
+  @moduledoc """
+  > The HCI_Disconnect command is used to terminate an existing connection. The
+  > Connection_Handle parameter indicates which connection is to be disconnected
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+
+  Bluetooth Spec v5.3, Vol 4, Part E, section 7.1.6
+  """
+
   defparameters reason: 0x16, connection_handle: 0
 
   defimpl BlueHeron.HCI.Serializable do
