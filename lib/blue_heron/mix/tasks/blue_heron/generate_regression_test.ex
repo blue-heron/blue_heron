@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.BlueHeron.GenerateRegressionTest do
+  @moduledoc false
   use Mix.Task
 
   def run([]) do
