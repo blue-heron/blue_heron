@@ -32,9 +32,9 @@ defmodule BlueHeron.MixProject do
 
   defp deps() do
     [
-      {:ex_doc, "~> 0.25", only: :docs, runtime: false},
-      {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.5", only: :test, runtime: false}
+      {:ex_doc, "~> 0.35", only: :docs, runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: :test, runtime: false}
     ]
   end
 
