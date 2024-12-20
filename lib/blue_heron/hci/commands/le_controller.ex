@@ -1,7 +1,4 @@
 defmodule BlueHeron.HCI.Command.LEController do
-  alias __MODULE__, as: LEC
-  @ogf 0x08
-
   @moduledoc """
   HCI commands for working with the LE Controller.
 
@@ -14,6 +11,10 @@ defmodule BlueHeron.HCI.Command.LEController do
   Reference: Version 5.2, Vol 4, Part E, 7.8
   """
 
+  alias __MODULE__, as: LEC
+  @ogf 0x08
+
+  @doc false
   def __ogf__(), do: @ogf
 
   @doc """

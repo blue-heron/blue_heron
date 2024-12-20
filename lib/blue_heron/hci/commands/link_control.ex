@@ -2,6 +2,19 @@ defmodule BlueHeron.HCI.Command.LinkControl do
   alias __MODULE__, as: LC
   @ogf 0x01
 
+  @moduledoc """
+  HCI commands for working with Link Control.
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+
+  > The Link Control commands allow a Controller to control connections to other BR/EDR
+  > Controllers. Some Link Control commands are used only with a BR/EDR Controller
+  > whereas other Link Control commands are also used with an LE Controller.
+
+  Reference: Version 5.2, Vol 4, Part E, 7.1
+  """
+
+  @doc false
   def __ogf__(), do: @ogf
 
   @doc """
