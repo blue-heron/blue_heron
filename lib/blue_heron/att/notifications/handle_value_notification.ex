@@ -1,4 +1,10 @@
 defmodule BlueHeron.ATT.HandleValueNotification do
+  @moduledoc """
+  > A server can send a notification of an attribute’s value at any time.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.7.1
+  """
+
   defstruct [:opcode, :handle, :data]
 
   @type t() :: %__MODULE__{handle: non_neg_integer(), data: binary()}
