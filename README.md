@@ -68,37 +68,6 @@ and
 [BlueHeronTransportUSB](https://github.com/blue-heron/blue_heron_transport_usb)
 for examples.
 
-## HCI Logging
-
-This project includes a Logger backend to dump PKTLOG format. This is the same format
-that Android, IOS, btstack, hcidump, and bluez use.
-
-Add the backend to debug all data to/from the HCI transport:
-
-```elixir
-iex> Logger.add_backend(BlueHeron.HCIDump.Logger)
-BlueHeron.HCIDump.Logger
-```
-
-This will produce a file `/tmp/hcidump.pklg` that can be loaded into Wireshark.
-
-**NOTE** This project configures logger so it is always enabled by default.
-However, this can be disabled by setting `config :blue_heron, log_hci_dump_file:
-false`
-
-The `BlueHeron.HCIDump.Logger` module implements a superset of Elixir's builtin logger and
-all non-HCI data is forwarded directly to Elixir's Logger.
-
-```elixir
-iex> require BlueHeron.HCIDump.Logger, as: Logger
-BlueHeron.HCIDump.Logger
-iex> Logger.debug("sample data")
-
-16:43:46.496 [debug] sample data
-
-iex>
-```
-
 ## Helpful docs
 
 * [Bluetooth Core Specification v5.2](https://www.bluetooth.org/docman/handlers/downloaddoc.ashx?doc_id=478726)
