@@ -2,19 +2,14 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.ReadLocalName do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0014
 
   @moduledoc """
-  The Read_Local_Name command provides the ability to read the stored user-friendly name for
-  the BR/EDR Controller. See Section 6.23 and 7.3.12 for more details
+  > The HCI_Read_Local_Name command provides the ability to read the stored user-
+  > friendly name for the BR/EDR Controller.
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
-  ## Command Parameters
-  > None
-
-  ## Return Parameters
-  * `:status` - see `BlueHeron.ErrorCode`
-  * `:local_name` - A UTF-8 encoded User Friendly Descriptive Name for the device
+  Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.12
   """
 
   defparameters []

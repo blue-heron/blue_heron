@@ -1,6 +1,17 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetControllerToHostFlowControl do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0031
 
+  @moduledoc """
+  > This command is used by the Host to turn flow control on or off for data and/or
+  > voice sent in the direction from the Controller to the Host. 
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+
+  Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.38
+  """
+
   defparameters flow_control_enable: 0
 
   defimpl BlueHeron.HCI.Serializable do

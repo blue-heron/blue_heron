@@ -2,24 +2,14 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteLEHostSupport do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x006D
 
   @moduledoc """
-  The HCI_Write_LE_Host_Support command is used to set the LE Supported (Host)
-  and Simultaneous LE and BR/EDR to Same Device Capable (Host) Link Manager
-  Protocol feature bits.
+  > The HCI_Write_LE_Host_Support command is used to set the LE Supported (Host)
+  > Link Manager Protocol feature bi
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.79
-
-  ## Command Parameters
-  * `le_supported_host_enabled` - boolean (default: false)
-
-  Note that this command also carries the Simultaneous_LE_Host parameter.
-  However, this parameter is not exposed in this API because it is always false.
-
-  ## Return Parameters
-  * `:status` - see `BlueHeron.ErrorCode`
   """
 
   defparameters le_supported_host_enabled: false

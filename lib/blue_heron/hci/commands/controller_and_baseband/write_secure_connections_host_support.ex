@@ -2,35 +2,14 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteSecureConnectionsHost
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x007A
 
   @moduledoc """
-  This command writes the Secure_Connections_Host_Support parameter in the BR/EDR Controller.
+  > This command writes the Secure_Connections_Host_Support parameter in the BR/EDR
+  > Controller.
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.92
-
-  When Secure Connections Host Support is set to 'enabled' the Controller shall
-  use the enhanced reporting mechanisms for the Encryption_Enabled parameter in
-  the HCI_Encryption_Change event (see Section 7.7.8) and the Key_Type parameter
-  in the HCI_Link_Key_Notification event (see Section 7.7.24). If the Host
-  issues this command while the Controller is paging, has page scanning enabled,
-  or has an ACL connection, the Controller shall return the error code Command
-  Disallowed (0x0C).
-
-  The Link Manager Secure Connections (Host Support) feature bit shall be set to
-  the Secure_Connections_Host_Support parameter. The default value for
-  Secure_Connections_Host_Support shall be 'disabled.' When
-  Secure_Connections_Host_Support is set to 'enabled,' the bit in the LMP
-  features mask indicating support for Secure Connections (Host Support) shall
-  be set to enabled in subsequent responses to an LMP_FEATURES_REQ from a remote
-  device.
-
-  ## Command Parameters
-  * `enabled` - boolean
-
-  ## Return Parameters
-  * `:status` - see `BlueHeron.ErrorCode`
   """
 
   defparameters enabled: false

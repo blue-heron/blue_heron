@@ -2,29 +2,15 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.HostBufferSize do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0033
 
   @moduledoc """
-  Reset the baseband
+  > The HCI_Host_Buffer_Size command is used by the Host to notify the
+  > Controller about the maximum size of the data portion of HCI ACL and
+  > Synchronous Data packets sent from the Controller to the Host.
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.39
-
-  The HCI_Host_Buffer_Size command is used by the Host to notify the
-  Controller about the maximum size of the data portion of HCI ACL and
-  Synchronous Data packets sent from the Controller to the Host. The Controller
-  shall segment the data to be transmitted from the Controller to the Host
-  according to these sizes, so that the HCI Data packets will contain data with up
-  to these sizes. The HCI_Host_Buffer_Size command also notifies the
-  Controller about the total number of HCI ACL and Synchronous Data packets
-  that can be stored in the data buffers of the Host. If flow control from the
-  Controller to the Host is turned off, and the HCI_Host_Buffer_Size command
-  has not been issued by the Host, this means that the Controller will send HCI
-  Data packets to the Host with any lengths the Controller wants to use, and it is
-  assumed that the data buffer sizes of the Host are unlimited. If flow control from
-  the Controller to the Host is turned on, the HCI_Host_Buffer_Size command
-  shall after a power-on or a reset always be sent by the Host before the first
-  HCI_Host_Number_Of_Completed_Packets command is sent.
   """
 
   defparameters [
