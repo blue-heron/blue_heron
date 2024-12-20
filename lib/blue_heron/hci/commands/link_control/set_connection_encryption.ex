@@ -2,20 +2,14 @@ defmodule BlueHeron.HCI.Command.LinkControl.SetConnectionEncryption do
   use BlueHeron.HCI.Command.LinkControl, ocf: 0x0013
 
   @moduledoc """
-  This command is used to try to authenticate the remote device associated with
-  the specified Connection_Handle.
+  > This command is used to try to authenticate the remote device associated with
+  > the specified Connection_Handle.
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
   Bluetooth Spec v5.3, Vol 4, Part E, section 7.1.16
-
-  ## Command Parameters
-  * `handle` - Connection handle
-
-  ## Return Parameters
-  * `:status` - see `BlueHeron.ErrorCode`
   """
 
   defparameters handle: 0, enable: true
