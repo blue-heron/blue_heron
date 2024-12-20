@@ -111,6 +111,21 @@ but its small size and few parts is easier to get our heads around and debug
 when issues come up. Is it fun to work on? Yes, so we got permission to
 open-source it, so we could use it for hobby projects too.
 
+## Debugging
+
+It can be a chore to debug Bluetooth. Errors can happen at a few different
+layers from the baseband all the way up to the high level software. Below are
+some useful pieces of hardware and software that can be used to debug issues
+in BlueHeron or generally snoop on BLE devices.
+
+### Nordic Semiconductor BLE Sniffer
+
+This is a custom firmware for devboards that can be used to sniff BLE packets.
+More info can be found on [Nordic's website](https://docs.nordicsemi.com/bundle/nrfutil_ble_sniffer_pdf/resource/nRF_Sniffer_BLE_UG_v4.0.0.pdf)
+
+* [Adafruit BLE Sniffer](https://www.adafruit.com/product/2269)
+* [Nordic nrf52840 dongle](https://www.nordicsemi.com/Products/Development-hardware/nrf52840-dongle)
+
 ## Support
 
 We provide best-effort support via the [Elixir Forum](https://elixirforum.com/)
