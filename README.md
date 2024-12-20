@@ -68,37 +68,6 @@ and
 [BlueHeronTransportUSB](https://github.com/blue-heron/blue_heron_transport_usb)
 for examples.
 
-## HCI Logging
-
-This project includes a Logger backend to dump PKTLOG format. This is the same format
-that Android, IOS, btstack, hcidump, and bluez use.
-
-Add the backend to debug all data to/from the HCI transport:
-
-```elixir
-iex> Logger.add_backend(BlueHeron.HCIDump.Logger)
-BlueHeron.HCIDump.Logger
-```
-
-This will produce a file `/tmp/hcidump.pklg` that can be loaded into Wireshark.
-
-**NOTE** This project configures logger so it is always enabled by default.
-However, this can be disabled by setting `config :blue_heron, log_hci_dump_file:
-false`
-
-The `BlueHeron.HCIDump.Logger` module implements a superset of Elixir's builtin logger and
-all non-HCI data is forwarded directly to Elixir's Logger.
-
-```elixir
-iex> require BlueHeron.HCIDump.Logger, as: Logger
-BlueHeron.HCIDump.Logger
-iex> Logger.debug("sample data")
-
-16:43:46.496 [debug] sample data
-
-iex>
-```
-
 ## Helpful docs
 
 * [Bluetooth Core Specification v5.2](https://www.bluetooth.org/docman/handlers/downloaddoc.ashx?doc_id=478726)
@@ -141,6 +110,21 @@ what we need? Yes. Will it have fewer bugs, be more robust, etc.? Don't know,
 but its small size and few parts is easier to get our heads around and debug
 when issues come up. Is it fun to work on? Yes, so we got permission to
 open-source it, so we could use it for hobby projects too.
+
+## Debugging
+
+It can be a chore to debug Bluetooth. Errors can happen at a few different
+layers from the baseband all the way up to the high level software. Below are
+some useful pieces of hardware and software that can be used to debug issues
+in BlueHeron or generally snoop on BLE devices.
+
+### Nordic Semiconductor BLE Sniffer
+
+This is a custom firmware for devboards that can be used to sniff BLE packets.
+More info can be found on [Nordic's website](https://docs.nordicsemi.com/bundle/nrfutil_ble_sniffer_pdf/resource/nRF_Sniffer_BLE_UG_v4.0.0.pdf)
+
+* [Adafruit BLE Sniffer](https://www.adafruit.com/product/2269)
+* [Nordic nrf52840 dongle](https://www.nordicsemi.com/Products/Development-hardware/nrf52840-dongle)
 
 ## Support
 

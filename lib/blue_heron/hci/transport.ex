@@ -4,6 +4,8 @@ defmodule BlueHeron.HCI.Transport do
   a physical link that implements the callbacks in this module
   """
 
+  require Logger
+
   alias BlueHeron.HCI.Command.{
     ControllerAndBaseband,
     InformationalParameters,
@@ -58,8 +60,6 @@ defmodule BlueHeron.HCI.Transport do
             calls: %{},
             handlers: [],
             max_error_count: @default_max_error_count
-
-  require BlueHeron.HCIDump.Logger, as: Logger
 
   @type config :: map()
   @type recv_fun :: (binary -> any())
@@ -155,8 +155,6 @@ defmodule BlueHeron.HCI.Transport do
   end
 
   def prepare(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
-    Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
-
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{}, data} ->
         actions = [{:next_event, :internal, :init}]
@@ -193,7 +191,6 @@ defmodule BlueHeron.HCI.Transport do
 
     case module.send_command(pid, command) do
       true ->
-        Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, command)
         prepare(:internal, :init, %{data | init_commands: rest})
 
       false ->
@@ -217,7 +214,6 @@ defmodule BlueHeron.HCI.Transport do
 
     case module.send_command(pid, bin) do
       true ->
-        Logger.hci_packet(:HCI_COMMAND_DATA_PACKET, :out, bin)
         {:keep_state, add_call(data, {from, opcode})}
 
       false ->
@@ -243,7 +239,6 @@ defmodule BlueHeron.HCI.Transport do
 
     case module.send_acl(pid, acl) do
       true ->
-        Logger.hci_packet(:HCI_ACL_DATA_PACKET, :out, acl)
         {:keep_state, data, [{:reply, from, :ok}]}
 
       false ->
@@ -261,8 +256,6 @@ defmodule BlueHeron.HCI.Transport do
   end
 
   def ready(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
-    Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
-
     case handle_hci_packet(hci, data) do
       {:ok, %CommandComplete{} = reply, data} ->
         {actions, data} = maybe_reply(data, reply)
@@ -290,7 +283,6 @@ defmodule BlueHeron.HCI.Transport do
   end
 
   def ready(:info, {:transport_data, <<0x2, acl::binary>>}, data) do
-    Logger.hci_packet(:HCI_ACL_DATA_PACKET, :in, acl)
     acl = BlueHeron.ACL.deserialize(acl)
     for pid <- data.handlers, do: send(pid, {:HCI_ACL_DATA_PACKET, acl})
     :keep_state_and_data
