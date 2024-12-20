@@ -2,19 +2,14 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteLocalName do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0013
 
   @moduledoc """
-  The HCI_Write_Local_Name command provides the ability to modify the user- friendly name for the BR/EDR Controller.
+  > he HCI_Write_Local_Name command provides the ability to modify the user-friendly
+  > name for the BR/EDR Controller.
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.11
-
-  ## Command Parameters
-  * `name` - A UTF-8 encoded User-Friendly Descriptive Name for the device. Up-to 248 bytes
-
-  ## Return Parameters
-  * `:status` - see `BlueHeron.ErrorCode`
   """
 
   defparameters name: "Bluetooth"

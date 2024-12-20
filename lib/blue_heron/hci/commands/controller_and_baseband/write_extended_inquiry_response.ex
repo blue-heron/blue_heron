@@ -2,26 +2,14 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteExtendedInquiryRespon
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0052
 
   @moduledoc """
-  The HCI_Write_Extended_Inquiry_Response command writes the extended inquiry
-  response to be sent during the extended inquiry response procedure.
+  > The HCI_Write_Extended_Inquiry_Response command writes the extended inquiry
+  > response to be sent during the extended inquiry response procedure.
 
   * OGF: `#{inspect(@ogf, base: :hex)}`
   * OCF: `#{inspect(@ocf, base: :hex)}`
   * Opcode: `#{inspect(@opcode)}`
 
   Bluetooth Spec v5.2, Vol 4, Part E, section 7.3.56
-
-  The FEC_Required command parameter states if FEC encoding is required. The
-  extended inquiry response data is not preserved over a reset. The initial
-  value of the inquiry response data is all zero octets. The Controller shall
-  not interpret the extended inquiry response data.
-
-  ## Command Parameters
-  * `fec_required` - boolean to set if FEC required. Default `false`
-  * `extended_inquiry_response` - up to 240 bytes
-
-  ## Return Parameters
-  * `:status` - see `BlueHeron.ErrorCode`
   """
 
   defparameters fec_required?: false, extended_inquiry_response: <<0>>
