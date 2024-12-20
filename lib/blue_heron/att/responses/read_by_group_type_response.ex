@@ -10,6 +10,9 @@ defmodule BlueHeron.ATT.ReadByGroupTypeResponse do
   defstruct [:opcode, :attribute_data]
 
   defmodule AttributeData do
+    @moduledoc """
+    Strucutured AttributeData encoder/decoder.
+    """
     defstruct [:handle, :end_group_handle, :uuid]
 
     def deserialize(<<handle::little-16, end_group_handle::little-16, uuid::little-16>>) do

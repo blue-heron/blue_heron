@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.ReadByTypeRequest do
+  @moduledoc """
+  > The ATT_READ_BY_TYPE_REQ PDU is used to obtain the values of attributes where
+  > the attribute type is known but the handle is not known.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.4.1
+  """
+
   defstruct [:opcode, :starting_handle, :ending_handle, :uuid]
 
   def serialize(%{

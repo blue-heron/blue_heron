@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.FindByTypeValueRequest do
+  @moduledoc """
+  > The ATT_FIND_BY_TYPE_VALUE_RSP PDU is sent in reply to a received
+  > ATT_FIND_BY_TYPE_VALUE_REQ PDU and contains information about this server.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.3.4
+  """
+
   defstruct [:opcode, :starting_handle, :ending_handle, :attribute_type, :attribute_value]
 
   def serialize(%{

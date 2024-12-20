@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.PrepareWriteRequest do
+  @moduledoc """
+  > The ATT_PREPARE_WRITE_REQ PDU is used to request the server to prepare
+  > to write the value of an attribute.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.6.1
+  """
+
   defstruct [:opcode, :handle, :offset, :value]
 
   def serialize(%{handle: handle, offset: offset, value: value}) do
