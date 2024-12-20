@@ -26,3 +26,4 @@ blue_heron-*.tar
 
 config/
 !config/config.exs
+old

@@ -24,9 +24,6 @@ defmodule BlueHeron.GATT.ServerTest do
   }
 
   defmodule TestServer do
-    @behaviour Server
-
-    @impl Server
     def profile() do
       [
         Service.new(%{
@@ -52,7 +49,8 @@ defmodule BlueHeron.GATT.ServerTest do
                   permissions: 0b00000010
                 })
             })
-          ]
+          ],
+          read: &read/1
         }),
         Service.new(%{
           id: :gatt,
@@ -63,7 +61,8 @@ defmodule BlueHeron.GATT.ServerTest do
               type: 0x2A05,
               properties: 0x20
             })
-          ]
+          ],
+          read: &read/1
         }),
         Service.new(%{
           id: :custom_service_1,
@@ -79,7 +78,9 @@ defmodule BlueHeron.GATT.ServerTest do
               type: 0xF018E00E0ECE45B09617B744833D89BA,
               properties: 0b0001010
             })
-          ]
+          ],
+          read: &read/1,
+          write: &write/2
         }),
         Service.new(%{
           id: :custom_service_2,
@@ -95,12 +96,12 @@ defmodule BlueHeron.GATT.ServerTest do
               type: 0xF018E00E0ECE45B09617B744833D89BB,
               properties: 0b0001010
             })
-          ]
+          ],
+          read: &read/1
         })
       ]
     end
 
-    @impl Server
     def read({:gap, :device_name}) do
       "test-device"
     end
@@ -121,7 +122,6 @@ defmodule BlueHeron.GATT.ServerTest do
       <<0x008D::little-16>>
     end
 
-    @impl Server
     def write({:custom_service_1, :short_uuid}, value) do
       send(self(), value)
       :ok
@@ -129,7 +129,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover all primary services" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     # First, request primary services in the entire handle range
     {state, response} =
@@ -212,7 +212,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover all characteristics" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     # Request all characteristics in the range of the :gap service
     {state, response} =
@@ -307,7 +307,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover characteristics by uuid" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     # Request all characteristics of type 0x2A00 (device name) in the range of
     # the :gap service
@@ -382,7 +382,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "read short characteristic value" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     {_state, response} = Server.handle(state, %ReadRequest{handle: 0x0003})
 
@@ -390,7 +390,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "read long characteristic value" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
     # Overhead per response is 1 byte
     chunk_size = state.mtu - 1
     expected_value = "a-value-longer-than-22-bytes"
@@ -414,7 +414,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "write short characteristic value" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     {_state, response} =
       Server.handle(state, %WriteRequest{handle: 0x0000E, value: "short-value"})
@@ -425,7 +425,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "write long characteristic value" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
     # Overhead per request & response is 5 bytes
     chunk_size = state.mtu - 5
     expected_value = "a-value-longer-than-22-bytes"
@@ -456,7 +456,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "discover characteristic descriptor" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     {_state, response} =
       Server.handle(state, %FindInformationRequest{
@@ -473,7 +473,7 @@ defmodule BlueHeron.GATT.ServerTest do
   end
 
   test "notifications" do
-    state = Server.init(TestServer, nil)
+    state = Server.init(TestServer.profile())
 
     {state, response} =
       Server.handle(state, %WriteRequest{

@@ -8,18 +8,18 @@ defmodule BlueHeron.ACLBuffer do
   alias BlueHeron.HCI.Event.NumberOfCompletedPackets
 
   @doc "queue up a message for output"
-  def buffer(server, acl) do
-    GenServer.cast(server, {:buffer, acl})
+  def buffer(acl) do
+    GenServer.cast(__MODULE__, {:buffer, acl})
   end
 
-  def start_link(ctx) do
-    GenServer.start_link(__MODULE__, [ctx])
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   @impl GenServer
-  def init([ctx]) do
-    :ok = BlueHeron.add_event_handler(ctx)
-    {:ok, %{ctx: ctx, acls: :queue.new()}}
+  def init(_args) do
+    :ok = BlueHeron.Registry.subscribe()
+    {:ok, %{acls: :queue.new()}}
   end
 
   @impl GenServer
@@ -37,15 +37,13 @@ defmodule BlueHeron.ACLBuffer do
         # there are already items in the queue, so don't send yet
         {:noreply, new_state}
     end
-
-    {:noreply, new_state}
   end
 
   @impl GenServer
   def handle_info(:out, %{acls: acls} = state) do
     case :queue.out(acls) do
       {{:value, acl}, acls} ->
-        BlueHeron.acl(state.ctx, acl)
+        :ok = BlueHeron.HCI.Transport.send_acl(acl)
         {:noreply, %{state | acls: acls}}
 
       {:empty, acls} ->
