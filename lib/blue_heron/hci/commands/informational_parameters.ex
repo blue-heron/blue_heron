@@ -1,4 +1,7 @@
 defmodule BlueHeron.HCI.Command.InformationalParameters do
+  alias __MODULE__, as: IP
+  @ogf 0x04
+
   @moduledoc """
   HCI commands for working with the informational parameters.
 
@@ -12,9 +15,6 @@ defmodule BlueHeron.HCI.Command.InformationalParameters do
 
   Bluetooth Spec v5.2, vol 4, Part E, 7.2
   """
-
-  alias __MODULE__, as: IP
-  @ogf 0x04
 
   @doc false
   def __ogf__(), do: @ogf

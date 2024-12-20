@@ -1,4 +1,7 @@
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband do
+  alias __MODULE__, as: CaB
+  @ogf 0x03
+
   @moduledoc """
   HCI commands for working with the controller and baseband.
 
@@ -11,9 +14,6 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband do
   > the behavior of the local Controller.
   Bluetooth Spec v5
   """
-
-  alias __MODULE__, as: CaB
-  @ogf 0x03
 
   @doc false
   def __ogf__(), do: @ogf
