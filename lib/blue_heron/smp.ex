@@ -145,9 +145,9 @@ defmodule BlueHeron.SMP do
     # Handle Pairing Confirm
 
     pairing = %{state.pairing | confirm: reverse(confirm)}
-    ia = BlueHeron.Address.parse(state.connection.peer_address).binary()
+    ia = BlueHeron.Address.parse(state.connection.peer_address).binary
     iat = state.connection.peer_address_type
-    ra = state.bd_address.binary()
+    ra = state.bd_address.binary
     rat = 0
 
     response = c1(pairing.k, pairing.r, pairing.preq, pairing.pres, iat, rat, ia, ra)
@@ -158,9 +158,9 @@ defmodule BlueHeron.SMP do
     # Handle Pairing Random
 
     pairing = %{state.pairing | ir: reverse(random)}
-    ia = BlueHeron.Address.parse(state.connection.peer_address).binary()
+    ia = BlueHeron.Address.parse(state.connection.peer_address).binary
     iat = state.connection.peer_address_type
-    ra = state.bd_address.binary()
+    ra = state.bd_address.binary
     rat = 0
 
     # Use c1() with peer random
@@ -262,7 +262,7 @@ defmodule BlueHeron.SMP do
     :timer.sleep(200)
 
     # generate and send BD_ADDRESS using "Identity Address Information" ACL message
-    frame = acl(event.connection_handle, <<0x09, 0>> <> reverse(state.bd_address.binary()))
+    frame = acl(event.connection_handle, <<0x09, 0>> <> reverse(state.bd_address.binary))
     BlueHeron.acl(state.ctx, frame)
     :timer.sleep(200)
 
