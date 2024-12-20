@@ -1,4 +1,11 @@
 defmodule BlueHeron.ATT.ExchangeMTUResponse do
+  @moduledoc """
+  > The ATT_EXCHANGE_MTU_RSP PDU is sent in reply to a received
+  > ATT_EXCHANGE_MTU_REQ PDU.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.2.2
+  """
+
   defstruct [:opcode, :server_rx_mtu]
 
   def serialize(emtu) do

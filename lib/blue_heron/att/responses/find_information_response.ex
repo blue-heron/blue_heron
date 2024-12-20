@@ -1,7 +1,18 @@
 defmodule BlueHeron.ATT.FindInformationResponse do
+  @moduledoc """
+  > The ATT_FIND_INFORMATION_RSP PDU is sent in reply to a received
+  > ATT_FIND_INFORMATION_REQ PDU and contains information about this server.
+
+  Bluetooth Spec v5.2, vol 3, Part F, 3.4.3.2
+  """
+
   defstruct [:opcode, :format, :information_data]
 
   defmodule InformationData do
+    @moduledoc """
+    Strucutured InformationData encoder/decoder.
+    """
+
     defstruct [:handle, :uuid]
 
     def serialize(%{handle: handle, uuid: uuid}) when uuid > 65535 do
