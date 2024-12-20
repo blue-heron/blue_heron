@@ -1,6 +1,15 @@
 defmodule BlueHeron.HCI.Event.LEMeta.EnhancedConnectionCompleteV1 do
   use BlueHeron.HCI.Event.LEMeta, subevent_code: 0xA
 
+  @moduledoc """
+  > The HCI_LE_Enhanced_Connection_Complete event indicates to both of the Hosts
+  > forming the connection that a new connection has been created. Upon the creation
+  > of the connection a Connection_Handle shall be assigned by the Controller, and
+  > passed to the Host in this event. 
+
+  Reference: Version 5.2, Vol 4, Part E, 7.7.65.10
+  """
+
   defparameters [
     :subevent_code,
     :status,

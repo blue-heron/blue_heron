@@ -2,9 +2,9 @@ defmodule BlueHeron.HCI.Event.LEMeta.LongTermKeyRequest do
   use BlueHeron.HCI.Event.LEMeta, subevent_code: 0x05
 
   @moduledoc """
-  The HCI_LE_Long_Term_Key_Request event indicates that the peer device, in
-  the Central role, is attempting to encrypt or re-encrypt the link and is requesting
-  the Long Term Key from the Host. (See [Vol 6] Part B, Section 5.1.3).
+  > The HCI_LE_Long_Term_Key_Request event indicates that the peer device, in
+  > the Central role, is attempting to encrypt or re-encrypt the link and is requesting
+  > the Long Term Key from the Host. (See [Vol 6] Part B, Section 5.1.3).
 
   Reference: Version 5.3, Vol 4, Part E, 7.7.65.5
   """

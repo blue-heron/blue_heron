@@ -1,6 +1,13 @@
 defmodule BlueHeron.HCI.Event.LEMeta.ConnectionUpdateComplete do
   use BlueHeron.HCI.Event.LEMeta, subevent_code: 0x3
 
+  @moduledoc """
+  > The HCI_LE_Connection_Update_Complete event is used to indicate that the
+  > Connection Update procedure has completed.
+
+  Reference: Version 5.2, Vol 4, Part E, 7.7.65.3
+  """
+
   defparameters [
     :subevent_code,
     :connection_handle,
