@@ -1,4 +1,9 @@
 defmodule BlueHeron.ACL do
+  @moduledoc """
+  > HCI ACL Data packets are used to exchange data between the Host and Controller
+
+  Bluetooth Spec v5.2, vol 4, Part E, 5.4.2
+  """
   alias BlueHeron.ACL
   require Logger
 

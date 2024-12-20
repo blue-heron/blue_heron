@@ -331,7 +331,7 @@ defmodule BlueHeron.GATT.Server do
     if p_list == nil do
       false
     else
-      if permission in p_list and not SMP.is_authenticated?(state.smp_server) do
+      if permission in p_list and not SMP.authenticated?(state.smp_server) do
         true
       else
         false

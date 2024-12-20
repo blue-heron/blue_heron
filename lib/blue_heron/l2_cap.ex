@@ -1,4 +1,9 @@
 defmodule BlueHeron.L2Cap do
+  @moduledoc """
+  > Logical Link Control and Adaptation Protocol Specification.
+
+  Bluetooth Spec v5.2, vol 4, Part A
+  """
   defstruct [:data, :cid]
 
   def deserialize(<<length::little-16, cid::little-16, data::binary-size(length)>>) do

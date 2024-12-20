@@ -20,6 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 defmodule BlueHeron.HCI.Event do
+  @moduledoc """
+  Handles parsing of HCI Events (opcode 0x04).
+
+  new event decoders should `use` this module, and be added to the
+  `@modules` attribute.
+  """
+
   @callback deserialize(binary()) :: struct()
 
   alias BlueHeron.HCI.Event
@@ -37,7 +44,10 @@ defmodule BlueHeron.HCI.Event do
     Event.LEMeta.ConnectionUpdateComplete
   ]
 
+  @doc "returns the list of parsable modules"
   def __modules__(), do: @modules
+
+  @doc "returns the opcode for HCI Events"
   def __indicator__(), do: 0x04
 
   defmacro defparameters(fields) do

@@ -1,4 +1,12 @@
 defmodule BlueHeron.HCI.Command do
+  @moduledoc """
+  > The Link Control commands allow a Controller to control connections to other BR/EDR
+  > Controllers. Some Link Control commands are used only with a BR/EDR Controller
+  > whereas other Link Control commands are also used with an LE Controller.
+
+  Bluetooth Spec v5.2, vol 4, Part E, 7
+  """
+
   @callback deserialize_return_parameters(binary()) :: map() | binary()
   @callback serialize_return_parameters(map() | binary()) :: binary()
   @callback deserialize(binary()) :: term()
