@@ -26,12 +26,15 @@ defmodule BlueHeron.MixProject do
 
   def application() do
     [
-      extra_applications: [:logger, :crypto]
+      extra_applications: [:logger, :crypto],
+      mod: {BlueHeron.Application, []}
     ]
   end
 
   defp deps() do
     [
+      {:circuits_uart, "~> 1.5"},
+      {:property_table, "~> 0.2.6"},
       {:ex_doc, "~> 0.35", only: :docs, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: :test, runtime: false}
@@ -44,7 +47,7 @@ defmodule BlueHeron.MixProject do
 
   defp dialyzer() do
     [
-      flags: [:race_conditions, :unmatched_returns, :error_handling, :underspecs],
+      flags: [:unmatched_returns, :error_handling, :underspecs],
       plt_add_apps: [:mix]
     ]
   end
