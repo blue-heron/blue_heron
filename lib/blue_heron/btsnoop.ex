@@ -1,7 +1,15 @@
 defmodule BlueHeron.BTSnoop do
+  @moduledoc """
+  BTSnoop decoder. 
+
+  [Official spec](https://datatracker.ietf.org/doc/html/rfc1761)
+  """
   defstruct [:type, :timestamp, :payload, :drops, :direction]
 
   @hci_uart_type 1002
+  @doc """
+
+  """
   def decode_file!(path) do
     case File.read!(path) do
       <<"btsnoop", 0x0, 1::32, @hci_uart_type::32, bin::binary>> ->
