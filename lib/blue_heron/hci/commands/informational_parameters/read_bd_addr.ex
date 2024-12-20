@@ -1,6 +1,17 @@
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadBRADDR do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0009
 
+  @moduledoc """
+  > On a BR/EDR Controller, this command reads the Bluetooth Controller address
+  > (BD_ADDR). 
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+
+  Bluetooth Spec v5.3, Vol 4, Part E, section 7.4.6
+  """
+
   defparameters []
 
   defimpl BlueHeron.HCI.Serializable do

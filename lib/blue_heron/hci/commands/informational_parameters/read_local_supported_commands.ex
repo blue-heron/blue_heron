@@ -1,6 +1,16 @@
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalSupportedCommands do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0002
 
+  @moduledoc """
+  > This command reads the list of HCI commands supported for the local Controller.
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+
+  Bluetooth Spec v5.3, Vol 4, Part E, section 7.4.2
+  """
+
   defparameters []
 
   defimpl BlueHeron.HCI.Serializable do

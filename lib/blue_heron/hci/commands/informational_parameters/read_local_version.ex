@@ -1,6 +1,16 @@
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalVersion do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0001
 
+  @moduledoc """
+  > This command reads the values for the version information for the local Controller.
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+
+  Bluetooth Spec v5.3, Vol 4, Part E, section 7.4.1
+  """
+
   defparameters []
 
   defimpl BlueHeron.HCI.Serializable do
