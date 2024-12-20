@@ -1,6 +1,17 @@
 defmodule BlueHeron.HCI.Command.LEController.SetAdvertisingData do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0008
 
+  @moduledoc """
+  > The HCI_LE_Set_Advertising_Data command is used to set the data used in
+  > advertising packets that have a data field.
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.7
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters advertising_data: <<>>
 
   defimpl BlueHeron.HCI.Serializable do

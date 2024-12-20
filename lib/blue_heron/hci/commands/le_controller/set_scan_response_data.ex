@@ -1,6 +1,16 @@
 defmodule BlueHeron.HCI.Command.LEController.SetScanResponseData do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0009
 
+  @moduledoc """
+  > This command is used to provide data used in Scanning Packets that have a data field.
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.10
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters scan_response_data: <<>>
 
   defimpl BlueHeron.HCI.Serializable do

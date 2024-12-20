@@ -1,6 +1,17 @@
 defmodule BlueHeron.HCI.Command.LEController.SetRandomAddress do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0005
 
+  @moduledoc """
+  > The HCI_LE_Set_Random_Address command is used by the Host to set the LE
+  > Random Device Address in the Controller
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.4
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters random_address: nil
 
   defimpl BlueHeron.HCI.Serializable do

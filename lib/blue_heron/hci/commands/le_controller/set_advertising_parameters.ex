@@ -1,6 +1,16 @@
 defmodule BlueHeron.HCI.Command.LEController.SetAdvertisingParameters do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0006
 
+  @moduledoc """
+  > The HCI_LE_Set_Scan_Parameters command is used to set the scan parameters.
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.10
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters advertising_interval_min: 0x0800,
                 advertising_interval_max: 0x0800,
                 advertising_type: 0x00,

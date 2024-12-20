@@ -1,6 +1,18 @@
 defmodule BlueHeron.HCI.Command.LEController.SetScanEnable do
   use BlueHeron.HCI.Command.LEController, ocf: 0x000C
 
+  @moduledoc """
+  > The HCI_LE_Set_Scan_Enable command is used to start and stop scanning for legacy
+  > PDUs (but not extended PDUs, even if the device supports extended advertising).
+  > Scanning is used to discover advertising devices nearby.
+
+  Bluetooth Core Version 5.2 | Vol 4, Part E, section 7.8.11
+
+  * OGF: `#{inspect(@ogf, base: :hex)}`
+  * OCF: `#{inspect(@ocf, base: :hex)}`
+  * Opcode: `#{inspect(@opcode)}`
+  """
+
   defparameters le_scan_enable: false,
                 filter_duplicates: false
 
