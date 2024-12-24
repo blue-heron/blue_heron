@@ -88,30 +88,7 @@ defmodule BlueHeron.GATT.Server do
   alias BlueHeron.GATT.{Characteristic, Service}
   alias BlueHeron.SMP
 
-  @doc """
-  Return the list of services that make up the GATT profile of the device.
-
-  This callback is only invoked when the GATT server is started, as the profile
-  is assumed to be static.
-
-  To comply with the Bluetooth specification, the profile must include a "GAP"
-  service (type UUID 0x1800), which must have characteristics for "Device Name"
-  (type UUID 0x2A00) and "Appearance" (type UUID 0x2A01).
-  """
-  @callback profile() :: [Service.t()]
-
-  @doc """
-  Return the value of the characteristic given by `id`.
-  The value must be serialized as a binary.
-  """
-  @callback read(id :: any()) :: binary()
-
-  @doc """
-  Handle a write to the characteristic given by `id`.
-  """
-  @callback write(id :: any(), value :: binary()) :: :ok
-
-  defstruct [:mod, :profile, :mtu, :read_buffer, :write_requests, :smp_server]
+  defstruct [:profile, :mtu, :read_buffer, :write_requests]
 
   @discover_all_primary_services 0x2800
   @find_included_services 0x2802
@@ -119,25 +96,21 @@ defmodule BlueHeron.GATT.Server do
   @cccd 0x2902
 
   @opaque t() :: %__MODULE__{
-            mod: module(),
             profile: [Service.t()],
             mtu: non_neg_integer(),
             read_buffer: binary(),
-            write_requests: [binary()],
-            smp_server: GenServer.server() | nil
+            write_requests: [binary()]
           }
 
   @doc false
-  def init(mod, smp_server) do
-    profile = hydrate(mod.profile())
+  def init(profile) do
+    profile = hydrate(profile)
 
     %__MODULE__{
-      mod: mod,
       profile: profile,
       mtu: 23,
       read_buffer: <<>>,
-      write_requests: [],
-      smp_server: smp_server
+      write_requests: []
     }
   end
 
@@ -223,9 +196,11 @@ defmodule BlueHeron.GATT.Server do
 
       %ExecuteWriteRequest{} ->
         if require_permission?(state, request, :write_auth) do
+          [%{handle: handle} | _] = state.write_requests
+
           {state,
            %ErrorResponse{
-             handle: request.handle,
+             handle: handle,
              request_opcode: request.opcode,
              error: :insufficient_authentication
            }}
@@ -320,23 +295,25 @@ defmodule BlueHeron.GATT.Server do
     IO.iodata_to_binary(table)
   end
 
-  # Disable permission checking when SMP is not active
-  defp require_permission?(%{smp_server: nil}, _request, _permission) do
-    false
-  end
-
-  defp require_permission?(state, request, permission) do
-    p_list = find_characteristic_permissions(state.profile, request.handle)
+  defp require_permission?(state, %{handle: handle}, permission) do
+    p_list = find_characteristic_permissions(state.profile, handle)
 
     if p_list == nil do
       false
     else
-      if permission in p_list and not SMP.authenticated?(state.smp_server) do
+      if permission in p_list and not SMP.authenticated?() do
         true
       else
         false
       end
     end
+  end
+
+  defp require_permission?(state, _request, permission) do
+    # ExecuteWriteRequest doesn't have a handle, so look
+    # it up in the write_requests state
+    [req | _] = state.write_requests
+    require_permission?(state, req, permission)
   end
 
   defp exchange_mtu_request(state, _request) do
@@ -436,20 +413,23 @@ defmodule BlueHeron.GATT.Server do
   end
 
   defp discover_characteristics_by_uuid(state, request) do
-    characteristics =
-      state.profile
-      |> Enum.filter(fn service ->
+    services =
+      Enum.filter(state.profile, fn service ->
         service.handle >= request.starting_handle and
           service.handle <= request.ending_handle
       end)
+
+    characteristics =
+      services
       |> Enum.flat_map(fn service -> service.characteristics end)
       |> Enum.filter(fn characteristic ->
         characteristic.type == request.uuid and characteristic.handle >= request.starting_handle and
           characteristic.handle <= request.ending_handle
       end)
 
-    case characteristics do
-      [] ->
+    case {services, characteristics} do
+      # no matching characteristics
+      {_, []} ->
         {state,
          %ErrorResponse{
            handle: request.starting_handle,
@@ -457,9 +437,9 @@ defmodule BlueHeron.GATT.Server do
            error: :attribute_not_found
          }}
 
-      [characteristic] ->
+      {[service | _], [characteristic]} ->
         # TODO: Handle exceptions and long values
-        value = state.mod.read(characteristic.id)
+        value = service.read.(characteristic.id)
 
         attr =
           %ReadByTypeResponse.AttributeData{
@@ -472,7 +452,7 @@ defmodule BlueHeron.GATT.Server do
 
         {state, %ReadByTypeResponse{attribute_data: [attr]}}
 
-      characteristics_in_range ->
+      {_, characteristics_in_range} ->
         attribute_data =
           characteristics_in_range
           |> Enum.map(fn characteristic ->
@@ -557,8 +537,9 @@ defmodule BlueHeron.GATT.Server do
   def check_notification_mtu(_, _), do: {:error, :payload_too_large}
 
   defp read_characteristic_value(state, request) do
+    service = find_service_by_handle(state.profile, request.handle)
     id = find_characteristic_id(state.profile, request.handle)
-    value = state.mod.read(id)
+    value = service.read.(id)
 
     # We cache the value if it's longer than MTU - 1, to avoid inconsistent
     # reads if the value is updated during the read operation. We assume that
@@ -579,12 +560,13 @@ defmodule BlueHeron.GATT.Server do
   end
 
   defp read_long_characteristic_value(state, request) do
+    service = find_service_by_handle(state.profile, request.handle)
     id = find_characteristic_id(state.profile, request.handle)
 
     read_result =
       case state.read_buffer do
         nil ->
-          value = state.mod.read(id)
+          value = service.read.(id)
           read_bytes(value, state.mtu - 1, request.offset)
 
         value ->
@@ -603,25 +585,27 @@ defmodule BlueHeron.GATT.Server do
   end
 
   defp write_characteristic_value(state, request) do
+    service = find_service_by_handle(state.profile, request.handle)
     id = find_characteristic_id(state.profile, request.handle)
-    :ok = state.mod.write(id, request.value)
+
+    :ok = service.write.(id, request.value)
 
     {state, %WriteResponse{}}
   end
 
   defp write_descriptor_value(state, handle, value) do
-    profile = Enum.map(state.profile, &map_service_chars(state.mod, &1, handle, value))
+    profile = Enum.map(state.profile, &map_service_chars(&1, handle, value))
     {%{state | profile: profile}, %WriteResponse{}}
   end
 
-  defp map_service_chars(mod, service, handle, value) do
+  defp map_service_chars(service, handle, value) do
     characteristics =
       Enum.map(service.characteristics, fn
         %{descriptor_handle: ^handle} = char ->
           # TODO: probably shouldn't be doing this in the map function,
           # but prevents having to itterate the entire service table again
-          if match?(<<0x1, 0>>, value), do: mod.subscribe(char.id)
-          if match?(<<0x0, 0>>, value), do: mod.unsubscribe(char.id)
+          if match?(<<0x1, 0>>, value), do: service.subscribe.(char.id)
+          if match?(<<0x0, 0>>, value), do: service.unsubscribe.(char.id)
           %{char | descriptor: %{char.descriptor | value: value}}
 
         char ->
@@ -644,6 +628,7 @@ defmodule BlueHeron.GATT.Server do
 
   defp write_long_characteristic_value(state, %ExecuteWriteRequest{flags: 1}) do
     [req | _] = state.write_requests
+    service = find_service_by_handle(state.profile, req.handle)
     id = find_characteristic_id(state.profile, req.handle)
 
     value =
@@ -652,7 +637,7 @@ defmodule BlueHeron.GATT.Server do
       |> Enum.map(fn req -> req.value end)
       |> Enum.into(<<>>)
 
-    :ok = state.mod.write(id, value)
+    :ok = service.write.(id, value)
     state = %{state | write_requests: []}
 
     {state, %ExecuteWriteResponse{}}
@@ -664,7 +649,7 @@ defmodule BlueHeron.GATT.Server do
     {state, %ExecuteWriteResponse{}}
   end
 
-  defp hydrate(profile) do
+  defp hydrate(profile) when is_list(profile) do
     # TODO: Check that ID's are unique
     {_next_handle, profile} =
       Enum.reduce(profile, {1, []}, fn service, {next_handle, acc} ->
@@ -747,6 +732,14 @@ defmodule BlueHeron.GATT.Server do
       true -> 2
       false -> 16
     end
+  end
+
+  defp find_service_by_handle(profile, characteristic_value_handle) do
+    Enum.find(profile, fn service ->
+      Enum.find(service.characteristics, fn characteristic ->
+        characteristic.value_handle == characteristic_value_handle
+      end)
+    end)
   end
 
   defp find_characteristic_id(profile, characteristic_value_handle) do

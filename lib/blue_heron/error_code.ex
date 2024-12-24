@@ -92,7 +92,7 @@ defmodule BlueHeron.ErrorCode do
     {0x45, :packet_too_long, "Packet Too Long"}
   ]
 
-  @spec to_atom(non_neg_integer()) :: atom()
+  @spec to_atom(non_neg_integer()) :: {0..0xFF, atom, String.t()}
   def to_atom(code) when is_integer(code) do
     List.keyfind(@error_codes, code, 0, :unknown)
   end

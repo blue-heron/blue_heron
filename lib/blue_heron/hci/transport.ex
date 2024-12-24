@@ -1,10 +1,9 @@
 defmodule BlueHeron.HCI.Transport do
   @moduledoc """
-  Handles sending and receiving HCI binaries via
-  a physical link that implements the callbacks in this module
+  Handles sending and receiving HCI Packets
   """
-
   require Logger
+  use GenServer
 
   alias BlueHeron.HCI.Command.{
     ControllerAndBaseband,
@@ -12,374 +11,264 @@ defmodule BlueHeron.HCI.Transport do
     LEController
   }
 
+  import BlueHeron.HCI.Deserializable, only: [deserialize: 1]
+  import BlueHeron.HCI.Serializable, only: [serialize: 1]
+
+  def buffer_acl(frame) do
+    BlueHeron.ACLBuffer.buffer(frame)
+  end
+
+  def send_hci(frame) do
+    GenServer.call(__MODULE__, {:send_hci, frame})
+  end
+
+  @doc false
+  def send_acl(frame) do
+    GenServer.call(__MODULE__, {:send_acl, frame})
+  end
+
+  @setup_params [
+    :local_name,
+    :acl_packet_length,
+    :acl_packet_number,
+    :syn_packet_length,
+    :syn_packet_number,
+    :supported_commands,
+    :bd_addr,
+    :hci_revision,
+    :hci_version,
+    :lmp_pal_subversion,
+    :lmp_pal_version,
+    :manufacturer_name,
+    :white_list_size,
+    :acl_data_packet_length,
+    :total_num_acl_data_packets
+  ]
+
+  @type setup_param ::
+          :local_name
+          | :acl_packet_length
+          | :acl_packet_number
+          | :syn_packet_length
+          | :syn_packet_number
+          | :supported_commands
+          | :bd_addr
+          | :hci_revision
+          | :hci_version
+          | :lmp_pal_subversion
+          | :lmp_pal_version
+          | :manufacturer_name
+          | :white_list_size
+          | :acl_data_packet_length
+          | :total_num_acl_data_packets
+
+  @doc """
+  Returns the value of a setup param or an error if the transport is not ready yet.
+  """
+  @spec get_setup_param(setup_param()) :: {:ok, term()} | {:error, :setup_incomplete}
+  def get_setup_param(key) when key in @setup_params do
+    GenServer.call(__MODULE__, {:get_setup_param, key})
+  end
+
   @default_name "BlueHeron"
 
-  @default_max_error_count 2
-  @default_init_commands [
+  @default_setup_commands [
     %ControllerAndBaseband.Reset{},
     %InformationalParameters.ReadLocalVersion{},
-    %InformationalParameters.ReadBRADDR{},
+    %InformationalParameters.ReadBdAddr{},
     %ControllerAndBaseband.ReadLocalName{},
     %InformationalParameters.ReadLocalSupportedCommands{},
-    # %InformationalParameters.ReadBdAddr{},
-    # %InformationalParameters.ReadBufferSize{},
+    %InformationalParameters.ReadBdAddr{},
+    %InformationalParameters.ReadBufferSize{},
     # %InformationalParameters.ReadLocalSupportedFeatures{},
     %ControllerAndBaseband.SetEventMask{enhanced_flush_complete: false},
     %ControllerAndBaseband.WriteSimplePairingMode{enabled: true},
     %ControllerAndBaseband.WritePageTimeout{timeout: 0x60},
-    # %LinkPolicy.WriteDefaultLinkPolicySettings{settings: 0x00},
     %ControllerAndBaseband.WriteClassOfDevice{class: 0x0C027A},
     %ControllerAndBaseband.WriteLocalName{name: @default_name},
-    # %ControllerAndBaseband.WriteExtendedInquiryResponse(
-    #   false,
-    #   <<0x1A, 0x9, 0x42, 0x54, 0x73, 0x74, 0x61, 0x63, 0x6B, 0x20, 0x45, 0x20, 0x38, 0x3A, 0x34,
-    #     0x45, 0x3A, 0x30, 0x36, 0x3A, 0x38, 0x31, 0x3A, 0x41, 0x34, 0x3A, 0x35, 0x30, 0x20>>
-    # ),
     %ControllerAndBaseband.WriteInquiryMode{inquiry_mode: 0x0},
     %ControllerAndBaseband.WriteSecureConnectionsHostSupport{enabled: false},
     %ControllerAndBaseband.WriteScanEnable{scan_enable: 0x01},
-    %ControllerAndBaseband.WriteSynchronousFlowControlEnable{enabled: true},
     %ControllerAndBaseband.WriteDefaultErroneousDataReporting{enabled: true},
     %LEController.ReadBufferSizeV1{},
     %ControllerAndBaseband.WriteLEHostSupport{le_supported_host_enabled: true},
-    %LEController.ReadWhiteListSize{},
-    %LEController.SetScanParameters{
-      le_scan_type: 0x01,
-      le_scan_interval: 0x0030,
-      le_scan_window: 0x0030
-    }
-    # No random address, command will respond with error code
-    # %LEController.SetScanEnable{le_scan_enable: false}
+    %LEController.ReadWhiteListSize{}
   ]
 
-  defstruct errors: 0,
-            pid: nil,
-            monitor: nil,
-            config: nil,
-            init_commands: @default_init_commands,
-            calls: %{},
-            handlers: [],
-            max_error_count: @default_max_error_count
+  @default_transport_init_backoff_ms :timer.seconds(5)
 
-  @type config :: map()
-  @type recv_fun :: (binary -> any())
-  @callback start_link(config, recv_fun) :: GenServer.on_start()
-  @callback send_command(GenServer.server(), binary()) :: boolean()
-  @callback send_acl(GenServer.server(), binary()) :: boolean()
-  @callback init_commands(config) :: [binary()]
-
-  alias BlueHeron.HCI.Event.{
-    CommandComplete,
-    CommandStatus,
-    NumberOfCompletedPackets,
-    LEMeta.LongTermKeyRequest
-    # DisconnectionComplete
-  }
-
-  import BlueHeron.HCI.Deserializable, only: [deserialize: 1]
-  import BlueHeron.HCI.Serializable, only: [serialize: 1]
-
-  @behaviour :gen_statem
-
-  @doc "Start a transport"
-  @spec start_link(config()) :: :gen_statem.start_ret()
-  def start_link(%{} = config) do
-    :gen_statem.start_link(__MODULE__, config, [])
-  end
-
-  @doc """
-  Send a command via the configured transport
-  """
-  @spec command(GenServer.server(), map() | binary()) :: {:ok, map()} | {:error, binary()}
-  def command(pid, packet) do
-    :gen_statem.call(pid, {:send_command, packet}, 5000)
-  end
-
-  def acl(pid, packet) do
-    :gen_statem.call(pid, {:send_acl, packet}, 5000)
-  end
-
-  @doc """
-  Subscribe to HCI event messages
-  """
-  @spec add_event_handler(GenServer.server()) :: :ok
-  def add_event_handler(transport) do
-    :gen_statem.call(transport, :add_event_handler)
-  end
-
-  @impl :gen_statem
-  def callback_mode(), do: :state_functions
-
-  @impl :gen_statem
-  def init(%_module{} = config) do
-    data = %__MODULE__{config: config}
-    actions = [{:next_event, :internal, :open_transport}]
-    {:ok, :unopened, data, actions}
+  @doc false
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   @doc false
-  def unopened(:internal, :open_transport, %{config: %module{} = config} = data) do
-    this = self()
+  def transport_data(<<0x04, hci_bin::binary>>) do
+    hci = deserialize(hci_bin)
+    GenServer.cast(__MODULE__, {:transport_data, :hci, hci})
+  end
 
-    case module.start_link(config, &Kernel.send(this, {:transport_data, &1})) do
+  def transport_data(<<0x02, acl_bin::binary>>) do
+    acl = BlueHeron.ACL.deserialize(acl_bin)
+    GenServer.cast(__MODULE__, {:transport_data, :acl, acl})
+  end
+
+  def transport_data(<<0x01, _iso::binary>>) do
+    :noop
+  end
+
+  @impl GenServer
+  def init(args) do
+    state = %{
+      transport: nil,
+      transport_init_backoff_ms: @default_transport_init_backoff_ms,
+      transport_init_timer: nil,
+      setup_commands: @default_setup_commands,
+      current: nil,
+      setup_complete: false,
+      caller: nil,
+      setup_params: %{}
+    }
+
+    send(self(), {:initialize_transport, args})
+    {:ok, state}
+  end
+
+  @impl GenServer
+  def handle_info({:initialize_transport, args}, state) do
+    case BlueHeron.HCI.Transport.UART.start_link(args) do
       {:ok, pid} ->
-        goto_prepare(data, pid)
-
-      {:error, {:already_started, pid}} ->
-        goto_prepare(data, pid)
+        Logger.info("Initialized HCI Transport: #{inspect(pid)}")
+        {:noreply, %{state | transport: pid}, {:continue, :setup_transport}}
 
       {:error, reason} ->
-        Logger.error("Failed to open transport #{module}: #{inspect(reason)}")
-        actions = [{:next_event, :internal, :open_transport}]
-        {:keep_state_and_data, actions}
+        Logger.error("Initialize HCI Transport error: #{inspect(reason)}")
+        retry_time_ms = state.transport_init_backoff_ms + :timer.seconds(5)
+
+        timer =
+          Process.send_after(
+            self(),
+            {:initialize_transport, args},
+            state.transport_init_backoff_ms
+          )
+
+        new_state = %{
+          state
+          | transport: nil,
+            transport_init_backoff_ms: retry_time_ms,
+            transport_init_timer: timer
+        }
+
+        {:noreply, new_state}
     end
   end
 
-  @doc false
-  def prepare({:call, {pid, _} = from}, :add_event_handler, data) do
-    {:keep_state, %{data | handlers: [pid | data.handlers]}, [{:reply, from, :ok}]}
+  @impl GenServer
+  def handle_continue(:setup_transport, %{setup_commands: [command | rest]} = state) do
+    hci_bin = serialize(command)
+    :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
+    {:noreply, %{state | setup_commands: rest, current: command}}
   end
 
-  # postpone calls until init completes
-  def prepare({:call, _from}, _call, _data) do
-    {:keep_state_and_data, [:postpone]}
+  def handle_continue(:setup_transport, %{setup_commands: []} = state) do
+    :ok = BlueHeron.Registry.broadcast({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING})
+    new_state = %{state | setup_complete: true}
+    {:noreply, new_state}
   end
 
-  def prepare(
-        :info,
-        {:DOWN, monitor, :process, pid, reason},
-        %{pid: pid, monitor: monitor} = data
+  @impl GenServer
+  def handle_cast(
+        {:transport_data, :hci, packet},
+        %{setup_complete: false, current: %{opcode: opcode} = current} = state
       ) do
-    Logger.error("Transport crash #{inspect(reason)}")
-    goto_unopened(data)
-  end
+    case packet do
+      %BlueHeron.HCI.Event.CommandComplete{
+        opcode: ^opcode,
+        return_parameters: %{status: 0} = return
+      } ->
+        new_setup_params = Map.merge(state.setup_params, Map.delete(return, :status))
 
-  def prepare(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
-    case handle_hci_packet(hci, data) do
-      {:ok, %CommandComplete{}, data} ->
-        actions = [{:next_event, :internal, :init}]
-        {:keep_state, data, actions}
+        {:noreply, %{state | setup_params: new_setup_params, current: nil},
+         {:continue, :setup_transport}}
 
-      {:ok, %CommandStatus{}, data} ->
-        actions = [{:next_event, :internal, :init}]
-        {:keep_state, data, actions}
+      %BlueHeron.HCI.Event.CommandComplete{
+        opcode: ^opcode,
+        return_parameters: %{status: status} = return
+      } ->
+        status_message = BlueHeron.ErrorCode.to_atom(status)
 
-      {:ok, %NumberOfCompletedPackets{} = _reply, data} ->
-        {:keep_state, data, []}
+        Logger.error(
+          "Setup Command error: #{status} (#{inspect(status_message)}) return: #{inspect(return)} command: #{inspect(current)}"
+        )
 
-      {:ok, _, data} ->
-        {:keep_state, data, []}
+        {:noreply, %{state | current: nil}, {:continue, :setup_transport}}
 
-      {:error, reason, data} ->
-        Logger.warning("Could not decode init_command response: #{inspect(reason)}")
-        {:keep_state, data, []}
+      packet ->
+        Logger.error("Unknown HCI packet during setup: #{inspect(packet)}")
+        {:noreply, state}
     end
   end
 
-  def prepare(:internal, :init, %{init_commands: []} = data) do
-    Logger.info("Init commands completed successfully")
-    for pid <- data.handlers, do: send(pid, {:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING})
-    {:next_state, :ready, data, []}
-  end
-
-  def prepare(
-        :internal,
-        :init,
-        %{pid: pid, config: %module{}, init_commands: [command | rest]} = data
+  def handle_cast(
+        {:transport_data, :hci, packet},
+        %{setup_complete: true, current: %{opcode: opcode}, caller: caller} = state
       ) do
-    command = if is_binary(command), do: command, else: serialize(command)
+    case packet do
+      %BlueHeron.HCI.Event.CommandComplete{
+        opcode: ^opcode
+      } = command_complete ->
+        _ = GenServer.reply(caller, {:ok, command_complete})
+        {:noreply, %{state | current: nil, caller: nil}}
 
-    case module.send_command(pid, command) do
-      true ->
-        prepare(:internal, :init, %{data | init_commands: rest})
-
-      false ->
-        Logger.error("Init commfand: #{inspect(command)} failed")
-        goto_unopened(data)
+      packet ->
+        Logger.error("Unknown HCI packet during command: #{inspect(packet)}")
+        {:noreply, state}
     end
   end
 
-  def prepare(:state_timeout, :init_command, data) do
-    Logger.error("Timeout executing Init commands")
-    goto_unopened(data)
-  end
-
-  @doc false
-  def ready(
-        {:call, from},
-        {:send_command, command},
-        %{config: %module{}, pid: pid} = data
+  def handle_cast(
+        {:transport_data, :hci, packet},
+        %{setup_complete: true} = state
       ) do
-    <<opcode::binary-2, _::binary>> = bin = serialize(command)
-
-    case module.send_command(pid, bin) do
-      true ->
-        {:keep_state, add_call(data, {from, opcode})}
-
-      false ->
-        goto_unopened(data)
-    end
+    :ok = BlueHeron.Registry.broadcast({:HCI_EVENT_PACKET, packet})
+    {:noreply, state}
   end
 
-  def ready(
-        {:call, from},
-        {:send_acl, %{data: %{data: nil}} = _acl},
-        data
+  def handle_cast(
+        {:transport_data, :acl, packet},
+        %{setup_complete: true} = state
       ) do
-    Logger.info("Unhandled ACL frame.")
-    {:keep_state, data, [{:reply, from, :ok}]}
+    :ok = BlueHeron.Registry.broadcast({:HCI_ACL_DATA_PACKET, packet})
+    {:noreply, state}
   end
 
-  def ready(
-        {:call, from},
+  @impl GenServer
+  def handle_call({:get_setup_param, param}, _from, %{setup_complete: true} = state) do
+    value = Map.fetch!(state.setup_params, param)
+    {:reply, {:ok, value}, state}
+  end
+
+  def handle_call({:get_setup_param, _param}, _from, %{setup_complete: false} = state) do
+    {:reply, {:error, :setup_incomplete, state}}
+  end
+
+  def handle_call(
+        {:send_hci, command},
+        from,
+        %{setup_complete: true, current: nil, caller: nil} = state
+      ) do
+    hci_bin = serialize(command)
+    :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
+    {:noreply, %{state | current: command, caller: from}}
+  end
+
+  def handle_call(
         {:send_acl, acl},
-        %{config: %module{}, pid: pid} = data
+        _from,
+        %{setup_complete: true} = state
       ) do
-    acl = BlueHeron.ACL.serialize(acl)
-
-    case module.send_acl(pid, acl) do
-      true ->
-        {:keep_state, data, [{:reply, from, :ok}]}
-
-      false ->
-        goto_unopened(data)
-    end
-  end
-
-  # TODO Use Elixir Registry for this maybe idk
-  def ready({:call, {pid, _tag} = from}, :add_event_handler, data) do
-    # When in the ready state, send the HCI_STATE_WORKING signal
-    send(pid, {:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING})
-    actions = [{:reply, from, :ok}]
-    data = %{data | handlers: [pid | data.handlers]}
-    {:keep_state, data, actions}
-  end
-
-  def ready(:info, {:transport_data, <<0x4, hci::binary>>}, data) do
-    case handle_hci_packet(hci, data) do
-      {:ok, %CommandComplete{} = reply, data} ->
-        {actions, data} = maybe_reply(data, reply)
-        {:keep_state, data, actions}
-
-      {:ok, %CommandStatus{} = reply, data} ->
-        {actions, data} = maybe_reply(data, reply)
-        {:keep_state, data, actions}
-
-      {:ok, %NumberOfCompletedPackets{} = _reply, data} ->
-        {:keep_state, data, []}
-
-      {:ok, %LongTermKeyRequest{} = _reply, data} ->
-        {:keep_state, data, []}
-
-      {:ok, reply, data} ->
-        {actions, data} = maybe_reply(data, reply)
-        {:keep_state, data, actions}
-
-      {:error, reply, data} ->
-        Logger.warning(%{decode: reply, event: inspect(hci, limit: :infinity, base: :hex)})
-        {actions, data} = maybe_reply(data, reply)
-        {:keep_state, data, actions}
-    end
-  end
-
-  def ready(:info, {:transport_data, <<0x2, acl::binary>>}, data) do
-    acl = BlueHeron.ACL.deserialize(acl)
-    for pid <- data.handlers, do: send(pid, {:HCI_ACL_DATA_PACKET, acl})
-    :keep_state_and_data
-  end
-
-  def ready(:info, {:transport_data, <<0x01, unknown::binary>>}, _data) do
-    Logger.warning(%{unexpected_data: inspect(unknown, base: :hex)})
-    :keep_state_and_data
-  end
-
-  defp handle_hci_packet(packet, data) do
-    case deserialize(packet) do
-      %{status: 0} = reply ->
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      %{return_parameters: %{status: 0}} = reply ->
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      %{code: 0x13} = reply ->
-        # Handle HCI.Event.NumberOfCompletedPackets
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      %{code: 62, subevent_code: 5} = reply ->
-        # Handle HCI.Event.LEMeta.LongTermKeyRequest
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      %{code: 62, subevent_code: 3} = reply ->
-        # handle HCI.Event.LEMeta.ConnectionUpdateComplete
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      %{code: 62, num_reports: _} = reply ->
-        # handle HCI.Event.LEMeta.AdvertisingReport
-        for pid <- data.handlers, do: send(pid, {:HCI_EVENT_PACKET, reply})
-        {:ok, reply, data}
-
-      %{opcode: _opcode} = reply ->
-        {:error, reply, data}
-
-      %{} = reply ->
-        Logger.warning("BLE: Unknown HCI frame #{inspect(reply)}")
-        {:error, reply, data}
-
-      {:error, unknown} ->
-        {:error, unknown, data}
-    end
-  end
-
-  # defp maybe_reply(%{caller: {caller, opcode}}, %{opcode: opcode} = reply), do: [{:reply, caller, {:ok, reply}}]
-
-  defp maybe_reply(%{calls: calls} = data, %{opcode: opcode} = reply) do
-    if caller = calls[opcode] do
-      {[{:reply, caller, {:ok, reply}}], %{data | calls: Map.delete(calls, opcode)}}
-    else
-      {[], data}
-    end
-  end
-
-  # defp maybe_reply(%{caller: {caller, _opcode}}, %DisconnectionComplete{} = reply), do: [{:reply, caller, {:ok, reply}}]
-
-  defp maybe_reply(%{calls: _} = data, _), do: {[], data}
-
-  defp add_call(%{calls: calls} = data, {caller, opcode}) do
-    %{data | calls: Map.put(calls, opcode, caller)}
-  end
-
-  # state change funs
-
-  defp goto_unopened(%{errors: error_count, max_error_count: error_count} = data) do
-    case maybe_reply(data, {:error, :unopened}) do
-      {[], data} ->
-        {:stop, :reached_max_error, data}
-
-      {replies, data} ->
-        {:stop_and_reply, :reached_max_error, data, replies}
-    end
-  end
-
-  defp goto_unopened(data) do
-    {actions, data} = maybe_reply(data, {:error, :unopened})
-    actions = actions ++ [{:next_event, :internal, :open_transport}]
-
-    {:next_state, :unopened, %{data | pid: nil, monitor: nil, errors: data.errors + 1}, actions}
-  end
-
-  # Handles the initialization of the module
-  defp goto_prepare(%{config: %module{} = config} = data, pid) do
-    monitor = Process.monitor(pid)
-    init_commands = module.init_commands(config)
-    actions = [{:next_event, :internal, :init}, {:state_timeout, 5000, :init_command}]
-
-    {:next_state, :prepare,
-     %{data | pid: pid, monitor: monitor, init_commands: @default_init_commands ++ init_commands},
-     actions}
+    acl_bin = BlueHeron.ACL.serialize(acl)
+    :ok = BlueHeron.HCI.Transport.UART.send_acl(state.transport, acl_bin)
+    {:reply, :ok, state}
   end
 end

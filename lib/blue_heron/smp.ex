@@ -15,8 +15,10 @@ defmodule BlueHeron.SMP do
   alias BlueHeron.{ACL, L2Cap}
   alias BlueHeron.SMP.KeyManager
 
+  @default_io_handler BlueHeron.SMP.DefaultIOHandler
+
   defstruct [
-    :ctx,
+    :ready?,
     :pairing,
     :bd_address,
     :connection,
@@ -27,35 +29,15 @@ defmodule BlueHeron.SMP do
   ]
 
   @doc false
-  def start_link(ctx, io_handler) do
-    GenServer.start_link(__MODULE__, [ctx, io_handler])
-  end
-
-  @doc false
-  @impl GenServer
-  def init([ctx, io_handler]) do
-    with {:ok, keyfile} <- io_handler.keyfile(),
-         {:ok, key_manager} <- KeyManager.start_link(keyfile) do
-      {:ok,
-       %__MODULE__{
-         key_manager: key_manager,
-         ctx: ctx,
-         authenticated: false,
-         io_handler: io_handler
-       }}
-    end
-  end
-
-  @doc "Set BR_ADDR."
-  def set_bd_address(smp, addr) do
-    GenServer.cast(smp, {:set_bd_address, addr})
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   @doc """
   Returns true if the current connection is authenticated.
   """
-  def authenticated?(smp) do
-    GenServer.call(smp, :authenticated)
+  def authenticated?() do
+    GenServer.call(__MODULE__, :authenticated)
   end
 
   @doc """
@@ -63,8 +45,8 @@ defmodule BlueHeron.SMP do
 
   The information is needed for key generation.
   """
-  def set_connection(smp, con) do
-    GenServer.cast(smp, {:set_connection, con})
+  def set_connection(connection) do
+    GenServer.cast(__MODULE__, {:set_connection, connection})
   end
 
   @doc """
@@ -72,26 +54,57 @@ defmodule BlueHeron.SMP do
 
   This function returns a Long Term Key Request Response or nil.
   """
-  def long_term_key_request(smp, msg) do
-    GenServer.call(smp, {:long_term_key_request, msg})
+  def long_term_key_request(msg) do
+    GenServer.call(__MODULE__, {:long_term_key_request, msg})
   end
 
   @doc """
   Inform the Security Manager about changes in the encryption.
   """
-  def encryption_change(smp, event) do
-    GenServer.call(smp, {:encryption_change, event})
+  def encryption_change(event) do
+    GenServer.call(__MODULE__, {:encryption_change, event})
   end
 
-  def handle(smp, msg) do
-    GenServer.call(smp, {:handle, msg})
+  @doc false
+  def handle(msg) do
+    GenServer.call(__MODULE__, {:handle, msg})
+  end
+
+  @doc false
+  @impl GenServer
+  def init(args) do
+    io_handler = Keyword.get(args, :io_handler, @default_io_handler)
+    :ok = BlueHeron.Registry.subscribe()
+
+    with {:ok, keyfile} <- io_handler.keyfile(),
+         {:ok, key_manager} <- KeyManager.start_link(keyfile) do
+      {:ok,
+       %__MODULE__{
+         ready?: false,
+         key_manager: key_manager,
+         authenticated: false,
+         io_handler: io_handler
+       }}
+    end
   end
 
   @impl GenServer
-  def handle_cast({:set_bd_address, addr}, state) do
-    {:noreply, %{state | bd_address: addr}}
+  def handle_info({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING}, state) do
+    case BlueHeron.HCI.Transport.get_setup_param(:bd_addr) do
+      {:ok, bd_addr} ->
+        {:noreply, %{state | ready?: true, bd_address: bd_addr}}
+
+      _ ->
+        Logger.error("Failed to get BD ADDR for SMP")
+        {:noreply, state}
+    end
   end
 
+  def handle_info(_, state) do
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_cast({:set_connection, con}, state) do
     {:noreply, %{state | connection: con, authenticated: false}}
   end
@@ -201,6 +214,26 @@ defmodule BlueHeron.SMP do
     {:reply, nil, state}
   end
 
+  def handle_call(
+        {:handle, <<0x08, identity_resolving_key::binary-16>>},
+        _from,
+        state
+      ) do
+    Logger.info("SMP Identity Resolving Key: #{inspect(identity_resolving_key)}")
+
+    {:reply, nil, state}
+  end
+
+  def handle_call(
+        {:handle, <<0x09, addr_type, addr::binary-6>>},
+        _from,
+        state
+      ) do
+    addr = BlueHeron.Address.parse(addr)
+    Logger.info("SMP Identity Address Information: type: #{addr_type} address: #{addr}")
+    {:reply, nil, state}
+  end
+
   def handle_call({:handle, <<0x0A, _csrk::binary>>}, _from, state) do
     # Got CSRK from central. We will not use it, it will connect to us in the future.
     {:reply, nil, state}
@@ -248,35 +281,30 @@ defmodule BlueHeron.SMP do
 
     # generate and send LTK using "Encryption Information" ACL message
     frame = acl(event.connection_handle, <<0x06>> <> reverse(ltk))
-    BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
+    :ok = BlueHeron.HCI.Transport.buffer_acl(frame)
 
     # generate and send EDIV and RAND using "Central Identification" ACL message
     frame = acl(event.connection_handle, <<0x07, ediv::little-16>> <> reverse(rand))
-    BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
+    :ok = BlueHeron.HCI.Transport.buffer_acl(frame)
 
     # generate and send IRK using "Identity Information" ACL message
     frame = acl(event.connection_handle, <<0x08>> <> reverse(irk))
-    BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
+    :ok = BlueHeron.HCI.Transport.buffer_acl(frame)
 
     # generate and send BD_ADDRESS using "Identity Address Information" ACL message
     frame = acl(event.connection_handle, <<0x09, 0>> <> reverse(state.bd_address.binary))
-    BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
+    :ok = BlueHeron.HCI.Transport.buffer_acl(frame)
 
     # generate and send CSRK using "Signing Information" ACL message
     frame = acl(event.connection_handle, <<0x0A>> <> reverse(csrk))
-    BlueHeron.acl(state.ctx, frame)
-    :timer.sleep(200)
+    :ok = BlueHeron.HCI.Transport.buffer_acl(frame)
 
-    {:reply, nil, %{state | authenticated: true}}
+    {:reply, :ok, %{state | authenticated: true}}
   end
 
   def handle_call({:encryption_change, _event}, _from, state) do
     # Authenticated using exchanged long term key
-    {:reply, nil, %{state | authenticated: true}}
+    {:reply, :ok, %{state | authenticated: true}}
   end
 
   @doc """
