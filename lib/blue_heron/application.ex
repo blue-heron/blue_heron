@@ -10,6 +10,7 @@ defmodule BlueHeron.Application do
     all_env = Application.get_all_env(:blue_heron)
     transport_args = Keyword.get(all_env, :transport, [])
     smp_args = Keyword.get(all_env, :smp, [])
+    broadcaster_args = Keyword.get(all_env, :broadcaster, [])
 
     children = [
       {PropertyTable, name: BlueHeron.GATT},
@@ -20,6 +21,7 @@ defmodule BlueHeron.Application do
          partitions: System.schedulers_online()
        ]},
       BlueHeron.ACLBuffer,
+      {BlueHeron.Broadcaster, broadcaster_args},
       {BlueHeron.SMP, smp_args},
       BlueHeron.Peripheral,
       {BlueHeron.HCI.Transport, transport_args}

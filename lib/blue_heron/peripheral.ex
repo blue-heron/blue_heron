@@ -1,28 +1,10 @@
 defmodule BlueHeron.Peripheral do
   @moduledoc """
   Handles management of advertising and GATT server
-
-  ## Advertisement Data and Scan Response Data
-
-  both `set_advertising_data` and `set_scan_response_data` take the same binary
-  data as an argument. The format is called `AdvertisingData` or `AD` for short in
-  the official BLE spec. The format is
-
-    <<length, param, data::binary-size(byte_size(data))>>
-
-  Where `param` can be one of many values defined in the official BLE spec suplement, and each `param`
-  has it's own data. Both params have a hard limit of 31 bytes total.
   """
 
   use GenServer
   require Logger
-
-  alias BlueHeron.HCI.Command.LEController.{
-    SetAdvertisingParameters,
-    SetAdvertisingData,
-    SetScanResponseData,
-    SetAdvertisingEnable
-  }
 
   alias BlueHeron.HCI.Command.LinkControl.{
     Disconnect
@@ -53,41 +35,35 @@ defmodule BlueHeron.Peripheral do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def set_advertising_parameters(params) do
-    GenServer.call(__MODULE__, {:set_advertising_parameters, params})
-  end
-
-  def set_advertising_data(data) do
-    GenServer.call(__MODULE__, {:set_advertising_data, data})
-  end
-
-  def set_scan_response_data(data) do
-    GenServer.call(__MODULE__, {:set_scan_response_data, data})
-  end
-
-  def start_advertising() do
-    GenServer.call(__MODULE__, :start_advertising)
-  end
-
-  def stop_advertising() do
-    GenServer.call(__MODULE__, :stop_advertising)
-  end
-
+  @doc """
+  Exchange MTU with a connected central.
+  """
   @spec exchange_mtu(non_neg_integer()) :: :ok | {:error, term()}
   def exchange_mtu(server_mtu) do
     GenServer.call(__MODULE__, {:exchange_mtu, server_mtu})
   end
 
+  @doc """
+  Send a notification to a connected central.
+  """
   @spec notify(Service.id(), Characteristic.id(), binary()) :: :ok | {:error, term()}
   def notify(service_id, charateristic_id, data) do
     GenServer.call(__MODULE__, {:notify, service_id, charateristic_id, data})
   end
 
-  def add_service(%Service{} = service) do
+  @doc """
+  Register a new service in the GATT.
+  """
+  @spec add_service(Service.t()) :: :ok
+  def add_service(service) do
     services = PropertyTable.get(BlueHeron.GATT, ["profile"], [])
     PropertyTable.put(BlueHeron.GATT, ["profile"], [service | services])
   end
 
+  @doc """
+  Delete a service by it's ID.
+  """
+  @spec delete_service(Service.id()) :: :ok
   def delete_service(service_id) do
     services = PropertyTable.get(BlueHeron.GATT, ["profile"], [])
 
@@ -105,7 +81,6 @@ defmodule BlueHeron.Peripheral do
     profile = PropertyTable.get(BlueHeron.GATT, ["profile"], [])
 
     state = %{
-      advertising: false,
       ready?: false,
       connection: nil,
       gatt_server: GATT.Server.init(profile)
@@ -122,18 +97,15 @@ defmodule BlueHeron.Peripheral do
       )
       when is_list(profile) do
     Logger.info("Rebuilding GATT")
-
-    new_state =
-      if state.connection do
-        command = Disconnect.new(connection_handle: state.connection.handle)
-        {:reply, _reply, new_state} = handle_command(command, state)
-        new_state
-      else
-        state
-      end
-
     gatt_server = GATT.Server.init(profile)
-    {:noreply, %{new_state | gatt_server: gatt_server}}
+    new_state = %{state | gatt_server: gatt_server}
+
+    if new_state.connection do
+      command = Disconnect.new(connection_handle: new_state.connection.handle)
+      handle_command(command, new_state)
+    else
+      {:noreply, new_state}
+    end
   end
 
   def handle_info({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING}, state) do
@@ -157,15 +129,7 @@ defmodule BlueHeron.Peripheral do
   def handle_info({:HCI_EVENT_PACKET, %DisconnectionComplete{} = pkt}, state) do
     Logger.warning("Peripheral Disconnect #{inspect(pkt.reason)}")
     :ok = BlueHeron.SMP.set_connection(nil)
-
-    if state.advertising do
-      Logger.info("Restarting advertising")
-      command = SetAdvertisingEnable.new(advertising_enable: true)
-      {:reply, _reply, new_state} = handle_command(command, state)
-      {:noreply, %{new_state | connection: nil}}
-    else
-      {:noreply, %{state | connection: nil}}
-    end
+    {:noreply, %{state | connection: nil}}
   end
 
   def handle_info({:HCI_EVENT_PACKET, %ConnectionUpdateComplete{} = pkt}, state) do
@@ -176,8 +140,7 @@ defmodule BlueHeron.Peripheral do
   def handle_info({:HCI_EVENT_PACKET, %LongTermKeyRequest{} = request}, state) do
     case SMP.long_term_key_request(request) do
       %{} = command ->
-        {:reply, _reply, new_state} = handle_command(command, state)
-        {:noreply, new_state}
+        handle_command(command, state)
 
       _ ->
         {:noreply, state}
@@ -235,33 +198,6 @@ defmodule BlueHeron.Peripheral do
     {:reply, {:error, :setup_incomplete}, state}
   end
 
-  def handle_call({:set_advertising_parameters, params}, _from, state) do
-    command = SetAdvertisingParameters.new(params)
-    handle_command(command, state)
-  end
-
-  def handle_call({:set_advertising_data, data}, _from, state) do
-    command = SetAdvertisingData.new(advertising_data: data)
-    handle_command(command, state)
-  end
-
-  def handle_call({:set_scan_response_data, data}, _from, state) do
-    command = SetScanResponseData.new(scan_response_data: data)
-    handle_command(command, state)
-  end
-
-  def handle_call(:start_advertising, _from, state) do
-    command = SetAdvertisingEnable.new(advertising_enable: true)
-    {:reply, reply, new_state} = handle_command(command, state)
-    {:reply, reply, %{new_state | advertising: true}}
-  end
-
-  def handle_call(:stop_advertising, _from, state) do
-    command = SetAdvertisingEnable.new(advertising_enable: false)
-    {:reply, reply, new_state} = handle_command(command, state)
-    {:reply, reply, %{new_state | advertising: false}}
-  end
-
   def handle_call({:exchange_mtu, _server_mtu}, _from, %{connection: nil} = state) do
     {:reply, {:error, :no_connection}, state}
   end
@@ -307,18 +243,16 @@ defmodule BlueHeron.Peripheral do
   defp handle_command(command, state) do
     case BlueHeron.HCI.Transport.send_hci(command) do
       {:ok, %CommandComplete{return_parameters: %{status: 0}}} ->
-        {:reply, :ok, state}
+        {:noreply, state}
 
-      {:ok, %CommandComplete{return_parameters: %{status: error}}} ->
-        {^error, reply, _} = BlueHeron.ErrorCode.to_atom(error)
-        {:reply, reply, state}
+      {:ok, %CommandComplete{return_parameters: %{status: _error}}} ->
+        {:noreply, state}
 
       {:ok, %CommandStatus{status: 0x00}} ->
-        {:reply, :ok, state}
+        {:noreply, state}
 
-      {:ok, %CommandStatus{status: error}} ->
-        {^error, reply, _} = BlueHeron.ErrorCode.to_atom(error)
-        {:reply, reply, state}
+      {:ok, %CommandStatus{status: _error}} ->
+        {:noreply, state}
     end
   end
 
