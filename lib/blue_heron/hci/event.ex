@@ -32,16 +32,17 @@ defmodule BlueHeron.HCI.Event do
   alias BlueHeron.HCI.Event
 
   @modules [
-    Event.EncryptionChange,
     Event.CommandComplete,
     Event.CommandStatus,
-    Event.NumberOfCompletedPackets,
     Event.DisconnectionComplete,
+    Event.EncryptionChange,
     Event.InquiryComplete,
     Event.LEMeta.AdvertisingReport,
     Event.LEMeta.ConnectionComplete,
+    Event.LEMeta.ConnectionUpdateComplete,
+    Event.LEMeta.EnhancedConnectionCompleteV1,
     Event.LEMeta.LongTermKeyRequest,
-    Event.LEMeta.ConnectionUpdateComplete
+    Event.NumberOfCompletedPackets
   ]
 
   @doc "returns the list of parsable modules"

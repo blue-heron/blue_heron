@@ -19,6 +19,7 @@ defmodule BlueHeron.Peripheral do
 
   alias BlueHeron.HCI.Event.LEMeta.{
     ConnectionComplete,
+    EnhancedConnectionCompleteV1,
     LongTermKeyRequest,
     ConnectionUpdateComplete
   }
@@ -113,7 +114,21 @@ defmodule BlueHeron.Peripheral do
   end
 
   def handle_info({:HCI_EVENT_PACKET, %ConnectionComplete{} = event}, state) do
-    Logger.info("Peripheral connect #{event.connection_handle}")
+    Logger.info("Peripheral ConnectionComplete #{event.connection_handle}")
+
+    connection = %{
+      peer_address: event.peer_address,
+      peer_address_type: event.peer_address_type,
+      handle: event.connection_handle
+    }
+
+    :ok = BlueHeron.SMP.set_connection(connection)
+
+    {:noreply, %{state | connection: connection}}
+  end
+
+  def handle_info({:HCI_EVENT_PACKET, %EnhancedConnectionCompleteV1{} = event}, state) do
+    Logger.info("Peripheral EnhancedConnectionCompleteV1 #{event.connection_handle}")
 
     connection = %{
       peer_address: event.peer_address,
@@ -178,11 +193,16 @@ defmodule BlueHeron.Peripheral do
         {:HCI_ACL_DATA_PACKET, %ACL{handle: handle, data: %L2Cap{cid: 0x0006, data: request}}},
         state
       ) do
-    response = SMP.handle(request)
+    case SMP.handle(request) do
+      {:error, reason} ->
+        Logger.error("Failed to handle SMP request: #{inspect(request)} : #{inspect(reason)}")
 
-    if response do
-      acl_response = build_l2cap_acl(handle, 0x0006, response)
-      BlueHeron.HCI.Transport.buffer_acl(acl_response)
+      nil ->
+        :ok
+
+      response ->
+        acl_response = build_l2cap_acl(handle, 0x0006, response)
+        BlueHeron.HCI.Transport.buffer_acl(acl_response)
     end
 
     {:noreply, state}
@@ -230,7 +250,7 @@ defmodule BlueHeron.Peripheral do
       {:ok, result} ->
         acl = build_l2cap_acl(state.connection.handle, 0x0004, result)
 
-        Logger.info("Sending notification: #{acl}")
+        Logger.info("Sending notification: #{inspect(acl)}")
         reply = BlueHeron.HCI.Transport.buffer_acl(acl)
         {:reply, reply, state}
 

@@ -14,15 +14,26 @@ defmodule BlueHeron.HCI.Transport do
   import BlueHeron.HCI.Deserializable, only: [deserialize: 1]
   import BlueHeron.HCI.Serializable, only: [serialize: 1]
 
-  def buffer_acl(frame) do
-    BlueHeron.ACLBuffer.buffer(frame)
-  end
+  @type command_complete :: %BlueHeron.HCI.Event.CommandComplete{}
+  @type command_status :: %BlueHeron.HCI.Event.CommandStatus{}
 
+  @doc "Send an HCI frame"
+  @spec send_hci(map()) ::
+          {:ok, command_complete() | command_status()} | {:error, :setup_incomplete | :timeout}
   def send_hci(frame) do
     GenServer.call(__MODULE__, {:send_hci, frame})
   end
 
+  @doc """
+  Buffer an ACL frame to be sent
+  """
+  @spec buffer_acl(map()) :: :ok
+  def buffer_acl(frame) do
+    BlueHeron.ACLBuffer.buffer(frame)
+  end
+
   @doc false
+  @spec send_acl(map()) :: :ok | {:error, :setup_incomplete}
   def send_acl(frame) do
     GenServer.call(__MODULE__, {:send_acl, frame})
   end
@@ -125,6 +136,7 @@ defmodule BlueHeron.HCI.Transport do
       transport_init_timer: nil,
       setup_commands: @default_setup_commands,
       current: nil,
+      current_timer: nil,
       setup_complete: false,
       caller: nil,
       setup_params: %{}
@@ -163,17 +175,37 @@ defmodule BlueHeron.HCI.Transport do
     end
   end
 
+  def handle_info(:current_timeout, state) do
+    new_state = cancel_timer(state)
+
+    case state.caller do
+      nil ->
+        Logger.warning("Setup command timeout: #{inspect(state.current)}")
+        hci_bin = serialize(state.current)
+        :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
+        timer = Process.send_after(self(), :current_timeout, 5000)
+        {:noreply, %{new_state | current_timer: timer}}
+
+      caller ->
+        Logger.warning("HCI command timeout: #{inspect(state.current)}")
+        _ = GenServer.reply(caller, {:error, :timeout})
+        {:noreply, %{new_state | current: nil, caller: nil}}
+    end
+  end
+
   @impl GenServer
   def handle_continue(:setup_transport, %{setup_commands: [command | rest]} = state) do
+    new_state = cancel_timer(state)
     hci_bin = serialize(command)
-    :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
-    {:noreply, %{state | setup_commands: rest, current: command}}
+    :ok = BlueHeron.HCI.Transport.UART.send_command(new_state.transport, hci_bin)
+    timer = Process.send_after(self(), :current_timeout, 5000)
+    {:noreply, %{new_state | setup_commands: rest, current: command, current_timer: timer}}
   end
 
   def handle_continue(:setup_transport, %{setup_commands: []} = state) do
     :ok = BlueHeron.Registry.broadcast({:BLUETOOTH_EVENT_STATE, :HCI_STATE_WORKING})
-    new_state = %{state | setup_complete: true}
-    {:noreply, new_state}
+    new_state = cancel_timer(state)
+    {:noreply, %{new_state | setup_complete: true}}
   end
 
   @impl GenServer
@@ -187,9 +219,8 @@ defmodule BlueHeron.HCI.Transport do
         return_parameters: %{status: 0} = return
       } ->
         new_setup_params = Map.merge(state.setup_params, Map.delete(return, :status))
-
-        {:noreply, %{state | setup_params: new_setup_params, current: nil},
-         {:continue, :setup_transport}}
+        new_state = %{cancel_timer(state) | setup_params: new_setup_params, current: nil}
+        {:noreply, new_state, {:continue, :setup_transport}}
 
       %BlueHeron.HCI.Event.CommandComplete{
         opcode: ^opcode,
@@ -201,7 +232,8 @@ defmodule BlueHeron.HCI.Transport do
           "Setup Command error: #{status} (#{inspect(status_message)}) return: #{inspect(return)} command: #{inspect(current)}"
         )
 
-        {:noreply, %{state | current: nil}, {:continue, :setup_transport}}
+        new_state = %{cancel_timer(state) | current: nil}
+        {:noreply, new_state, {:continue, :setup_transport}}
 
       packet ->
         Logger.error("Unknown HCI packet during setup: #{inspect(packet)}")
@@ -218,7 +250,14 @@ defmodule BlueHeron.HCI.Transport do
         opcode: ^opcode
       } = command_complete ->
         _ = GenServer.reply(caller, {:ok, command_complete})
-        {:noreply, %{state | current: nil, caller: nil}}
+        new_state = %{cancel_timer(state) | current: nil, caller: nil}
+        {:noreply, new_state}
+
+      %BlueHeron.HCI.Event.CommandStatus{num_hci_command_packets: 1, opcode: ^opcode} =
+          command_status ->
+        _ = GenServer.reply(caller, {:ok, command_status})
+        new_state = %{cancel_timer(state) | current: nil, caller: nil}
+        {:noreply, new_state}
 
       packet ->
         Logger.error("Unknown HCI packet during command: #{inspect(packet)}")
@@ -230,6 +269,7 @@ defmodule BlueHeron.HCI.Transport do
         {:transport_data, :hci, packet},
         %{setup_complete: true} = state
       ) do
+    Logger.info("HCI Packet: #{inspect(packet)}")
     :ok = BlueHeron.Registry.broadcast({:HCI_EVENT_PACKET, packet})
     {:noreply, state}
   end
@@ -248,10 +288,6 @@ defmodule BlueHeron.HCI.Transport do
     {:reply, {:ok, value}, state}
   end
 
-  def handle_call({:get_setup_param, _param}, _from, %{setup_complete: false} = state) do
-    {:reply, {:error, :setup_incomplete, state}}
-  end
-
   def handle_call(
         {:send_hci, command},
         from,
@@ -259,7 +295,8 @@ defmodule BlueHeron.HCI.Transport do
       ) do
     hci_bin = serialize(command)
     :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
-    {:noreply, %{state | current: command, caller: from}}
+    timer = Process.send_after(self(), :current_timeout, 5000)
+    {:noreply, %{state | current: command, current_timer: timer, caller: from}}
   end
 
   def handle_call(
@@ -270,5 +307,18 @@ defmodule BlueHeron.HCI.Transport do
     acl_bin = BlueHeron.ACL.serialize(acl)
     :ok = BlueHeron.HCI.Transport.UART.send_acl(state.transport, acl_bin)
     {:reply, :ok, state}
+  end
+
+  def handle_call(_call, _from, %{setup_complete: false} = state) do
+    {:reply, {:error, :setup_incomplete}, state}
+  end
+
+  defp cancel_timer(state) do
+    if state.current_timer do
+      _ = Process.cancel_timer(state.current_timer)
+      %{state | current_timer: nil}
+    else
+      state
+    end
   end
 end

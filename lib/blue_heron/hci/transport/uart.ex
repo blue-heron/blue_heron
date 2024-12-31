@@ -52,7 +52,7 @@ defmodule BlueHeron.HCI.Transport.UART do
   def handle_info({:open, device, opts}, state) when is_binary(device) and is_list(opts) do
     case UART.open(state.uart_pid, device, opts) do
       :ok ->
-        Logger.info("Opened UART for HCI transport")
+        Logger.info("Opened UART for HCI transport: #{device} #{inspect(opts)}")
         :ok
 
       error ->

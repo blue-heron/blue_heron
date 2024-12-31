@@ -154,6 +154,10 @@ defmodule BlueHeron.SMP do
     {:reply, nil, state}
   end
 
+  def handle_call({:handle, <<0x03, _confirm::binary>>}, _from, %{connection: nil} = state) do
+    {:reply, {:error, :no_connection}, state}
+  end
+
   def handle_call({:handle, <<0x03, confirm::binary>>}, _from, state) do
     # Handle Pairing Confirm
 
@@ -165,6 +169,10 @@ defmodule BlueHeron.SMP do
 
     response = c1(pairing.k, pairing.r, pairing.preq, pairing.pres, iat, rat, ia, ra)
     {:reply, <<0x03>> <> reverse(response), %{state | pairing: pairing}}
+  end
+
+  def handle_call({:handle, <<0x04, _random::binary>>}, _from, %{connection: false} = state) do
+    {:reply, {:error, :no_connection}, state}
   end
 
   def handle_call({:handle, <<0x04, random::binary>>}, _from, state) do
