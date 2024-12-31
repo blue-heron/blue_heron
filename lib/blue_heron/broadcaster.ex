@@ -17,6 +17,8 @@ defmodule BlueHeron.Broadcaster do
   use GenServer
   require Logger
 
+  alias BlueHeron.ErrorCode
+
   alias BlueHeron.HCI.Command.LEController.{
     SetAdvertisingParameters,
     SetAdvertisingData,
@@ -37,6 +39,8 @@ defmodule BlueHeron.Broadcaster do
   see [Vol 3] Part C, Section 11 of the BLE core specification.
   Additionally see: Core Specification Supplement, Part A, Data Types Specification
   """
+  @spec set_advertising_parameters(binary()) ::
+          :ok | {:error, :setup_incomplete} | {:error, ErrorCode.name()}
   def set_advertising_parameters(params) do
     GenServer.call(__MODULE__, {:set_advertising_parameters, params})
   end
@@ -48,6 +52,8 @@ defmodule BlueHeron.Broadcaster do
   see [Vol 3] Part C, Section 11 of the BLE core specification.
   Additionally see: Core Specification Supplement, Part A, Data Types Specification
   """
+  @spec set_advertising_data(binary()) ::
+          :ok | {:error, :setup_incomplete} | {:error, ErrorCode.name()}
   def set_advertising_data(data) do
     GenServer.call(__MODULE__, {:set_advertising_data, data})
   end
@@ -59,6 +65,8 @@ defmodule BlueHeron.Broadcaster do
   see [Vol 3] Part C, Section 11 of the BLE core specification.
   Additionally see: Core Specification Supplement, Part A, Data Types Specification
   """
+  @spec set_scan_response_data(binary()) ::
+          :ok | {:error, :setup_incomplete} | {:error, ErrorCode.name()}
   def set_scan_response_data(data) do
     GenServer.call(__MODULE__, {:set_scan_response_data, data})
   end
@@ -66,6 +74,7 @@ defmodule BlueHeron.Broadcaster do
   @doc """
   Enable advertisement
   """
+  @spec start_advertising() :: :ok | {:error, :setup_incomplete} | {:error, ErrorCode.name()}
   def start_advertising() do
     GenServer.call(__MODULE__, :start_advertising)
   end
@@ -73,6 +82,7 @@ defmodule BlueHeron.Broadcaster do
   @doc """
   Disable advertisement
   """
+  @spec stop_advertising() :: :ok | {:error, :setup_incomplete} | {:error, ErrorCode.name()}
   def stop_advertising() do
     GenServer.call(__MODULE__, :stop_advertising)
   end
@@ -147,14 +157,17 @@ defmodule BlueHeron.Broadcaster do
 
       {:ok, %CommandComplete{return_parameters: %{status: error}}} ->
         {^error, reply, _} = BlueHeron.ErrorCode.to_atom(error)
-        {:reply, reply, state}
+        {:reply, {:error, reply}, state}
 
       {:ok, %CommandStatus{status: 0x00}} ->
         {:reply, :ok, state}
 
       {:ok, %CommandStatus{status: error}} ->
         {^error, reply, _} = BlueHeron.ErrorCode.to_atom(error)
-        {:reply, reply, state}
+        {:reply, {:error, reply}, state}
+
+      {:error, error} ->
+        {:reply, {:error, error}, state}
     end
   end
 end
