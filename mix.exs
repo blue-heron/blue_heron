@@ -1,14 +1,14 @@
 defmodule BlueHeron.MixProject do
   use Mix.Project
 
-  @version "0.4.2"
+  @version "0.5.0"
   @source_url "https://github.com/blue-heron/blue_heron"
 
   def project do
     [
       app: :blue_heron,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),

@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.0
+
+* Enhancements
+  * `:blue_heron` is now it's own application
+  * Rewrote `BlueHeron.HCI.Transport` to support the new supervision structure
+  * Enable SMP by default
+  * Persist GATT into a `PropertyTable` to allow for better error handling
+  * Creating a Peripheral is now a little simpler and supervised
+  * Added Broadcaster role
+* Depreciations
+  * Removed `BlueHeron.Context`
+  * Removed `BlueHeronTransportUART` and `BlueHeronTransportUSB`
+
 ## v0.4.2
 
 * Bugfixes
