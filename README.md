@@ -54,6 +54,41 @@ Here's what's known:
 | Cypress CYW43438 (RPi0W and RPi 3B)    | UART       | Yes    | ?                      | BlueHeron doesn't need to load the firmware for this one to work.
 | Cypress CYW43455 (RPi 3A+ and 3B+)     | UART       | No     | ?                      | Retry when #21 is fixed
 
+## Upgrading from 0.4.x
+
+The [0.5.0 release](https://github.com/blue-heron/blue_heron/releases/tag/v0.5.0) brought with it a bunch of updates. The most notable one
+is the addition of a supervision tree. Upgrading to this release requires a few steps.
+
+1) remove `:blue_heron_transport_uart` from your `mix.exs`. Transport code was consolidated in the 0.5 release.
+2) Update your `config.exs` with the same parameters as the Transport options. For example, on a RPI0, you would
+   change 
+   ```elixir
+    config = %BlueHeronTransportUART{
+      device: "/dev/ttyS0",
+      uart_opts: [
+        speed: 115_200,
+      ]
+    }
+    {:ok, ctx} = BlueHeron.transport(config)
+   ```
+   into a config.exs entry: 
+   ```elixir
+   config :blue_heron,
+    transport: [
+      device: "/dev/ttyS0",
+      speed: 115_200,
+      flow_control: :hardware
+    ]
+   ```
+3) Remove `BlueHeron.Peripheral.start_link/2` calls. The Peripheral
+   server is now started as part of BlueHeron's supervision tree.
+4) Remove any modules that have `@behaviour BlueHeron.GATT.Server`. Services
+   are now registered with `BlueHeron.Peripheral.register_service/1`. The
+   data structure remains the same.
+5) Update any calls to `BlueHeron.Peripheral.set_advertising_data/1` and similar
+   to use the new `BlueHeron.Broadcaster.set_advertising_data/1`. The data to
+   those calls is the same.
+
 ## Getting started
 
 Below are examples of the roles supported by BlueHeron currently.
