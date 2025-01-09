@@ -31,6 +31,12 @@ defmodule BlueHeron.HCI.Transport.UART do
     GenServer.call(pid, {:send, [<<@hci_acl_packet::8>>, acl]})
   end
 
+  @doc "Flush buffers"
+  @spec flush(GenServer.server()) :: :ok
+  def flush(pid) do
+    GenServer.call(pid, :flush)
+  end
+
   ## Server Callbacks
 
   @impl GenServer
@@ -46,6 +52,10 @@ defmodule BlueHeron.HCI.Transport.UART do
   @impl GenServer
   def handle_call({:send, command}, _from, %{uart_pid: uart_pid} = state) do
     {:reply, UART.write(uart_pid, command), state}
+  end
+
+  def handle_call(:flush, _from, %{uart_pid: uart_pid} = state) do
+    {:reply, UART.flush(uart_pid), state}
   end
 
   @impl GenServer
