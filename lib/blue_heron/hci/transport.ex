@@ -17,6 +17,12 @@ defmodule BlueHeron.HCI.Transport do
   @type command_complete :: %BlueHeron.HCI.Event.CommandComplete{}
   @type command_status :: %BlueHeron.HCI.Event.CommandStatus{}
 
+  @doc "Checks if setup is complete on the transport"
+  @spec setup_complete?() :: boolean()
+  def setup_complete? do
+    GenServer.call(__MODULE__, :setup_complete?)
+  end
+
   @doc "Send an HCI frame"
   @spec send_hci(map()) ::
           {:ok, command_complete() | command_status()} | {:error, :setup_incomplete | :timeout}
@@ -182,6 +188,7 @@ defmodule BlueHeron.HCI.Transport do
       nil ->
         Logger.warning("Setup command timeout: #{inspect(state.current)}")
         hci_bin = serialize(state.current)
+        :ok = BlueHeron.HCI.Transport.UART.flush(state.transport)
         :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
         timer = Process.send_after(self(), :current_timeout, 5000)
         {:noreply, %{new_state | current_timer: timer}}
@@ -307,6 +314,10 @@ defmodule BlueHeron.HCI.Transport do
     acl_bin = BlueHeron.ACL.serialize(acl)
     :ok = BlueHeron.HCI.Transport.UART.send_acl(state.transport, acl_bin)
     {:reply, :ok, state}
+  end
+
+  def handle_call(:setup_complete, _from, %{setup_complete: setup_complete} = state) do
+    {:reply, setup_complete, state}
   end
 
   def handle_call(_call, _from, %{setup_complete: false} = state) do
