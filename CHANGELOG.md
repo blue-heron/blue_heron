@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.1
+
+* Enhancements
+  * Added `BlueHeron.HCI.Transport.transport_ready?/0`
+* Bugfixes
+  * Fixed issue where transport would fail to initialize due to garbage data needing
+    to be flushed
+
 ## v0.5.0
 
 * Enhancements
