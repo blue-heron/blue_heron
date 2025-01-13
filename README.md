@@ -25,14 +25,12 @@ longer felt like the library followed the spirit of what Harald wanted to be.
 Our goals here are to make a one-stop BLE library with support for the
 following:
 
-* Scan for and connect to BLE peripheral devices (BlueHeron takes on the central
-  role like a smartphone)
-* GATT client support
-* Work with USB and UART-based Bluetooth modules
-* Support BLE beacons
-* BLE peripheral and GATT server support
+- [x] BLE peripheral and GATT server support (Peripheral role)
+- [x] Support BLE beacons (Broadcaster role)
+- [ ] Scan for and connect to BLE peripheral devices (Central role)
+- [ ] GATT client support
 
-The current focus is on filling out the central role. The API is quite unstable
+The current focus is on filling out the peripheral role. The API is quite unstable
 at the moment, but we're aiming for a high level API so that most users don't
 need to become Bluetooth experts. Currently, the raw API is helping us learn and
 iron out quirks quickly. See [Rationale](#Rationale) for more about why we're
@@ -50,7 +48,6 @@ Here's what's known:
 
 | Bluetooth module or chipset            | Connection | Works? | Firmware               | Notes
 | -------------------------------------- | ---------- | ------ | ---------------------- | -----
-| Realtek WiFi/BT combo (EDUP EP-AC1681) | USB        | Yes    | rtl_bt/rtl8822b_fw.bin | BlueHeron doesn't need to load the firmware for this one to work.
 | Cypress CYW43438 (RPi0W and RPi 3B)    | UART       | Yes    | ?                      | BlueHeron doesn't need to load the firmware for this one to work.
 | Cypress CYW43455 (RPi 3A+ and 3B+)     | UART       | No     | ?                      | Retry when #21 is fixed
 
