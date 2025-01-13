@@ -316,7 +316,7 @@ defmodule BlueHeron.HCI.Transport do
     {:reply, :ok, state}
   end
 
-  def handle_call(:setup_complete, _from, %{setup_complete: setup_complete} = state) do
+  def handle_call(:setup_complete?, _from, %{setup_complete: setup_complete} = state) do
     {:reply, setup_complete, state}
   end
 
