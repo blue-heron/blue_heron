@@ -8,7 +8,7 @@ defmodule BlueHeron.MixProject do
     [
       app: :blue_heron,
       version: @version,
-      elixir: "~> 1.18",
+      elixir: "~> 1.13.0 or ~> 1.14.0 or ~> 1.15.1 or ~> 1.16.0 or ~> 1.17.0 or ~> 1.18.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
