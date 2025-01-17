@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.2
+* Enhancements
+  * Changed the Elixir version requirement to match Nerves.
+  This fixes an unneeded warning on Elixir versions older than 1.18.
+
 ## v0.5.1
 
 * Enhancements
