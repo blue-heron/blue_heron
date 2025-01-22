@@ -1,6 +1,13 @@
 # Changelog
 
+## v0.5.3
+
+* Enhancements
+  * Updated ex_doc and property_table (Thanks @fhunleth ❤️)
+  * Updated CI to build for Elixir 1.18 and 1.17 (Thanks @fhunleth ❤️)
+
 ## v0.5.2
+
 * Enhancements
   * Changed the Elixir version requirement to match Nerves.
   This fixes an unneeded warning on Elixir versions older than 1.18.
