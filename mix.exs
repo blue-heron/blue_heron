@@ -34,7 +34,7 @@ defmodule BlueHeron.MixProject do
   defp deps() do
     [
       {:circuits_uart, "~> 1.5"},
-      {:property_table, "~> 0.2.6"},
+      {:property_table, "~> 0.3.0 or ~> 0.2.6"},
       {:ex_doc, "~> 0.35", only: :docs, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: :test, runtime: false}
