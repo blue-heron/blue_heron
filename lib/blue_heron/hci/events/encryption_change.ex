@@ -33,15 +33,16 @@ defmodule BlueHeron.HCI.Event.EncryptionChange do
   end
 
   @impl BlueHeron.HCI.Event
-  def deserialize(<<@code, _size, bin::binary>>) do
-    <<
-      status,
-      lower_handle,
-      _::4,
-      upper_handle::4,
-      encryption_enabled
-    >> = bin
-
+  def deserialize(
+        <<@code, _size,
+          <<
+            status,
+            lower_handle,
+            _::4,
+            upper_handle::4,
+            encryption_enabled
+          >>::binary>>
+      ) do
     <<handle::little-12>> = <<lower_handle, upper_handle::4>>
 
     %__MODULE__{
