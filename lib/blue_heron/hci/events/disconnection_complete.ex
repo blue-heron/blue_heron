@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+# SPDX-FileCopyrightText: 2022 Troels Brødsgaard
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.DisconnectionComplete do
   use BlueHeron.HCI.Event, code: 0x05
 

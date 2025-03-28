@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband do
   alias __MODULE__, as: CaB
   @ogf 0x03

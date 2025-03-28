@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.ErrorResponse do
   @moduledoc """
   > The ATT_ERROR_RSP PDU is used to state that a given request cannot be performed,

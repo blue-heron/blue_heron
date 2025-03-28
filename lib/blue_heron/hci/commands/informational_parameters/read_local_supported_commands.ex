@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadLocalSupportedCommands do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0002
 

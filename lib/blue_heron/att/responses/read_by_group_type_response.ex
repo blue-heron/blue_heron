@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.ReadByGroupTypeResponse do
   @moduledoc """
   > The ATT_READ_BY_GROUP_TYPE_RSP PDU is sent in reply to a received

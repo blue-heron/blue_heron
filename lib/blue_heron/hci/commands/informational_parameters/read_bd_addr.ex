@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadBdAddr do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0009
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.SMP.DefaultIOHandler do
   @moduledoc """
   Default IO Handler for SMP

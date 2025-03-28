@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defprotocol BlueHeron.HCI.CommandComplete.ReturnParameters do
   @doc """
   Protocol for handling command return_parameters in CommandComplete event

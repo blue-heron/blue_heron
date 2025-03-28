@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.LEMeta.LongTermKeyRequest do
   use BlueHeron.HCI.Event.LEMeta, subevent_code: 0x05
 

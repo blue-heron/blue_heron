@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ACL do
   @moduledoc """
   > HCI ACL Data packets are used to exchange data between the Host and Controller

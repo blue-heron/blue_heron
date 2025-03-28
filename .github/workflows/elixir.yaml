@@ -92,3 +92,15 @@ jobs:
     - name: Run tests
       run: mix test --no-start
 
+  check-license:
+    runs-on: ubuntu-latest
+    name: Check REUSE License Compliance
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run REUSE lint
+      uses: docker://fsfe/reuse:latest
+      with:
+        entrypoint: reuse
+        args: lint

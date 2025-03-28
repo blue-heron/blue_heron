@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.WriteRequest do
   @moduledoc """
   > The ATT_WRITE_REQ PDU is used to request the server to write the value of an

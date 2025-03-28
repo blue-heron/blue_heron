@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMaskTest do
   use ExUnit.Case
   alias BlueHeron.HCI.Command.ControllerAndBaseband.SetEventMask

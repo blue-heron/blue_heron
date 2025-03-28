@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+# SPDX-FileCopyrightText: 2022 Troels Brødsgaard
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.LEMeta.EnhancedConnectionCompleteV1 do
   use BlueHeron.HCI.Event.LEMeta, subevent_code: 0xA
 

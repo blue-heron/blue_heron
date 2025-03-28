@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.L2Cap do
   @moduledoc """
   > Logical Link Control and Adaptation Protocol Specification.

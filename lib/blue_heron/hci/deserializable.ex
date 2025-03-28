@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defprotocol BlueHeron.HCI.Deserializable do
   @doc """
   Deserialize a binary into HCI data structures

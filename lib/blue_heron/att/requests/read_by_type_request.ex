@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.ReadByTypeRequest do
   @moduledoc """
   > The ATT_READ_BY_TYPE_REQ PDU is used to obtain the values of attributes where

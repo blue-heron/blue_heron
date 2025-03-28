@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteSynchronousFlowControlEnable do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x002F
 

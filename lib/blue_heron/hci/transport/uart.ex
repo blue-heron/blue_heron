@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Transport.UART do
   @moduledoc """
   > The objective of this HCI UART Transport Layer is to make it possible to use the Bluetooth HCI

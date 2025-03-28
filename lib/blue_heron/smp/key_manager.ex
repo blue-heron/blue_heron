@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.SMP.KeyManager do
   @moduledoc "Handles storage of keys for SMP"
   use GenServer

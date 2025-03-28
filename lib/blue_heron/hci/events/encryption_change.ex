@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.EncryptionChange do
   use BlueHeron.HCI.Event, code: 0x08
 

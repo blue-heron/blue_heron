@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Transport.UART.Framing do
   @moduledoc """
   A framer module that defines a frame as a HCI packet.

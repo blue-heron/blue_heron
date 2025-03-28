@@ -1,0 +1,25 @@
+version = 1
+
+[[annotations]]
+path = [
+ ".github/workflows/elixir.yaml",
+ ".credo.exs",
+ ".formatter.exs",
+ ".gitignore",
+ "CHANGELOG.md",
+ "NOTICE",
+ "REUSE.toml",
+ "mix.exs",
+ "mix.lock"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+ "README.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2024 Connor Rigby, Frank Hunleth, Jason Axelson, Jon Carstens"
+SPDX-License-Identifier = "CC-BY-4.0"
