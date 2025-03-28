@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.HandleValueNotification do
   @moduledoc """
   > A server can send a notification of an attribute’s value at any time.

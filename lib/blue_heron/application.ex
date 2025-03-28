@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications

@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2022 Connor Rigby
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.GATT.Server do
   @moduledoc """
   A behaviour module for implementing a GATT server.

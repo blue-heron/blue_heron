@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.InformationalParameters.ReadBufferSize do
   use BlueHeron.HCI.Command.InformationalParameters, ocf: 0x0005
 

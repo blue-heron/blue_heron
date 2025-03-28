@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.LEController.SetScanResponseData do
   use BlueHeron.HCI.Command.LEController, ocf: 0x0009
 

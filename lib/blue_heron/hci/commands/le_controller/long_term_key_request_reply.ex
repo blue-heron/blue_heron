@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.LEController.LongTermKeyRequestReply do
   use BlueHeron.HCI.Command.LEController, ocf: 0x001A
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ACLBuffer do
   @moduledoc """
   simple fifo buffer implementation that handles sending ACL packets synchronously without blocking

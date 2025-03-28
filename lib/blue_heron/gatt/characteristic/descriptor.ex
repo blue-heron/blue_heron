@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.GATT.Characteristic.Descriptor do
   @moduledoc """
   Struct that represents a GATT characteristic descriptor.

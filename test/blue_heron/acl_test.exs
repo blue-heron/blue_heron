@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ACLTest do
   use ExUnit.Case
 

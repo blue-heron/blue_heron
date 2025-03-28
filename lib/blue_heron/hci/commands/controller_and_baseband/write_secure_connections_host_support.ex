@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.WriteSecureConnectionsHostSupport do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x007A
 

@@ -1,3 +1,9 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+# SPDX-FileCopyrightText: 2021 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.CommandComplete do
   use BlueHeron.HCI.Event, code: 0x0E
 

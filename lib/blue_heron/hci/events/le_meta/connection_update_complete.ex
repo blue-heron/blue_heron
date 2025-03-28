@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.LEMeta.ConnectionUpdateComplete do
   use BlueHeron.HCI.Event.LEMeta, subevent_code: 0x3
 

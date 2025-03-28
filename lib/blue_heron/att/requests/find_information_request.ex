@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.FindInformationRequest do
   @moduledoc """
   > The ATT_FIND_INFORMATION_REQ PDU is used to obtain the mapping of attribute

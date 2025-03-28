@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.WriteResponse do
   @moduledoc """
   > The ATT_WRITE_RSP PDU is sent in reply to a valid ATT_WRITE_REQ PDU and

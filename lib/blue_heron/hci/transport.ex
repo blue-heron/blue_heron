@@ -1,3 +1,11 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2022 Alex McLain
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+# SPDX-FileCopyrightText: 2024 Alexandre Cadeau
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Transport do
   @moduledoc """
   Handles sending and receiving HCI Packets

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.ControllerAndBaseband.HostBufferSize do
   use BlueHeron.HCI.Command.ControllerAndBaseband, ocf: 0x0033
 

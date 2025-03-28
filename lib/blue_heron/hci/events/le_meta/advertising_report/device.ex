@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.LEMeta.AdvertisingReport.Device do
   @moduledoc """
   A struct representing a single device within a LE Advertising Report.

@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Command.LEController.SetAdvertisingEnable do
   use BlueHeron.HCI.Command.LEController, ocf: 0x000A
 

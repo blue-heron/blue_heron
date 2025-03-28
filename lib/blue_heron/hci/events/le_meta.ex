@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.HCI.Event.LEMeta do
   @moduledoc """
   The LE Meta Event is used to encapsulate all LE Controller specific events.

@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.ATT.ExchangeMTURequest do
   @moduledoc """
   > The ATT_EXCHANGE_MTU_REQ PDU is used by the client to inform the server of the

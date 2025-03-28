@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023 Connor Rigby
+# SPDX-FileCopyrightText: 2023 Markus Hutzler
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.SMP do
   @moduledoc """
   A behaviour module for implementing BLE Security Manager Protocol.

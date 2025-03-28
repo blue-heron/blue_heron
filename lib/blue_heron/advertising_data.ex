@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Connor Rigby
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule BlueHeron.AdvertisingData do
   @moduledoc """
   Handles building AD structures for AdvertiseingData and ScanResponseData
