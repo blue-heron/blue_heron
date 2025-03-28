@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.4
+
+* Bugfixes
+  * Fix potential MatchError in `BlueHeron.HCI.Event.EncryptionChange`
+* Changes
+    * Update licensing and copyright for REUSE compliance
+
 ## v0.5.3
 
 * Enhancements
