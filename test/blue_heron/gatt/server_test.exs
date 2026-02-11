@@ -216,6 +216,24 @@ defmodule BlueHeron.GATT.ServerTest do
     assert %ErrorResponse{error: :attribute_not_found} = response
   end
 
+  test "discover secondary services returns attribute not found" do
+    state = Server.init(TestServer.profile())
+
+    {_state, response} =
+      Server.handle(state, %ReadByGroupTypeRequest{
+        opcode: 0x10,
+        uuid: 0x2801,
+        starting_handle: 0x0001,
+        ending_handle: 0xFFFF
+      })
+
+    assert %ErrorResponse{
+             request_opcode: 0x10,
+             handle: 0x0001,
+             error: :attribute_not_found
+           } = response
+  end
+
   test "discover all characteristics" do
     state = Server.init(TestServer.profile())
 
