@@ -37,7 +37,7 @@ defmodule BlueHeron.MixProject do
       {:property_table, "~> 0.3.0 or ~> 0.2.6"},
       {:ex_doc, "~> 0.35", only: :docs, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: :test, runtime: false}
+      {:credo, "~> 1.7.16", only: :test, runtime: false}
     ]
   end
 
