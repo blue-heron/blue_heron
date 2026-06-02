@@ -10,6 +10,8 @@ defmodule BlueHeron.GATT.ServerTest do
 
   alias BlueHeron.ATT.{
     ErrorResponse,
+    ExchangeMTURequest,
+    ExchangeMTUResponse,
     FindInformationRequest,
     FindInformationResponse,
     PrepareWriteRequest,
@@ -131,6 +133,37 @@ defmodule BlueHeron.GATT.ServerTest do
       send(self(), value)
       :ok
     end
+  end
+
+  test "initializes with configured local mtu and default negotiated mtu" do
+    state = Server.init(TestServer.profile(), 512)
+
+    assert state.local_mtu == 512
+    assert state.mtu == 23
+    assert Server.current_mtu(state) == 23
+  end
+
+  test "stores negotiated mtu from exchange mtu request" do
+    state = Server.init(TestServer.profile(), 512)
+
+    {state, response} = Server.handle(state, %ExchangeMTURequest{client_rx_mtu: 247})
+
+    assert state.local_mtu == 512
+    assert state.mtu == 247
+    assert Server.current_mtu(state) == 247
+    assert %ExchangeMTUResponse{server_rx_mtu: 512} = response
+  end
+
+  test "stores negotiated mtu from exchange mtu response" do
+    state = Server.init(TestServer.profile(), 512)
+
+    {state, {:ok, request}} = Server.exchange_mtu(state, 512)
+    assert %ExchangeMTURequest{client_rx_mtu: 512} = request
+
+    {state, nil} = Server.handle(state, %ExchangeMTUResponse{server_rx_mtu: 247})
+
+    assert state.local_mtu == 512
+    assert state.mtu == 247
   end
 
   test "discover all primary services" do

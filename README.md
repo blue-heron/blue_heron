@@ -76,6 +76,9 @@ is the addition of a supervision tree. Upgrading to this release requires a few 
       device: "/dev/ttyS0",
       speed: 115_200,
       flow_control: :hardware
+    ],
+    peripheral: [
+      local_mtu: 512
     ]
    ```
 3) Remove `BlueHeron.Peripheral.start_link/2` calls. The Peripheral

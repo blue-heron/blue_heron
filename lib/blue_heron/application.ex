@@ -13,6 +13,7 @@ defmodule BlueHeron.Application do
   def start(_type, _args) do
     all_env = Application.get_all_env(:blue_heron)
     transport_args = Keyword.get(all_env, :transport, [])
+    peripheral_args = Keyword.get(all_env, :peripheral, [])
     smp_args = Keyword.get(all_env, :smp, [])
     broadcaster_args = Keyword.get(all_env, :broadcaster, [])
 
@@ -27,7 +28,7 @@ defmodule BlueHeron.Application do
       BlueHeron.ACLBuffer,
       {BlueHeron.Broadcaster, broadcaster_args},
       {BlueHeron.SMP, smp_args},
-      BlueHeron.Peripheral,
+      {BlueHeron.Peripheral, peripheral_args},
       {BlueHeron.HCI.Transport, transport_args}
     ]
 

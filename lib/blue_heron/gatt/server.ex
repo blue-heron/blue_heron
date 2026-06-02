@@ -94,30 +94,43 @@ defmodule BlueHeron.GATT.Server do
   alias BlueHeron.GATT.{Characteristic, Service}
   alias BlueHeron.SMP
 
-  defstruct [:profile, :mtu, :read_buffer, :write_requests]
+  defstruct [:profile, :local_mtu, :mtu, :read_buffer, :write_requests]
 
   @discover_all_primary_services 0x2800
   @find_included_services 0x2802
   @discover_all_characteristics 0x2803
   @cccd 0x2902
+  @default_mtu 23
 
   @opaque t() :: %__MODULE__{
             profile: [Service.t()],
+            local_mtu: non_neg_integer(),
             mtu: non_neg_integer(),
             read_buffer: binary(),
             write_requests: [binary()]
           }
 
   @doc false
-  def init(profile) do
+  def init(profile, local_mtu \\ @default_mtu) do
     profile = hydrate(profile)
 
     %__MODULE__{
       profile: profile,
-      mtu: 23,
+      local_mtu: local_mtu,
+      mtu: @default_mtu,
       read_buffer: <<>>,
       write_requests: []
     }
+  end
+
+  @doc false
+  def reset_mtu(state) do
+    %{state | mtu: @default_mtu}
+  end
+
+  @doc false
+  def current_mtu(state) do
+    state.mtu
   end
 
   @doc false
@@ -221,9 +234,10 @@ defmodule BlueHeron.GATT.Server do
   end
 
   @doc false
-  @spec exchange_mtu(t(), non_neg_integer()) :: {:ok, ExchangeMTURequest.t()}
-  def exchange_mtu(_state, mtu) do
-    {:ok, %ExchangeMTURequest{client_rx_mtu: mtu}}
+  @spec exchange_mtu(t(), non_neg_integer()) :: {t(), {:ok, ExchangeMTURequest.t()}}
+  def exchange_mtu(state, mtu) do
+    state = %{state | local_mtu: mtu}
+    {state, {:ok, %ExchangeMTURequest{client_rx_mtu: mtu}}}
   end
 
   @doc false
@@ -322,13 +336,16 @@ defmodule BlueHeron.GATT.Server do
     require_permission?(state, req, permission)
   end
 
-  defp exchange_mtu_request(state, _request) do
-    {state, %ExchangeMTUResponse{server_rx_mtu: state.mtu}}
+  defp exchange_mtu_request(state, request) do
+    state = %{state | mtu: negotiated_mtu(state.local_mtu, request.client_rx_mtu)}
+    {state, %ExchangeMTUResponse{server_rx_mtu: state.local_mtu}}
   end
 
   defp exchange_mtu_response(state, response) do
-    {%{state | mtu: response.server_rx_mtu}, nil}
+    {%{state | mtu: negotiated_mtu(state.local_mtu, response.server_rx_mtu)}, nil}
   end
+
+  defp negotiated_mtu(local_mtu, peer_mtu), do: min(local_mtu, peer_mtu)
 
   defp discover_all_primary_services(state, request) do
     services =
