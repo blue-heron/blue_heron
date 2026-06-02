@@ -27,8 +27,7 @@ defmodule BlueHeron.Transport.UART.FramingTest do
             [
               <<0x2, 0x80, 0x20, 0xB, 0x0, 0x7, 0x0, 0x4, 0x0, 0x10, 0x1, 0x0, 0xFF, 0xFF, 0x0,
                 0x28>>
-            ],
-            %BlueHeron.HCI.Transport.UART.Framing.State{frame: "", type: nil, frames: []}} =
+            ], %BlueHeron.HCI.Transport.UART.Framing.State{frame: "", type: nil, frames: []}} =
              Framing.remove_framing(frame, state)
   end
 
@@ -44,8 +43,7 @@ defmodule BlueHeron.Transport.UART.FramingTest do
               <<0x2, 0x80, 0x20, 0xB, 0x0, 0x7, 0x0, 0x4, 0x0, 0x8, 0xE, 0x0, 0xE, 0x0, 0x3,
                 0x28>>,
               <<0x4, 0x13, 0x5, 0x1, 0x80, 0x0, 0x1, 0x0>>
-            ],
-            %BlueHeron.HCI.Transport.UART.Framing.State{frame: "", type: nil, frames: []}} =
+            ], %BlueHeron.HCI.Transport.UART.Framing.State{frame: "", type: nil, frames: []}} =
              Framing.remove_framing(frames, state)
   end
 end

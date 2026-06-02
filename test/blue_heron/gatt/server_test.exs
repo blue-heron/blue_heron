@@ -172,14 +172,19 @@ defmodule BlueHeron.GATT.ServerTest do
         ending_handle: 0xFFFF
       })
 
-    # The Server must now respond with :custom_service_1, as the response size
-    # is not big enough to fit two 16-byte UUID attributes
+    # The Server must now respond with both custom services; the default MTU is
+    # large enough to fit both 16-byte UUID attributes.
     assert %ReadByGroupTypeResponse{
              attribute_data: [
                %ReadByGroupTypeResponse.AttributeData{
                  handle: 0x000C,
                  end_group_handle: 0x0010,
                  uuid: 0xBB5D5975D8E4853998F51335CDFFE9A
+               },
+               %ReadByGroupTypeResponse.AttributeData{
+                 handle: 0x0011,
+                 end_group_handle: 0x0015,
+                 uuid: 0xBB5D5975D8E4853998F51335CDFFE9B
                }
              ]
            } = response
@@ -214,6 +219,22 @@ defmodule BlueHeron.GATT.ServerTest do
     # The Server must return an error to indicate there are services in the
     # requested handle range.
     assert %ErrorResponse{error: :attribute_not_found} = response
+  end
+
+  test "discover all secondary services returns attribute not found" do
+    state = Server.init(TestServer.profile())
+
+    {_state, response} =
+      Server.handle(state, %ReadByGroupTypeRequest{
+        uuid: 0x2801,
+        starting_handle: 0x0001,
+        ending_handle: 0xFFFF
+      })
+
+    assert %ErrorResponse{
+             handle: 0x0001,
+             error: :attribute_not_found
+           } = response
   end
 
   test "discover all characteristics" do
@@ -326,10 +347,9 @@ defmodule BlueHeron.GATT.ServerTest do
     assert %ReadByTypeResponse{
              attribute_data: [
                %ReadByTypeResponse.AttributeData{
-                 handle: 0x0002,
+                 handle: 0x0003,
                  uuid: 0x2A00,
-                 characteristic_properties: 0b00000010,
-                 characteristic_value_handle: 0x0003
+                 value: "test-device"
                }
              ]
            } = response
@@ -346,10 +366,9 @@ defmodule BlueHeron.GATT.ServerTest do
     assert %ReadByTypeResponse{
              attribute_data: [
                %ReadByTypeResponse.AttributeData{
-                 handle: 0x0004,
+                 handle: 0x0005,
                  uuid: 0x2A01,
-                 characteristic_properties: 0b00000010,
-                 characteristic_value_handle: 0x0005
+                 value: <<0x008D::little-16>>
                }
              ]
            } = response
@@ -377,10 +396,9 @@ defmodule BlueHeron.GATT.ServerTest do
     assert %ReadByTypeResponse{
              attribute_data: [
                %ReadByTypeResponse.AttributeData{
-                 handle: 0x000F,
+                 handle: 0x0010,
                  uuid: 0xF018E00E0ECE45B09617B744833D89BA,
-                 characteristic_properties: 0b00001010,
-                 characteristic_value_handle: 0x0010
+                 value: "a-value-longer-than-22-bytes"
                }
              ]
            } = response

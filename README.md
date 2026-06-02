@@ -49,8 +49,9 @@ Here's what's known:
 
 | Bluetooth module or chipset            | Connection | Works? | Firmware               | Notes
 | -------------------------------------- | ---------- | ------ | ---------------------- | -----
-| Cypress CYW43438 (RPi0W and RPi 3B)    | UART       | Yes    | ?                      | BlueHeron doesn't need to load the firmware for this one to work.
-| Cypress CYW43455 (RPi 3A+ and 3B+)     | UART       | No     | ?                      | Retry when #21 is fixed
+| Cypress CYW43438 (RPi0W and RPi 3B)    | UART       | Yes    | BCM43430A1.hcd         | Firmware loaded by BlueHeron if present.
+| Cypress CYW43436S (RPi Zero 2W)        | UART       | Yes    | BCM43430B0.hcd         | Firmware loaded by BlueHeron via vendor-specific HCI commands.
+| Cypress CYW43455 (RPi 3A+ and 3B+)     | UART       | No     | BCM4345C0.hcd          | Retry when #21 is fixed
 
 ## Upgrading from 0.4.x
 

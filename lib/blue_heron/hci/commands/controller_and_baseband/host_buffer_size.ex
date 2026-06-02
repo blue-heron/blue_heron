@@ -32,7 +32,7 @@ defmodule BlueHeron.HCI.Command.ControllerAndBaseband.HostBufferSize do
           host_total_num_acl_data_packets: host_total_num_acl_data_packets,
           host_total_num_synchronous_data_packets: host_total_num_synchronous_data_packets
         }) do
-      <<opcode::binary, host_acl_data_packet_length::little-size(16),
+      <<opcode::binary, 7, host_acl_data_packet_length::little-size(16),
         host_synchronous_data_packet_length, host_total_num_acl_data_packets::little-size(16),
         host_total_num_synchronous_data_packets::little-size(16)>>
     end

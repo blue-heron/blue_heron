@@ -50,6 +50,8 @@ defmodule BlueHeron.HCI.Event.CommandComplete do
       end
     end
 
+    defp do_decode(_unknown_opcode, data) when is_binary(data), do: %{status: 0}
+
     defp do_encode(_unknown_opcode, data) when is_binary(data), do: data
   end
 

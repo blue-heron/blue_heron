@@ -5,6 +5,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 defmodule BlueHeron.GATT.Server do
+  require Logger
+
   @moduledoc """
   A behaviour module for implementing a GATT server.
 
@@ -87,6 +89,7 @@ defmodule BlueHeron.GATT.Server do
     ReadByTypeResponse,
     ReadRequest,
     ReadResponse,
+    WriteCommand,
     WriteRequest,
     WriteResponse
   }
@@ -97,6 +100,7 @@ defmodule BlueHeron.GATT.Server do
   defstruct [:profile, :mtu, :read_buffer, :write_requests]
 
   @discover_all_primary_services 0x2800
+  @discover_all_secondary_services 0x2801
   @find_included_services 0x2802
   @discover_all_characteristics 0x2803
   @cccd 0x2902
@@ -114,7 +118,7 @@ defmodule BlueHeron.GATT.Server do
 
     %__MODULE__{
       profile: profile,
-      mtu: 23,
+      mtu: 247,
       read_buffer: <<>>,
       write_requests: []
     }
@@ -131,6 +135,9 @@ defmodule BlueHeron.GATT.Server do
 
       %ReadByGroupTypeRequest{uuid: @discover_all_primary_services} ->
         discover_all_primary_services(state, request)
+
+      %ReadByGroupTypeRequest{uuid: @discover_all_secondary_services} ->
+        discover_all_secondary_services(state, request)
 
       %ReadByTypeRequest{uuid: @find_included_services} ->
         find_included_services(state, request)
@@ -188,6 +195,14 @@ defmodule BlueHeron.GATT.Server do
           end
         end
 
+      %WriteCommand{handle: handle} ->
+        # WriteCommand (0x52) = Write Without Response. No ATT response needed.
+        if find_descriptor_by_handle(state, handle) do
+          write_descriptor_value_no_response(state, handle, request.data)
+        else
+          write_characteristic_value_no_response(state, request)
+        end
+
       %PrepareWriteRequest{} ->
         if require_permission?(state, request, :write_auth) do
           {state,
@@ -214,8 +229,8 @@ defmodule BlueHeron.GATT.Server do
           write_long_characteristic_value(state, request)
         end
 
-      _ ->
-        # Ignore unhandled requests
+      other ->
+        Logger.warning("GATT.Server: unhandled request: #{inspect(other, base: :hex)}")
         {state, nil}
     end
   end
@@ -322,8 +337,11 @@ defmodule BlueHeron.GATT.Server do
     require_permission?(state, req, permission)
   end
 
-  defp exchange_mtu_request(state, _request) do
-    {state, %ExchangeMTUResponse{server_rx_mtu: state.mtu}}
+  defp exchange_mtu_request(state, request) do
+    server_rx_mtu = state.mtu
+    negotiated_mtu = min(request.client_rx_mtu, server_rx_mtu)
+
+    {%{state | mtu: negotiated_mtu}, %ExchangeMTUResponse{server_rx_mtu: server_rx_mtu}}
   end
 
   defp exchange_mtu_response(state, response) do
@@ -360,6 +378,15 @@ defmodule BlueHeron.GATT.Server do
 
         {state, %ReadByGroupTypeResponse{attribute_data: attribute_data}}
     end
+  end
+
+  defp discover_all_secondary_services(state, request) do
+    {state,
+     %ErrorResponse{
+       handle: request.starting_handle,
+       request_opcode: request.opcode,
+       error: :attribute_not_found
+     }}
   end
 
   defp find_included_services(state, request) do
@@ -449,7 +476,7 @@ defmodule BlueHeron.GATT.Server do
 
         attr =
           %ReadByTypeResponse.AttributeData{
-            handle: characteristic.handle,
+            handle: characteristic.value_handle,
             uuid: characteristic.type,
             value: value,
             characteristic_properties: characteristic.properties,
@@ -599,9 +626,23 @@ defmodule BlueHeron.GATT.Server do
     {state, %WriteResponse{}}
   end
 
+  defp write_characteristic_value_no_response(state, request) do
+    service = find_service_by_handle(state.profile, request.handle)
+    id = find_characteristic_id(state.profile, request.handle)
+
+    :ok = service.write.(id, request.data)
+
+    {state, nil}
+  end
+
   defp write_descriptor_value(state, handle, value) do
     profile = Enum.map(state.profile, &map_service_chars(&1, handle, value))
     {%{state | profile: profile}, %WriteResponse{}}
+  end
+
+  defp write_descriptor_value_no_response(state, handle, value) do
+    profile = Enum.map(state.profile, &map_service_chars(&1, handle, value))
+    {%{state | profile: profile}, nil}
   end
 
   defp map_service_chars(service, handle, value) do

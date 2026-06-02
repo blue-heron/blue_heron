@@ -41,15 +41,22 @@ defmodule BlueHeron.HCI.Transport.UART do
     GenServer.call(pid, :flush)
   end
 
+  @doc "Reconfigure UART settings (e.g., baud rate)"
+  @spec configure(GenServer.server(), keyword()) :: :ok | {:error, term()}
+  def configure(pid, opts) do
+    GenServer.call(pid, {:configure, opts})
+  end
+
   ## Server Callbacks
 
   @impl GenServer
   def init(args) do
-    uart_opts = Keyword.merge(args, active: true, framing: {Framing, []})
+    uart_opts = Keyword.merge(args, active: true)
     device = Keyword.get(uart_opts, :device)
     {:ok, pid} = UART.start_link()
+    {:ok, framing_state} = Framing.init([])
     send(self(), {:open, device, uart_opts})
-    state = %{uart_pid: pid}
+    state = %{uart_pid: pid, framing_state: framing_state}
     {:ok, state}
   end
 
@@ -60,6 +67,10 @@ defmodule BlueHeron.HCI.Transport.UART do
 
   def handle_call(:flush, _from, %{uart_pid: uart_pid} = state) do
     {:reply, UART.flush(uart_pid), state}
+  end
+
+  def handle_call({:configure, opts}, _from, %{uart_pid: uart_pid} = state) do
+    {:reply, UART.configure(uart_pid, opts), state}
   end
 
   @impl GenServer
@@ -81,8 +92,19 @@ defmodule BlueHeron.HCI.Transport.UART do
     {:noreply, state}
   end
 
+  def handle_info({:circuits_uart, _dev, msg}, state) when is_binary(msg) do
+    Logger.debug(
+      "UART rx #{byte_size(msg)}B: 0x#{Base.encode16(binary_part(msg, 0, min(byte_size(msg), 24)))}"
+    )
+
+    {:ok, frames, framing_state} = Framing.remove_framing(msg, state.framing_state)
+    Enum.each(frames, &BlueHeron.HCI.Transport.transport_data/1)
+
+    {:noreply, %{state | framing_state: framing_state}}
+  end
+
   def handle_info({:circuits_uart, _dev, msg}, state) do
-    _ = BlueHeron.HCI.Transport.transport_data(msg)
+    Logger.warning("UART rx non-binary: #{inspect(msg)}")
     {:noreply, state}
   end
 end

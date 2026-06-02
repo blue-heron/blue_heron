@@ -214,6 +214,14 @@ defmodule BlueHeron.Peripheral do
     {:noreply, state}
   end
 
+  def handle_info(
+        {:HCI_ACL_DATA_PACKET, %ACL{handle: _handle, data: %L2Cap{cid: 0x0005, data: data}}},
+        state
+      ) do
+    Logger.warning("L2CAP signaling (CID 0x0005): #{inspect(data, base: :hex)} — not handled")
+    {:noreply, state}
+  end
+
   def handle_info({:HCI_ACL_DATA_PACKET, acl}, state) do
     Logger.info("Unhandled ACL packet: #{inspect(acl)}")
     {:noreply, state}
