@@ -1,7 +1,7 @@
 # BlueHeron
 
 [![Hex version](https://img.shields.io/hexpm/v/blue_heron.svg "Hex version")](https://hex.pm/packages/blue_heron)
-[![API docs](https://img.shields.io/hexpm/v/blue_heron.svg?label=hexdocs "API docs")](https://hexdocs.pm/blue_heron/BlueHeron.html)
+[![API docs](https://img.shields.io/hexpm/v/blue_heron.svg?label=hexdocs "API docs")](https://blue-heron.hexdocs.pm/BlueHeron.html)
 [![mix test](https://github.com/blue-heron/blue_heron/actions/workflows/elixir.yaml/badge.svg)](https://github.com/blue-heron/blue_heron/actions/workflows/elixir.yaml)
 [![REUSE status](https://api.reuse.software/badge/github.com/nerves-project/nerves)](https://api.reuse.software/info/github.com/nerves-project/nerves)
 

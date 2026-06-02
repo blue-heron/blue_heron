@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 defmodule BlueHeron.Application do
-  # See https://hexdocs.pm/elixir/Application.html
+  # See https://elixir.hexdocs.pm/Application.html
   # for more information on OTP Applications
   @moduledoc false
 
@@ -31,7 +31,7 @@ defmodule BlueHeron.Application do
       {BlueHeron.HCI.Transport, transport_args}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
+    # See https://elixir.hexdocs.pm/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: BlueHeron.Supervisor]
     Supervisor.start_link(children, opts)
