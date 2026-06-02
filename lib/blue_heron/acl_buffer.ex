@@ -9,6 +9,7 @@ defmodule BlueHeron.ACLBuffer do
   use GenServer
   require Logger
 
+  alias BlueHeron.ACL
   alias BlueHeron.HCI.Event.NumberOfCompletedPackets
 
   @doc "queue up a message for output"
@@ -28,19 +29,18 @@ defmodule BlueHeron.ACLBuffer do
 
   @impl GenServer
   def handle_cast({:buffer, acl}, state) do
-    new_state = %{state | acls: :queue.in(acl, state.acls)}
+    was_empty? = :queue.is_empty(state.acls)
 
-    case :queue.out(state.acls) do
-      {:empty, _do_not_use_this} ->
-        # queue is empty, so send now
-        send(self(), :out)
-        {:noreply, new_state}
+    acls =
+      acl
+      |> fragment_acl()
+      |> Enum.reduce(state.acls, &:queue.in/2)
 
-      {{:value, _acl_do_not_use}, _do_not_use_this} ->
-        # Logger.warning(%{buffering_acl_message: inspect(acl, base: :hex)})
-        # there are already items in the queue, so don't send yet
-        {:noreply, new_state}
-    end
+    new_state = %{state | acls: acls}
+
+    if was_empty?, do: send(self(), :out)
+
+    {:noreply, new_state}
   end
 
   @impl GenServer
@@ -75,4 +75,13 @@ defmodule BlueHeron.ACLBuffer do
   def handle_info(_, state) do
     {:noreply, state}
   end
+
+  defp fragment_acl(%ACL{} = acl) do
+    case BlueHeron.HCI.Transport.get_setup_param(:acl_data_packet_length) do
+      {:ok, max_size} when is_integer(max_size) and max_size > 0 -> ACL.fragment(acl, max_size)
+      _ -> [acl]
+    end
+  end
+
+  defp fragment_acl(acl), do: [acl]
 end
