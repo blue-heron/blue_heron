@@ -68,6 +68,19 @@ defmodule BlueHeron.Peripheral do
   end
 
   @doc """
+  Register multiple services in the GATT in a single batch.
+
+  Equivalent to calling `add_service/1` for each service, but triggers a
+  single GATT rebuild — and at most one disconnect of an active connection
+  — instead of one per service.
+  """
+  @spec add_services([Service.t()]) :: :ok
+  def add_services(services) when is_list(services) do
+    existing = PropertyTable.get(BlueHeron.GATT, ["profile"], [])
+    PropertyTable.put(BlueHeron.GATT, ["profile"], services ++ existing)
+  end
+
+  @doc """
   Delete a service by it's ID.
   """
   @spec delete_service(Service.id()) :: :ok
