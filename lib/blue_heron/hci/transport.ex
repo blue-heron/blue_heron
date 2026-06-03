@@ -19,6 +19,8 @@ defmodule BlueHeron.HCI.Transport do
     LEController
   }
 
+  alias BlueHeron.HCI.Transport.BroadcomInit
+
   import BlueHeron.HCI.Deserializable, only: [deserialize: 1]
   import BlueHeron.HCI.Serializable, only: [serialize: 1]
 
@@ -144,6 +146,9 @@ defmodule BlueHeron.HCI.Transport do
 
   @impl GenServer
   def init(args) do
+    all_env = Application.get_all_env(:blue_heron)
+    firmware_path = Keyword.get(all_env, :firmware_path, "/lib/firmware/brcm")
+
     state = %{
       transport: nil,
       transport_init_backoff_ms: @default_transport_init_backoff_ms,
@@ -153,7 +158,8 @@ defmodule BlueHeron.HCI.Transport do
       current_timer: nil,
       setup_complete: false,
       caller: nil,
-      setup_params: %{}
+      setup_params: %{},
+      firmware_path: firmware_path
     }
 
     send(self(), {:initialize_transport, args})
@@ -195,9 +201,17 @@ defmodule BlueHeron.HCI.Transport do
     case state.caller do
       nil ->
         Logger.warning("Setup command timeout: #{inspect(state.current)}")
-        hci_bin = serialize(state.current)
         :ok = BlueHeron.HCI.Transport.UART.flush(state.transport)
-        :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
+
+        case state.current do
+          {:raw_hci, _opcode, bin} ->
+            :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, bin)
+
+          command ->
+            hci_bin = serialize(command)
+            :ok = BlueHeron.HCI.Transport.UART.send_command(state.transport, hci_bin)
+        end
+
         timer = Process.send_after(self(), :current_timeout, 5000)
         {:noreply, %{new_state | current_timer: timer}}
 
@@ -208,7 +222,27 @@ defmodule BlueHeron.HCI.Transport do
     end
   end
 
+  def handle_info(:continue_setup, state) do
+    {:noreply, state, {:continue, :setup_transport}}
+  end
+
   @impl GenServer
+  def handle_continue(:setup_transport, %{setup_commands: [{:delay, ms} | rest]} = state) do
+    new_state = cancel_timer(state)
+    Process.send_after(self(), :continue_setup, ms)
+    {:noreply, %{new_state | setup_commands: rest}}
+  end
+
+  def handle_continue(:setup_transport, %{setup_commands: [{:raw_hci, bin} | rest]} = state) do
+    new_state = cancel_timer(state)
+    <<opcode::binary-2, _rest::binary>> = bin
+    :ok = BlueHeron.HCI.Transport.UART.send_command(new_state.transport, bin)
+    timer = Process.send_after(self(), :current_timeout, 5000)
+
+    {:noreply,
+     %{new_state | setup_commands: rest, current: {:raw_hci, opcode, bin}, current_timer: timer}}
+  end
+
   def handle_continue(:setup_transport, %{setup_commands: [command | rest]} = state) do
     new_state = cancel_timer(state)
     hci_bin = serialize(command)
@@ -224,6 +258,22 @@ defmodule BlueHeron.HCI.Transport do
   end
 
   @impl GenServer
+  # Handle CommandComplete for raw HCI commands (firmware download records)
+  def handle_cast(
+        {:transport_data, :hci, packet},
+        %{setup_complete: false, current: {:raw_hci, opcode, _bin}} = state
+      ) do
+    case packet do
+      %BlueHeron.HCI.Event.CommandComplete{opcode: ^opcode} ->
+        new_state = %{cancel_timer(state) | current: nil}
+        {:noreply, new_state, {:continue, :setup_transport}}
+
+      packet ->
+        Logger.error("Unknown HCI packet during firmware download: #{inspect(packet)}")
+        {:noreply, state}
+    end
+  end
+
   def handle_cast(
         {:transport_data, :hci, packet},
         %{setup_complete: false, current: %{opcode: opcode} = current} = state
@@ -234,7 +284,15 @@ defmodule BlueHeron.HCI.Transport do
         return_parameters: %{status: 0} = return
       } ->
         new_setup_params = Map.merge(state.setup_params, Map.delete(return, :status))
-        new_state = %{cancel_timer(state) | setup_params: new_setup_params, current: nil}
+        additional = maybe_vendor_init(current, new_setup_params, state)
+
+        new_state = %{
+          cancel_timer(state)
+          | setup_params: new_setup_params,
+            current: nil,
+            setup_commands: additional ++ state.setup_commands
+        }
+
         {:noreply, new_state, {:continue, :setup_transport}}
 
       %BlueHeron.HCI.Event.CommandComplete{
@@ -340,4 +398,21 @@ defmodule BlueHeron.HCI.Transport do
       state
     end
   end
+
+  # Check if we just completed ReadLocalVersion and need vendor-specific init
+  defp maybe_vendor_init(
+         %InformationalParameters.ReadLocalVersion{},
+         setup_params,
+         state
+       ) do
+    manufacturer = Map.get(setup_params, :manufacturer_name, 0)
+
+    if BroadcomInit.broadcom?(manufacturer) do
+      BroadcomInit.vendor_init_commands(setup_params, state.firmware_path)
+    else
+      []
+    end
+  end
+
+  defp maybe_vendor_init(_command, _setup_params, _state), do: []
 end

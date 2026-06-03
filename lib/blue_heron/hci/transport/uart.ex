@@ -41,6 +41,12 @@ defmodule BlueHeron.HCI.Transport.UART do
     GenServer.call(pid, :flush)
   end
 
+  @doc "Reconfigure UART settings (e.g., baud rate)"
+  @spec configure(GenServer.server(), keyword()) :: :ok | {:error, term()}
+  def configure(pid, opts) do
+    GenServer.call(pid, {:configure, opts})
+  end
+
   ## Server Callbacks
 
   @impl GenServer
@@ -60,6 +66,10 @@ defmodule BlueHeron.HCI.Transport.UART do
 
   def handle_call(:flush, _from, %{uart_pid: uart_pid} = state) do
     {:reply, UART.flush(uart_pid), state}
+  end
+
+  def handle_call({:configure, opts}, _from, %{uart_pid: uart_pid} = state) do
+    {:reply, UART.configure(uart_pid, opts), state}
   end
 
   @impl GenServer
