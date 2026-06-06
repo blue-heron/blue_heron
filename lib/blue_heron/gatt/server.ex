@@ -132,6 +132,14 @@ defmodule BlueHeron.GATT.Server do
       %ReadByGroupTypeRequest{uuid: @discover_all_primary_services} ->
         discover_all_primary_services(state, request)
 
+      %ReadByGroupTypeRequest{} ->
+        {state,
+         %ErrorResponse{
+           handle: request.starting_handle,
+           request_opcode: request.opcode,
+           error: :attribute_not_found
+         }}
+
       %ReadByTypeRequest{uuid: @find_included_services} ->
         find_included_services(state, request)
 
