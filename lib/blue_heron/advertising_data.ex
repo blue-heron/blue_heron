@@ -62,27 +62,27 @@ defmodule BlueHeron.AdvertisingData do
   @doc """
   Compose list of UUIDs AD structure
 
-      iex()> BlueHeron.AdvertisingData.incomplete_list_of_service_uuids([0x12, 0xab])
-      <<5, 2, 171, 0, 18, 0>>
+      iex()> BlueHeron.AdvertisingData.incomplete_list_of_service_uuids([0x180F, 0x180D])
+      <<5, 2, 13, 24, 15, 24>>
 
       iex()> BlueHeron.AdvertisingData.incomplete_list_of_service_uuids([0xF018E00E0ECE45B09617B744833D89BA])
       <<17, 6, 186, 137, 61, 131, 68, 183, 23, 150, 176, 69, 206, 14, 14, 224, 24,
         240>>
   """
   @spec incomplete_list_of_service_uuids([0 | pos_integer]) :: ad()
-  def incomplete_list_of_service_uuids([first | _] = list) when first <= 0xFF do
+  def incomplete_list_of_service_uuids([first | _] = list) when first <= 0xFFFF do
     list_binary =
       Enum.reduce(list, <<>>, fn
-        uuid, acc when uuid <= 0xFF -> <<uuid::little-16>> <> acc
+        uuid, acc when uuid <= 0xFFFF -> <<uuid::little-16>> <> acc
       end)
 
     <<byte_size(list_binary) + 1, @incomplete_list_of_16_bit_service_uuids, list_binary::binary>>
   end
 
-  def incomplete_list_of_service_uuids([first | _] = list) when first <= 0xFFFF do
+  def incomplete_list_of_service_uuids([first | _] = list) when first <= 0xFFFFFFFF do
     list_binary =
       Enum.reduce(list, <<>>, fn
-        uuid, acc when uuid <= 0xFFFF -> <<uuid::little-32>> <> acc
+        uuid, acc when uuid <= 0xFFFFFFFF -> <<uuid::little-32>> <> acc
       end)
 
     <<byte_size(list_binary) + 1, @incomplete_list_of_32_bit_service_uuids, list_binary::binary>>
@@ -100,22 +100,22 @@ defmodule BlueHeron.AdvertisingData do
   @doc """
   Compose list of UUIDs AD structure
 
-      iex()> BlueHeron.AdvertisingData.complete_list_of_service_uuids([0x12, 0xab])
-      <<5, 3, 171, 0, 18, 0>>
+      iex()> BlueHeron.AdvertisingData.complete_list_of_service_uuids([0x180F, 0x180D])
+      <<5, 3, 13, 24, 15, 24>>
   """
-  def complete_list_of_service_uuids([first | _] = list) when first <= 0xFF do
+  def complete_list_of_service_uuids([first | _] = list) when first <= 0xFFFF do
     list_binary =
       Enum.reduce(list, <<>>, fn
-        uuid, acc when uuid <= 0xFF -> <<uuid::little-16>> <> acc
+        uuid, acc when uuid <= 0xFFFF -> <<uuid::little-16>> <> acc
       end)
 
     <<byte_size(list_binary) + 1, @complete_list_of_16_bit_service_uuids, list_binary::binary>>
   end
 
-  def complete_list_of_service_uuids([first | _] = list) when first <= 0xFFFF do
+  def complete_list_of_service_uuids([first | _] = list) when first <= 0xFFFFFFFF do
     list_binary =
       Enum.reduce(list, <<>>, fn
-        uuid, acc when uuid <= 0xFFFF -> <<uuid::little-32>> <> acc
+        uuid, acc when uuid <= 0xFFFFFFFF -> <<uuid::little-32>> <> acc
       end)
 
     <<byte_size(list_binary) + 1, @complete_list_of_32_bit_service_uuids, list_binary::binary>>
